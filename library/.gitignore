@@ -1,3 +1,4 @@
-/__IGNORE
+# Don't track content of these folders
+__IGNORE/
 .DS_Store
 .htaccess
