@@ -120,6 +120,7 @@ function validateEmail($key) {
     global $db;
     $ehash = null; $email = null; $unix = null; $expired = true;
     $conn = new SQLite3($db);
+    $msg = '';
     $qry = "SELECT Email, Activation_Timestamp, Activation_Key FROM Accounts WHERE Is_Admin = 1 LIMIT 1;";
     $result = $conn->prepare($qry)->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
@@ -131,25 +132,26 @@ function validateEmail($key) {
     if ((intval($unix) + (15*60)) > time()) {
         $expired = false;
     } else {
-        echo "This activation email has expired. Please try again.";
-        return false;
+        $error .= "This activation email has expired. Please try again.";
+        return $error;
     }
     if (!$expired && hash_equals(hash("sha256", $key), $keyHash)) {
         $updQry = "UPDATE Accounts SET Email_Valid = 1 WHERE Is_Admin = 1;";
         if ($conn->prepare($updQry)->execute()) {
-            $msg = 'All set!';
             if(is_writable($root.'/admin/install.php')){
                 //Delete the file
-                unlink($root.'/admin/install.php');
+                if (!unlink($root.'/admin/install.php')) {
+                    error_log('install.php failed to delete.');
+                }
             }
             return true;
         } else {
-            echo 'Something went wrong. Please try again.';
-            return false;
+            $error .= 'Something went wrong. Please try again.';
+            return $error;
         }
     } else {
-        echo 'Credentials do no match or were set incorrectly.';
-        return false;
+        $error .= 'Credentials do no match or were set incorrectly.';
+        return $error;
     }
 }
 
@@ -476,6 +478,15 @@ if (isset($_POST['create_item'])) {
     require_once 'imgUpload';
     $dir = $root.'/assets/uploads/items/';
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
-    if (!$set['has_max_storage']) {$set['max_storage'] = false;}
+    if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
     $imgPath = uploadImage ($dir, $_FILES['image_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, $_POST['Title'], $set['max_storage']);
+    if ($set['auto_thumbs']) {
+        $newH = false;
+        $newW = $set['thumb_size'];
+        if ($set['thumb_size_axis'] == 'height') {
+            $newH = $set['thumb_size'];
+            $newW = false;
+        }
+        copyResizeImage($dir, $_POST['Title'].'_thumb', $_FILES['image_upload'], $newW, $newH);
+    }
 }

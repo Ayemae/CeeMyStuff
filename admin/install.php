@@ -1,8 +1,17 @@
 <?php 
 
+$showErrors = 1;
+
+if ($showErrors) {
+    ini_set('display_errors', '1');
+    ini_set('display_startup_errors', '1');
+    error_reporting(-1);
+}
+
 $root = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF'], 2);
 
 if (empty($_GET)) {
+mkdir($root.'/data', 755);
 $conn = new SQLite3($root.'/data/database.db');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Categories (
@@ -88,14 +97,14 @@ $conn->exec('INSERT INTO Settings (ID, Index_Order, Field, Key, Value, Type, Opt
     (4, 4, "Header Image", "header_img", null,"file",null),
     (5, 5, "Timezone", "timezone", "America/New_York", "text", null),
     (6, 6, "Social Media Button Format", "sm_format", "Icons", "select", "Icons, Text"),
-    (7, 7, "Collapse Menu on Mobile","collapse_menu","checked","checkbox", null),
+    (7, 7, "Collapse Menu on Mobile","mobile_collapse_menu","checked","checkbox", null),
     (8, 8, "Auto-Make Thumbnails","auto_thumbs","checked","checkbox", null),
     (9, 9, "Thumbnail Size (in pixels)","thumb_size","125","number", null),
     (10, 10, "Thumbnail Size Axis","thumb_size_axis","Height", "select", "Width, Height"),
     (11, 11, "Enable Max Image Dimensions","has_max_img_dimns","checked", "checkbox", null),
     (12, 12, "Max Image Dimensions (in pixels)", "max_img_dimns", "1200","number", null),
-    (13, 13, "Enable Max Image Storage Size","has_max_storage","checked", "checkbox", null),
-    (14, 14, "Max Image Storage Size (in Bytes)","max_storage","75000", "number", null)
+    (13, 13, "Enable Max Image Storage Size","has_max_img_storage","checked", "checkbox", null),
+    (14, 14, "Max Image Storage Size (in Bytes)","max_img_storage","750000", "number", null)
     ;');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Pages (

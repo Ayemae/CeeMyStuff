@@ -14,11 +14,12 @@ include $root.'/components/header.php';
     }?>
     
 <?php elseif (isset($_GET['key'])) : 
-if (validateEmail($_GET['key'])) : ?>
+$validation = validateEmail($_GET['key']);
+if (!$validation || is_string($validation)) : 
+    echo '<h2>Account validation failed.</h2><p>'.$validation.'</p>';
+else : ?>
     <h2>Account verified!</h2>
     <p><a href="index.php">Click here to login</a>.</p>
-<?php else : ?>
-    <p>Account verification failed.</p>
 <?php endif;
 elseif (isset($_GET['pw-reset']) && $_GET['pw-reset']=1) : ?>
 <form method="post">

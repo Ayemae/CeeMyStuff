@@ -145,12 +145,11 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
 
 
 function copyResizeImage($dir, $destImage, $oriImage, $newW, $newH, $resizeRatio=false, $crop=false) {
+  global $root;
   $destImgPublic = $dir.$destImage;
   $destImage = preg_replace("/[^A-Za-z0-9. \-_]/", '', $destImage);
   $destImage = str_replace(" ","-",$destImage);
-  $destImage = $_SERVER['DOCUMENT_ROOT'].$dir.$destImage;
-  $oriImage = $_SERVER['DOCUMENT_ROOT'].$oriImage; 
-
+  $oriImage = $root.$oriImage; 
   //get filetype
   $fileType = strtolower(pathinfo($oriImage,PATHINFO_EXTENSION));
   if($fileType == 'jpeg') $fileType = 'jpg';
@@ -161,6 +160,8 @@ function copyResizeImage($dir, $destImage, $oriImage, $newW, $newH, $resizeRatio
     case 'webp': $img = imagecreatefromwebp($oriImage); break;
     default : echo "Unsupported picture type!"; return;
   }
+  $destImage = $root.$dir.$destImage.$fileType;
+
     // Get dimensions
     $check = getimagesize($oriImage);
     $oriW = $check[0];
