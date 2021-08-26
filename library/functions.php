@@ -52,7 +52,7 @@ function stripHTML($str, $nl2br=false, $trim=true){
 
 function cleanServerPost($post){
     if (is_array($post)) {
-        foreach ($post AS &$key->$val) {
+        foreach ($post AS $key=>&$val) {
             // get type from marked html name attributes
             $t = substr($key,0,2);
             $val = trim($val);
@@ -508,15 +508,35 @@ if (isset($_POST['create_category'])) {
     global $db;
     $conn = new SQLite3($db);
     $set = serializeSettings();
-    $_POST = cleanServerPost($_POST);
-    if (!empty($_FILES)) {
-        require_once 'imgUpload';
-        $dir = $root.'/assets/uploads/items/';
-        if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
-        if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
-        $imgPath = uploadImage ($dir, $_FILES['header_image_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, $_POST['Title'], $set['max_storage']);
+    $cPost = cleanServerPost($_POST);
+    //TODO: get rid of the null imgPath value after testing
+    $imgPath = null;
+    // if (!empty($_FILES)) {
+    //     require_once 'imgUpload';
+    //     $dir = $root.'/assets/uploads/items/';
+    //     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
+    //     if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
+    //     $imgPath = uploadImage ($dir, $_FILES['header_image_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, $_POST['Title'], $set['max_storage']);
+    // }
+    $qry = 'INSERT INTO Categories (Name,Blurb,Header_Img_Path,Show_Images,Show_Titles,Show_Captions,Automate_Thumbs,Thumb_Size,Thumb_Size_Axis,Hidden,Format_ID) 
+    VALUES (?,?,?,?,?,?,?,?,?,?,?);';
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(1,$cPost['name'], SQLITE3_TEXT);
+    $stmt->bindValue(2,$cPost['b_blurb'], SQLITE3_TEXT);
+    $stmt->bindValue(3,$imgPath, SQLITE3_TEXT);
+    $stmt->bindValue(4,$cPost['n_show_images'], SQLITE3_INTEGER);
+    $stmt->bindValue(5,$cPost['n_show_titles'], SQLITE3_INTEGER);
+    $stmt->bindValue(6,$cPost['n_show_captions'], SQLITE3_INTEGER);
+    $stmt->bindValue(7,$cPost['n_create_thumbs'], SQLITE3_INTEGER);
+    $stmt->bindValue(8,$cPost['n_thumb_size'], SQLITE3_INTEGER);
+    $stmt->bindValue(9,$cPost['n_thumb_axis'], SQLITE3_INTEGER);
+    $stmt->bindValue(10,$cPost['n_hidden'], SQLITE3_INTEGER);
+    $stmt->bindValue(11,$cPost['n_format_id'], SQLITE3_INTEGER);
+    if ($stmt->execute()) {
+        $msg="Created!";
+    } else {
+        $msg="Creation failed.";
     }
-    
 }
 
 
@@ -539,4 +559,17 @@ if (isset($_POST['create_item'])) {
         }
         copyResizeImage($dir, $_POST['Title'].'_thumb', $_FILES['image_upload'], $newW, $newH);
     }
+}
+
+
+function getCatList() {
+    global $db;
+    $conn = new SQLite3($db);
+    $catList = array();
+    $qry = 'SELECT ID, Name FROM Categories;';
+    $result = $conn->prepare($qry)->execute();
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $catList[]=$row;
+    } 
+    return $catList;
 }

@@ -1,16 +1,3 @@
-<?php 
-$root = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF'], 2);
-include_once $root.'/components/info-head.php';
-$admin_panel = true;
-$page_title = 'Admin Panel';
-include $root.'/components/header.php';
-if (!$loggedIn && $admin_panel) {
-    kickOut();
-    exit();
-}
-?>
-
-<main>
 <h1>Create New Category</h1>
 
 <form method="post" enctype="multipart/form-data">
@@ -35,7 +22,7 @@ if (!$loggedIn && $admin_panel) {
     <ul class="form-list">
 
     <li>
-        <label for="show_images">Show Images:</label>
+        <label for="show_images">Show Item Images:</label>
         <select id="show_images" name="n_show_images">
             <option value="0">No</option>
             <option value="1" selected>Show Thumbnails</option>
@@ -44,7 +31,7 @@ if (!$loggedIn && $admin_panel) {
     </li>
 
     <li>
-        <label for="show_titles">Show Titles:</label>
+        <label for="show_titles">Show Item Titles:</label>
         <select id="show_titles" name="n_show_titles">
             <option value="0">No</option>
             <option value="2" selected>Yes</option>
@@ -52,7 +39,7 @@ if (!$loggedIn && $admin_panel) {
     </li>
 
     <li>
-        <label for="show_captions">Show Captions:</label>
+        <label for="show_captions">Show Item Captions:</label>
         <select id="show_captions" name="n_show_captions">
             <option value="0">No</option>
             <option value="1" selected>Show Truncated Captions</option>
@@ -61,17 +48,18 @@ if (!$loggedIn && $admin_panel) {
     </li>
 
     <li>
-        <label for="create-thumbnail">Auto-Create Thumbnails for this Category:</label>
-        <input type="checkbox" id="create-thumbnail" name="create_thumbnail" class="show-sib-chktoggle" value="checked" <?php echo ($set['auto_thumbs'] ? "checked=checked" : null );?>>
+        <label for="create-thumbs">Auto-Create Thumbnails for this Category:</label>
+        <input type="hidden" name="n_create_thumbs" value="0">
+        <input type="checkbox" id="create-thumbs" name="n_create_thumbs" class="show-sib-chktoggle" value="1" <?php echo ($set['auto_thumbs'] ? "checked=checked" : null );?>>
         <div class="show-on-chk">
             <ul class="form-list">
                 <li>
                     <label for="thumb_size">Choose default thumbnail size:</label>
-                    <input type="number" id="thumb_size" name="thumb_size" value="<?php echo ($set['thumb_size'] ? $set['thumb_size'] : 125 );?>">
+                    <input type="number" id="thumb_size" name="n_thumb_size" value="<?php echo ($set['thumb_size'] ? $set['thumb_size'] : 125 );?>">
                 </li>
                 <li>
                     <label for="thumb_axis">Axis of thumbnail size:</label>
-                    <select id="thumb_axis" name="thumb_axis">
+                    <select id="thumb_axis" name="n_thumb_axis">
                         <option value="0" <?echo ($set["thumb_size_axis"] == 'width' ? 'selected' : null);?>>Width</option>
                         <option value="1" <?echo ($set["thumb_size_axis"] == 'height' ? 'selected' : null);?>>Height</option>
                     </select>
@@ -82,15 +70,11 @@ if (!$loggedIn && $admin_panel) {
 
     <li>
             <label for="hidden"> Hide this category:</label>
-            <input type="checkbox" id="hidden" name="hidden">
+            <input type="hidden" id="hidden" name="n_hidden" value="0">
+            <input type="checkbox" id="hidden" name="n_hidden" value="1">
     </li>
     </ul>
-    
+    <input type="hidden" id="format_id" name="n_format_id" value='0'>
 
   <button name="create_category">Submit</button>
 </form>
-
-</main>
-
-<?php
-include $root.'/components/footer.php';

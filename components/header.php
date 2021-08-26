@@ -8,19 +8,18 @@
         <link  rel="stylesheet" href="admin.css">
     <?php endif; ?>
     <?php if ($page_title) :?>
-        <title><?php echo $page_title;?></title>
+        <title><?show($page_title);?></title>
     <?php endif; ?>
 </head>
 <body>
     <?php if ($page_title) :?>
-        <h2><?php echo $page_title;?></h2>
+        <h1><?show($page_title);?></h1>
     <?php endif; ?>
 
-    <?php if ($loggedIn) :?>
-        <form method="post">
-            <button name="logout">Logout</button>
-        </form>
-    <?php  endif; ?>
+    <?php if ($admin_panel) : 
+        include $root.'/admin/_components/menu.inc.php';
+    endif; ?>
+
 <?php if (isset($msg)) {
     echo $msg;
 }?>
