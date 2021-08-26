@@ -50,6 +50,30 @@ function stripHTML($str, $nl2br=false, $trim=true){
 }
 
 
+function cleanServerPost($post){
+    if (is_array($post)) {
+        foreach ($post AS &$key->$val) {
+            // get type from marked html name attributes
+            $t = substr($key,0,2);
+            $val = trim($val);
+            switch ($t) {
+                case 'b_':
+                    $val = nl2br($val);
+                    $val = iconv('UTF-8', 'ASCII//TRANSLIT', $val);
+                    $val = htmlentities($val);
+                    break;
+                case 'n_':
+                    $val = filter_var($val, FILTER_SANITIZE_NUMBER_INT);
+                    break;
+                default:
+                $val = htmlspecialchars($val);
+                break;
+            }
+            return $post;
+        }
+    }
+}
+
 if (isset($_POST['submit_credentials'])) {
 
     $msg= '';
@@ -454,7 +478,17 @@ function fetchSettings($arr=false) {
     return $settings;
 }
 
-
+function selectTimezone($selected = '') {
+    $timezones = timezone_identifiers_list();
+        $inputSelect= '<select name="timezone">';
+        foreach ($timezones AS $key=>$row) {
+            $inputSelect .='<option value="'.$key.'"';
+            $inputSelect .= ($key == $selected ? ' selected' : '');
+            $inputSelect .= '>'.$row.'</option>';
+        }  // endwhile;
+        $inputSelect.='</select>';
+return $inputSelect;
+}
 
 if (isset($_POST['save_settings'])) {
     global $db;
@@ -469,6 +503,22 @@ if (isset($_POST['save_settings'])) {
     }
     $msg= "Saved!";
 }
+
+if (isset($_POST['create_category'])) {
+    global $db;
+    $conn = new SQLite3($db);
+    $set = serializeSettings();
+    $_POST = cleanServerPost($_POST);
+    if (!empty($_FILES)) {
+        require_once 'imgUpload';
+        $dir = $root.'/assets/uploads/items/';
+        if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
+        if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
+        $imgPath = uploadImage ($dir, $_FILES['header_image_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, $_POST['Title'], $set['max_storage']);
+    }
+    
+}
+
 
 if (isset($_POST['create_item'])) {
     global $db;

@@ -1,3 +1,18 @@
-body {
+html * {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
     max-width: 100%;
+    font-family: Verdana, 'Geneva', Tahoma, Arial, sans-serif;
+}
+
+body {
+    line-height: 1.5em;
+}
+
+h1, h2, h3 {
+    font-family: 'Futura', Verdana, 'Geneva', Tahoma, Arial, sans-serif;
+    font-weight: normal;
 }

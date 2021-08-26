@@ -16,11 +16,23 @@ $conn = new SQLite3($root.'/data/database.db');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Categories (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Name TEXT NOT NULL,
-    Blurb TEXT,
     Index_Order INTEGER,
+    Name TEXT UNIQUE NOT NULL,
+    Blurb TEXT,
+    Header_Img_Path TEXT,
+    Show_Images INTEGER NOT NULL DEFAULT 1,
+    Show_Titles INTEGER NOT NULL DEFAULT 1,
+    Show_Captions INTEGER NOT NULL DEFAULT 1,
+    Automate_Thumbs INTEGER NOT NULL DEFAULT 1,
+    Thumb_Size INTEGER NOT NULL DEFAULT 125,
+    Thumb_Size_Axis INTEGER NOT NULL DEFAULT 0,
+    Hidden INTEGER NOT NULL DEFAULT 0,
     Format_ID INTEGER
 )');
+
+$conn->exec('INSERT INTO Categories (ID, Index_Order, Name, Blurb, Hidden)
+    VALUES 
+    (0, 0, "None", "Items that are not sorted into any category.", 1);');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Items (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -95,7 +107,7 @@ $conn->exec('INSERT INTO Settings (ID, Index_Order, Field, Key, Value, Type, Opt
     (2, 2, "Owner Name", "owner_name", "My Name", "text", null),
     (3, 3, "Initial Copyright Year", "c_year", "", "number", null),
     (4, 4, "Header Image", "header_img", null,"file",null),
-    (5, 5, "Timezone", "timezone", "America/New_York", "text", null),
+    (5, 5, "Timezone", "timezone", "America/New_York", "timezone", null),
     (6, 6, "Social Media Button Format", "sm_format", "Icons", "select", "Icons, Text"),
     (7, 7, "Collapse Menu on Mobile","mobile_collapse_menu","checked","checkbox", null),
     (8, 8, "Auto-Make Thumbnails","auto_thumbs","checked","checkbox", null),

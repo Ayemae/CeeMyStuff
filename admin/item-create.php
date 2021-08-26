@@ -45,9 +45,16 @@ if (!$loggedIn && $admin_panel) {
                 <input type="datetime-local" id="publish-date" name="publish_date">
             </div>
         <select id="category" name="category">
-            <option>None</option>
+            <option value="0">None</option>
         </select>
     </li>
+
+    <?php if (!$set['auto_thumbs']) :?>
+    <li>
+        <input type="checkbox" id="create-thumbnail" name="create_thumbnail" value="checked">
+        <label for="create-thumbnail"> Create Thumbnail</label>
+    </li>
+    <?php endif; ?>
 
   <button name="create_item">Submit</button>
 </form>
