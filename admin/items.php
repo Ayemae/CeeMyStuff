@@ -76,6 +76,13 @@ if (isset($_GET['itemid'])) {
         <input type="hidden" name="n_thumb_size_axis" value="<?show($catInfo['Thumb_Size_Axis'])?>">
     <?php endif; ?>
     </li>
+    
+    <li>
+        <label for="hidden">Hide this item:</hidden>
+        <input type="hidden" name="n_hidden" value="0">
+        <input type="checkbox" id="hidden" name="n_hidden" value="1">
+    </li>
+
     <input type="hidden" name="n_format_id" value="0">
   <button name="create_item">Submit</button>
 </form>

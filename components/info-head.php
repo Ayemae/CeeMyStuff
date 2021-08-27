@@ -1,16 +1,12 @@
 <?php 
+include_once(dirname(__FILE__).'/../library/validateAdmin.php');
 include_once(dirname(__FILE__).'/../library/functions.php');
-$page_title=null;$loggedIn=false;
-$set = serializeSettings();
-if(session_id() <= ''){
-    @session_start();
-    if (@validateAdmin(session_id(), $_SESSION['Key'])) {
-        $loggedIn=true;
-    }
-}
+if (!isset($set)) {$set = serializeSettings();}
 if (!$loggedIn && $admin_panel) {
+    error_log('Permissions invalid; kicking client out of admin area.');
     kickOut();
     exit();
 }
+$page_title=null;
 ?>
 

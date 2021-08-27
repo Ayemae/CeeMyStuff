@@ -50,7 +50,7 @@ function isAniGif($filename) {
 }
 
 function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $hIsSoft=false, $setName=false, $storageLimit=false) {
-  $root = '/home/lapsecomic/alyssadev/CeeMyStuff';
+  global $root;
   global $allowedFT;
     $dir = $root.$target_dir;
     $msg = "<div class='error'><h2>Invalid Image Upload</h2>";
@@ -59,16 +59,17 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
         //Create directory if does not exist. 'True' makes this recursive.
         mkdir($dir, 0755, true);
     };
-    
-    $target_file = $dir . basename($file["name"]);
-    $valid = true;
-    $imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
 
+    $imageFileType = strtolower(pathinfo(basename($file["name"]),PATHINFO_EXTENSION));
     if ($setName) {
-      $setName = preg_replace("/[^A-Za-z0-9 \-_]/", '', $setName);
-      $setName = str_replace(" ","-",$setName);
-      $target_file = $dir.$setName.".".$imageFileType;
-  }
+      $filename = $setName;
+    } else {
+      $filename = str_replace(".".$imageFileType, "", basename($file["name"]));
+    }
+    $filename = preg_replace("/[^A-Za-z0-9 \-_]/", '', $filename);
+    $filename = str_replace(" ","-",$filename);
+    $target_file = $dir.$filename.".".$imageFileType;
+    $valid = true;
     
     $check = getimagesize($file["tmp_name"]);
     $upldWidth = $check[0];
@@ -95,7 +96,8 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
     // if there is no $setName for this file
     if ($file["tmp_name"] && !$setName) {
       // Check if filename already exists within folder
-      if (file_exists($target_file)) {
+
+      if (file_exists($dir.basename($file["name"]))) {
         $msg .= "Sorry, a file with this name already exists.<br/>";
         $valid = false;
       }
@@ -134,23 +136,29 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
     // Check if $valid is false
     if (!$valid) {
       $msg .= "Your image could not be uploaded.</div>";
-      echo $msg;
+      $_SESSION['Msg'] = $msg;
     // if everything is ok, try to upload file
     } else {
       if (move_uploaded_file($file["tmp_name"], $target_file)) {
-            return $target_dir.basename($file["name"]);
+            if (file_exists($dir.basename($file["name"]))) {
+              return $target_dir.basename($file["name"]);
+            } else {
+              $msg = "<div class='error'><h2>Image Upload Failed</h2>There was an error uploading your image. Please try again.</div>";
+              $_SESSION['Msg'] = $msg;
+              return false;
+            }
       } else {
         $msg = "<div class='error'><h2>Image Upload Failed</h2>There was an error uploading your image. Please try again.</div>";
+        $_SESSION['Msg'] = $msg;
         return false;
       }
     }
   };
 
 
-function copyResizeImage($dir, $destImage, $oriImage, $newW, $newH, $resizeRatio=false, $crop=false) {
-  $destImgPublic = $dir.$destImage;
-  $destImage = preg_replace("/[^A-Za-z0-9. \-_]/", '', $destImage);
-  $destImage = str_replace(" ","-",$destImage);
+function mkThumb($dir, $destImage, $oriImage, $newW, $newH, $resizeRatio=false, $crop=false) {
+  global $root;
+  $oriImage = $root.$oriImage; 
 
   //get filetype
   $fileType = strtolower(pathinfo($oriImage,PATHINFO_EXTENSION));
@@ -160,16 +168,23 @@ function copyResizeImage($dir, $destImage, $oriImage, $newW, $newH, $resizeRatio
     case 'jpg': $img = imagecreatefromjpeg($oriImage); break;
     case 'png': $img = imagecreatefrompng($oriImage); break;
     case 'webp': $img = imagecreatefromwebp($oriImage); break;
-    default : echo "<br/>Thumbnail creation does not support ".$fileType." images."; return;
+    default : $_SESSION['Msg'] = "Thumbnail creation does not support ".$fileType." images."; return;
   }
-  $destImage = $dir.$destImage.'.'.$fileType;
+  $destImage = preg_replace("/[^A-Za-z0-9. \-_]/", '', $destImage);
+  $destImage = str_replace(" ","-",$destImage);
+  $destImage = str_replace('.'.$fileType, "_thumb.".$fileType, $destImage);
+  $destImgPublic = $dir.$destImage;
+  $destImage = $root.$dir.$destImage;
 
     // Get dimensions
     $check = getimagesize($oriImage);
     $oriW = $check[0];
     $oriH = $check[1];
-    if($oriW < $newW || $oriH < $newH) {
-      echo "Uploaded image is smaller than the thumbnail size. Thumbnail could not be created.";
+    if (!$oriW || !$oriH) {
+      $_SESSION['Msg'] = "Image is invalid. Cannot create thumbnail.";
+      return;
+    } elseif ($oriW < $newW || $oriH < $newH) {
+      $_SESSION['Msg'] = "Uploaded image is smaller than the thumbnail size. Thumbnail could not be created.";
       return;
     }
 
@@ -213,5 +228,10 @@ function copyResizeImage($dir, $destImage, $oriImage, $newW, $newH, $resizeRatio
     case 'png': imagepng($newImg, $destImage); break;
     case 'webp': imagewebp($newImg, $destImage); break;
   }
-  return $destImgPublic;
+  if (!$destImgPublic) {
+    $_SESSION['Msg'] = 'Thumbnail creation failed.';
+    return false;
+  } else {
+    return $destImgPublic;
+  }
 }

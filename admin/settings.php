@@ -3,14 +3,6 @@ $admin_panel = true;
 include_once '../components/info-head.php';
 $page_title = 'Settings';
 include '../components/header.php';
-
-// $conn = new SQLite3($root.'/data/database.db');
-// if ($conn->exec('UPDATE Settings SET Type="timezone" WHERE ID=5;')) {
-//     echo 'yay';
-// } else {
-//     'boo';
-// }
-
 $settings = fetchSettings();
 ?>
 

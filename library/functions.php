@@ -44,7 +44,7 @@ $set = serializeSettings();
 
 $root = $_SERVER['DOCUMENT_ROOT'].$set['dir'];
 $baseURL = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$set['dir'];
-$route = $baseURL.dirname($_SERVER['PHP_SELF']);
+$route = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].dirname($_SERVER['PHP_SELF']);
 
 function show($input) {
     if ($input) {
@@ -452,30 +452,6 @@ if (isset($_POST['logout'])) {
 };
 
 
-function validateAdmin($id, $key) {
-    if (!isset($key) || !$key) {
-        session_unset();
-        session_destroy();
-        return false;
-    } else {
-     global $db;
-     $conn = NEW SQLite3($db);
-     $qry = 'SELECT Curr_Sess_Key FROM Accounts WHERE Is_Admin = 1 LIMIT 1;';
-     $result = $conn->prepare($qry)->execute();
-     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-         $storedKey = $row['Curr_Sess_Key'];
-     }
-     $currKey = hash("SHA256", $_SERVER['HTTP_USER_AGENT'].$id);
-     if (!hash_equals($key, $currKey) || !hash_equals($storedKey, $currKey)) {
-        session_unset();
-        session_destroy();
-        return false;
-     }
-     return true;
-    }
-}
-
-
 function fetchSettings($arr=false) {
     global $db;
     $conn = new SQLite3($db);
@@ -594,7 +570,7 @@ if (isset($_POST['create_item'])) {
                 $newH = $cPost['n_thumb_size'];
                 $newW = false;
             }
-            copyResizeImage($dir, $_FILES['img_upload']['name'].'_thumb', $imgPath, $newW, $newH);
+            $imgThumbPath = mkThumb($dir, $_FILES['img_upload']['name'], $imgPath, $newW, $newH);
         }
     } else {
         echo 'there was no image.';
@@ -605,15 +581,17 @@ if (isset($_POST['create_item'])) {
     } else {
         $pdtUnix = time();
     }
-    $qry = "INSERT INTO Items (Cat_ID,Title,Img_Path,Caption,Publish_Timestamp,Format_ID)
-    VALUES (?,?,?,?,?,?);";
+    $qry = "INSERT INTO Items (Cat_ID,Title,Img_Path,Img_Thumb_Path,Caption,Publish_Timestamp,Format_ID,Hidden)
+    VALUES (?,?,?,?,?,?,?,?);";
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(1,$cPost['n_cat_id'], SQLITE3_INTEGER);
     $stmt->bindValue(2,$cPost['title'], SQLITE3_TEXT);
     $stmt->bindValue(3,$imgPath, SQLITE3_TEXT);
-    $stmt->bindValue(4,$cPost['b_caption'], SQLITE3_TEXT);
-    $stmt->bindValue(5,$pdtUnix, SQLITE3_INTEGER);
-    $stmt->bindValue(6,$cPost['n_format_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(4,$imgThumbPath, SQLITE3_TEXT);
+    $stmt->bindValue(5,$cPost['b_caption'], SQLITE3_TEXT);
+    $stmt->bindValue(6,$pdtUnix, SQLITE3_INTEGER);
+    $stmt->bindValue(7,$cPost['n_format_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(8,$cPost['n_hidden'], SQLITE3_INTEGER);
     if ($stmt->execute()) {
         $msg="Created!";
     } else {
@@ -650,6 +628,7 @@ function getCatInfo($id) {
 
 function getCatItems($id) {
     global $db;
+    global $set;
     $items = array();
     $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
     $conn = new SQLite3($db);
@@ -659,6 +638,11 @@ function getCatItems($id) {
     $result = $stmt->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         $row['Caption'] = html_entity_decode($row['Caption']);
+        $row['Img_Path'] = $set['dir'].$row['Img_Path'];
+        if (!$row['Img_Thumb_Path']) {
+            $row['Img_Thumb_Path'] = $row['Img_Path'];
+        }
+        $row['Img_Thumb_Path'] = $set['dir'].$row['Img_Thumb_Path'];
         $items[] = $row;
     } 
     return $items;

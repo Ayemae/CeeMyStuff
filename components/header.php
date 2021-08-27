@@ -20,7 +20,12 @@
         include '_components/menu.inc.php';
     endif; ?>
 
-<?php if (isset($msg)) {
+<?php 
+if (isset($_SESSION['Msg'])) {
+    echo $_SESSION['Msg'];
+    unset($_SESSION['Msg']);
+}
+if (isset($msg)) {
     echo $msg;
 }?>
     
