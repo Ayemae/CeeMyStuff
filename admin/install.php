@@ -43,7 +43,8 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Items (
     Publish_Timestamp INTEGER,
     Index_Order INTEGER,
     Cat_Index_Order INTEGER,
-    Format_ID INTEGER
+    Format_ID INTEGER,
+    Hidden INTEGER
 )');
 
 

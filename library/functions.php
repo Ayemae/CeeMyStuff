@@ -74,6 +74,37 @@ function cleanServerPost($post){
     }
 }
 
+// Snippet from PHP Share: http://www.phpshare.org
+function formatSizeUnits($bytes)
+{
+    if ($bytes >= 1073741824)
+    {
+        $bytes = number_format($bytes / 1073741824, 2) . ' GB';
+    }
+    elseif ($bytes >= 1048576)
+    {
+        $bytes = number_format($bytes / 1048576, 2) . ' MB';
+    }
+    elseif ($bytes >= 1024)
+    {
+        $bytes = number_format($bytes / 1024, 2) . ' KB';
+    }
+    elseif ($bytes > 1)
+    {
+        $bytes = $bytes . ' bytes';
+    }
+    elseif ($bytes == 1)
+    {
+        $bytes = $bytes . ' byte';
+    }
+    else
+    {
+        $bytes = '0 bytes';
+    }
+
+    return $bytes;
+}
+
 if (isset($_POST['submit_credentials'])) {
 
     $msg= '';
@@ -544,20 +575,48 @@ if (isset($_POST['create_item'])) {
     global $db;
     $conn = new SQLite3($db);
     $set = serializeSettings();
-    $_POST = array_map('stripHTML', $_POST);
-    require_once 'imgUpload';
+    $cPost = cleanServerPost($_POST);
+    require_once 'imgUpload.php';
     $dir = $root.'/assets/uploads/items/';
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
     if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
-    $imgPath = uploadImage ($dir, $_FILES['image_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, $_POST['Title'], $set['max_storage']);
-    if ($set['auto_thumbs']) {
-        $newH = false;
-        $newW = $set['thumb_size'];
-        if ($set['thumb_size_axis'] == 'height') {
-            $newH = $set['thumb_size'];
-            $newW = false;
+    if ($_FILES['img_upload']['name']) {
+        $_FILES['img_upload']['name'] = stripHTML($_FILES['img_upload']['name']);
+        $imgPath = uploadImage ($dir, $_FILES['img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage']);
+        if (!$imgPath) {
+            return;
         }
-        copyResizeImage($dir, $_POST['Title'].'_thumb', $_FILES['image_upload'], $newW, $newH);
+        if ($cPost['create_thumbnail']) {
+            $newH = false;
+            $newW = $cPost['n_thumb_size'];
+            if ($cPost['n_thumb_size_axis'] === 1) {
+                $newH = $cPost['n_thumb_size'];
+                $newW = false;
+            }
+            copyResizeImage($dir, $_FILES['img_upload']['name'].'_thumb', $imgPath, $newW, $newH);
+        }
+    } else {
+        echo 'there was no image.';
+        return;
+    }
+    if ($cPost['publish_datetime']) {
+        $pdtUnix = strtotime($cPost['publish_datetime']);
+    } else {
+        $pdtUnix = time();
+    }
+    $qry = "INSERT INTO Items (Cat_ID,Title,Img_Path,Caption,Publish_Timestamp,Format_ID)
+    VALUES (?,?,?,?,?,?);";
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(1,$cPost['n_cat_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(2,$cPost['title'], SQLITE3_TEXT);
+    $stmt->bindValue(3,$imgPath, SQLITE3_TEXT);
+    $stmt->bindValue(4,$cPost['b_caption'], SQLITE3_TEXT);
+    $stmt->bindValue(5,$pdtUnix, SQLITE3_INTEGER);
+    $stmt->bindValue(6,$cPost['n_format_id'], SQLITE3_INTEGER);
+    if ($stmt->execute()) {
+        $msg="Created!";
+    } else {
+        $msg="Creation failed.";
     }
 }
 
@@ -572,4 +631,32 @@ function getCatList() {
         $catList[]=$row;
     } 
     return $catList;
+}
+
+function getCatInfo($id) {
+    global $db;
+    $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
+    $conn = new SQLite3($db);
+    $qry = 'SELECT * FROM Categories WHERE ID = :id LIMIT 1;';
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+    $result = $stmt->execute();
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $row['Blurb'] = html_entity_decode($row['Blurb']);
+        return $row;
+    } 
+}
+
+function getCatItems($id) {
+    global $db;
+    $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
+    $conn = new SQLite3($db);
+    $qry = 'SELECT * FROM Items WHERE Cat_ID = :catid;';
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(':catid', $id, SQLITE3_INTEGER);
+    $result = $stmt->execute();
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $row['Caption'] = html_entity_decode($row['Caption']);
+        return $row;
+    } 
 }

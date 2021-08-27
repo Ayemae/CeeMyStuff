@@ -4,13 +4,14 @@ include_once $root.'/components/info-head.php';
 $admin_panel = true;
 $page_title = 'Admin Panel';
 include $root.'/components/header.php';
-if (!$loggedIn && $admin_panel) {
-    kickOut();
-    exit();
-}
+// if (!$loggedIn && $admin_panel) {
+//     kickOut();
+//     exit();
+// }
 ?>
 
 <main>
+    <?php $catList = getCatList(); ?>
 <h1>Create New Item</h1>
 
 <form method="post" enctype="multipart/form-data">
@@ -26,7 +27,7 @@ if (!$loggedIn && $admin_panel) {
 
     <li>
         <label for="caption">Caption:</label>
-        <textarea name="caption"></textarea>
+        <textarea id="caption" name="b_caption"></textarea>
     </li>
 
     <li>
@@ -44,8 +45,12 @@ if (!$loggedIn && $admin_panel) {
                 <label for="publish-date">Choose a date/time:</label>
                 <input type="datetime-local" id="publish-date" name="publish_date">
             </div>
+</li>
+    <li>
         <select id="category" name="category">
-            <option value="0">None</option>
+            <?php foreach ($catList AS $cat) : ?>
+                <option value="<?show($cat['ID'])?>"><?show($cat['Name'])?></option>
+            <?php endforeach; ?>
         </select>
     </li>
 

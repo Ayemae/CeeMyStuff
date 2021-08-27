@@ -5,23 +5,25 @@ $allowedFT = array('jpg','jpeg','png','gif','webp','svg');
 function is_image($file) {
   global $allowedFT;
   $whitelist = array();
-  foreach ($allowedFT AS $ft) {
-    if ($ft === 'svg') ($ft = $ft.'+xml');
-          $$whitelist[] = 'image/'.$ft;
+  foreach ($allowedFT AS &$ft) {
+    if ($ft === 'svg') {
+        $ft = $ft.'+xml';}
+          $whitelist[] = 'image/'.$ft;
   }
   if(function_exists('finfo_open')){    //(PHP >= 5.3.0, PECL fileinfo >= 0.1.0)
      $fileinfo = finfo_open(FILEINFO_MIME_TYPE);
       if (!in_array(finfo_file($fileinfo, $file['tmp_name']), $whitelist)) {
         return false;
-      }
-      }else if(function_exists('mime_content_type')){  //supported (PHP 4 >= 4.3.0, PHP 5)
+      } else {return true;}
+  } else if(function_exists('mime_content_type')) {  //supported (PHP 4 >= 4.3.0, PHP 5)
       if (!in_array(mime_content_type($file['tmp_name']), $whitelist)) {
         return false;
-      }
-      }else{
+      } else {return true;}
+  } else {
      if (!@getimagesize($file['tmp_name'])) {  //@ - for hide warning when image not valid
+        echo 'fails @ 3';
         return false;
-     }
+     } else {return true;}
      return true;
   }
 }
@@ -48,7 +50,7 @@ function isAniGif($filename) {
 }
 
 function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $hIsSoft=false, $setName=false, $storageLimit=false) {
-    $dir = $_SERVER['DOCUMENT_ROOT'].$target_dir;
+    $dir = $target_dir;
     global $allowedFT;
     $msg = "<div class='error'><h2>Invalid Image Upload</h2>";
     //Check if the directory already exists.
@@ -68,15 +70,16 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
   }
     
     $check = getimagesize($file["tmp_name"]);
-    $width = $check[0];
+    $upldWidth = $check[0];
     $height = $check[1];
     
     // Check if image file is a actual image or fake image
-    if($check && is_image($file["tmp_name"])) {
+    if($check && is_image($file)) {
     $valid = true;
     } else {
       $msg .= "File is not an image.<br/>";
     $valid = false;
+    return false;
   };
  
     // Allow certain file formats
@@ -89,43 +92,42 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
       $valid = false;
     };
     // if there is no $setName for this file
-    if ($file_input["tmp_name"] && !$setName) {
+    if ($file["tmp_name"] && !$setName) {
       // Check if filename already exists within folder
       if (file_exists($target_file)) {
         $errorMsg .= "Sorry, a file with this name already exists.<br/>";
-        $uploadOk = false;
+        $valid = false;
       }
         };
     // if file is not an animated gif, check the size
-    if ($imageFileType !== 'gif' && isAniGif($file["tmp_name"]) == false) {
+    if ($imageFileType != 'gif' && !isAniGif($file["tmp_name"])) {
       if ($w || $h) {
         $sizeError = "";
-        if ($w && !$wIsSoft && $width != $w) {
-            $sizeError = $sizeError.''.$w.' pixels in width';
+        if ($w) {
+          if (!$wIsSoft && ($upldWidth != $w)) {
+            $sizeError .= $w.' pixels in width';
+            $valid = false;
+            } else if ($wIsSoft && ($upldWidth > $w)) {
+            $sizeError .= 'less than '.$w.' pixels in width';
             $valid = false;
             };
-        if ($w && $wIsSoft && $width < $w) {
-            $sizeError = $sizeError.'less than '.$w.' pixels in width';
-            $valid = false;
+        }
+        if ($w && $h && $sizeError) {
+            $sizeError .= ' and ';
             };
-        if ($w && $h) {
-            $sizeError = $sizeError.' and ';
+          if ($h) {
+            if ($h && !$hIsSoft && $height != $h) {
+              $sizeError .= $h.' pixels in height';
+              $valid = false;
+            } else if ($h && $hIsSoft && $height > $h) {
+              $sizeError .= 'less than '.$h.' pixels in height';
+              $valid = false;
             };
-        if ($h && !$hIsSoft && $height != $h) {
-            $sizeError = $sizeError.''.$h.' pixels in height';
-            $valid = false;
-            };
-        if ($h && $hIsSoft && $height < $h) {
-            $sizeError = $sizeError.'less than '.$h.' pixels in height';
-            $valid = false;
-            };
-        if ($sizeError && $valid == 0) {
+          }
+        if ($sizeError && !$valid) {
             $sizeError= "Image must be ".$sizeError.".<br/>";
             $msg .= $sizeError;
         };
-    } elseif ($width > 1800 || $height > 6000) {
-      $msg .= 'Uploaded images can be no bigger than 1800 pixels in width or 6000 pixels in height.';
-        $valid = false;
     }
   }
     // Check if $valid is false
@@ -145,29 +147,28 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
 
 
 function copyResizeImage($dir, $destImage, $oriImage, $newW, $newH, $resizeRatio=false, $crop=false) {
-  global $root;
   $destImgPublic = $dir.$destImage;
   $destImage = preg_replace("/[^A-Za-z0-9. \-_]/", '', $destImage);
   $destImage = str_replace(" ","-",$destImage);
-  $oriImage = $root.$oriImage; 
+
   //get filetype
   $fileType = strtolower(pathinfo($oriImage,PATHINFO_EXTENSION));
-  if($fileType == 'jpeg') $fileType = 'jpg';
+  if($fileType == 'jpeg') {$fileType = 'jpg';}
   switch($fileType){
     case 'gif': $img = imagecreatefromgif($oriImage); break;
     case 'jpg': $img = imagecreatefromjpeg($oriImage); break;
     case 'png': $img = imagecreatefrompng($oriImage); break;
     case 'webp': $img = imagecreatefromwebp($oriImage); break;
-    default : echo "Unsupported picture type!"; return;
+    default : echo "<br/>Thumbnail creation does not support ".$fileType." images."; return;
   }
-  $destImage = $root.$dir.$destImage.$fileType;
+  $destImage = $dir.$destImage.'.'.$fileType;
 
     // Get dimensions
     $check = getimagesize($oriImage);
     $oriW = $check[0];
     $oriH = $check[1];
     if($oriW < $newW || $oriH < $newH) {
-      echo "Uploaded image is too small.";
+      echo "Uploaded image is smaller than the thumbnail size. Thumbnail could not be created.";
       return;
     }
 
