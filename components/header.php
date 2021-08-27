@@ -17,7 +17,7 @@
     <?php endif; ?>
 
     <?php if ($admin_panel) : 
-        include $root.'/admin/_components/menu.inc.php';
+        include '_components/menu.inc.php';
     endif; ?>
 
 <?php if (isset($msg)) {

@@ -8,11 +8,42 @@ if ($showErrors) {
     error_reporting(-1);
 }
 
-$root = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF'], 2);
+// $root = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF'], 2);
 
 if (empty($_GET)) {
-mkdir($root.'/data', 755);
-$conn = new SQLite3($root.'/data/database.db');
+mkdir('../data', 755);
+$conn = new SQLite3('../data/database.db');
+
+
+$conn->exec('CREATE TABLE IF NOT EXISTS Settings (
+    ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    Field TEXT UNIQUE,
+    Key TEXT UNIQUE,
+    Value TEXT,
+    Type TEXT,
+    Description TEXT,
+    Options TEXT,
+    Index_Order INTEGER
+)');
+
+$conn->exec('INSERT INTO Settings (ID, Index_Order, Field, Key, Value, Type, Description, Options)
+    VALUES 
+    (1, 3, "Sub-directory", "dir", "", "text", "If your CeeMyStuff site is in a subdirectory, write it in here.", null),
+    (2, 1, "Site Name", "site_name", "My Portfolio", "text", null, null),
+    (3, 2, "Owner Name", "owner_name", "My Name", "text", "Your name, or the name of the group this site belongs to.", null),
+    (4, 4, "Initial Copyright Year", "c_year", "", "number", null, null),
+    (5, 5, "Header Image", "header_img", null, "file", "If you want to use a header image, upload it here.",null),
+    (6, 6, "Timezone", "timezone", "America/New_York", "timezone", null,null),
+    (7, 7, "Social Media Button Format", "sm_format", "Icons", "select", "How your social media buttons will display.", "Icons, Text"),
+    (8, 8, "Collapse Menu on Mobile","mobile_collapse_menu","checked","checkbox", null, null),
+    (9, 9, "Automate Thumbnails by Default","auto_thumbs","checked","checkbox", "If you prefer that categories default to automatically making thumbnails.", null),
+    (10, 10, "Thumbnail Size (in pixels)","thumb_size","125","number", null, null),
+    (11, 11, "Thumbnail Size Axis","thumb_size_axis","width", "select", "Is your thumbnail size restriction for its width, or for its height?", "Width, Height"),
+    (12, 12, "Enable Max Image Dimensions","has_max_img_dimns","checked", "checkbox", "Enable a maximum height/width on the images you can upload.", null),
+    (13, 13, "Max Image Dimensions (in pixels)", "max_img_dimns", "2400","number", null, null),
+    (14, 14, "Enable Max Image Storage Size","has_max_img_storage","checked", "checkbox", "Enable a maximum on how much storage a single image upload can take up.", null),
+    (15, 15, "Max Image Storage Size (in Bytes)","max_img_storage","750000", "number", null, null)
+    ;');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Categories (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -39,6 +70,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Items (
     Cat_ID INTEGER,
     Title TEXT NOT NULL,
     Img_Path TEXT,
+    Img_Thumb_Path TEXT,
     Caption TEXT,
     Publish_Timestamp INTEGER,
     Index_Order INTEGER,
@@ -92,33 +124,6 @@ $conn->exec('INSERT INTO Accounts (
     null);'
     );
 
-$conn->exec('CREATE TABLE IF NOT EXISTS Settings (
-    ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Field TEXT UNIQUE,
-    Key TEXT UNIQUE,
-    Value TEXT,
-    Type TEXT,
-    Options TEXT,
-    Index_Order INTEGER
-)');
-
-$conn->exec('INSERT INTO Settings (ID, Index_Order, Field, Key, Value, Type, Options)
-    VALUES 
-    (1, 1, "Site Name", "site_name", "My Portfolio", "text", null),
-    (2, 2, "Owner Name", "owner_name", "My Name", "text", null),
-    (3, 3, "Initial Copyright Year", "c_year", "", "number", null),
-    (4, 4, "Header Image", "header_img", null,"file",null),
-    (5, 5, "Timezone", "timezone", "America/New_York", "timezone", null),
-    (6, 6, "Social Media Button Format", "sm_format", "Icons", "select", "Icons, Text"),
-    (7, 7, "Collapse Menu on Mobile","mobile_collapse_menu","checked","checkbox", null),
-    (8, 8, "Auto-Make Thumbnails","auto_thumbs","checked","checkbox", null),
-    (9, 9, "Thumbnail Size (in pixels)","thumb_size","125","number", null),
-    (10, 10, "Thumbnail Size Axis","thumb_size_axis","Height", "select", "Width, Height"),
-    (11, 11, "Enable Max Image Dimensions","has_max_img_dimns","checked", "checkbox", null),
-    (12, 12, "Max Image Dimensions (in pixels)", "max_img_dimns", "1200","number", null),
-    (13, 13, "Enable Max Image Storage Size","has_max_img_storage","checked", "checkbox", null),
-    (14, 14, "Max Image Storage Size (in Bytes)","max_img_storage","750000", "number", null)
-    ;');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Pages (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -210,10 +215,10 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Tags (
 // )');
 }
 
-include_once $root.'/components/info-head.php';
+include_once '../library/functions.php';
 $admin_panel = true;
 $page_title = 'Install CeeMyStuff';
-include $root.'/components/header.php';
+include '../components/header.php';
 ?>
 
 
@@ -242,4 +247,4 @@ include $root.'/components/header.php';
 </main>
 
 <?php
-include $root.'/components/footer.php';
+include '../components/footer.php';

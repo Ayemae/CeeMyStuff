@@ -1,12 +1,10 @@
 <?php 
-$root = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF'], 2);
-include_once $root.'/components/info-head.php';
 $admin_panel = true;
-include $root.'/components/header.php';
+include_once '../components/info-head.php';
+include '../components/header.php';
 ?>
 
 <main>
-
 <?php if (empty($_GET)) :
 
  if (!$loggedIn) {
@@ -31,4 +29,4 @@ elseif (isset($_GET['pw-reset']) && $_GET['pw-reset']=1) : ?>
 </main>
 
 <?php
-include $root.'/components/footer.php';
+include '../components/footer.php';

@@ -1,18 +1,50 @@
 <?php
-
 $showErrors = 1;
-
 if ($showErrors) {
     ini_set('display_errors', '1');
     ini_set('display_startup_errors', '1');
     error_reporting(-1);
 }
 
-$root = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF'], 2);
-$baseURL = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'];
-$route = $baseURL.dirname($_SERVER['PHP_SELF']);
+$db = '../data/database.db';
 
-$db = $root.'/data/database.db';
+function serializeSettings() {
+    global $db;
+    $conn = new SQLite3($db);
+    $settings = array();
+    $qry = 'SELECT Key, Value, Type FROM Settings;';
+    $stmt = $conn->prepare($qry);
+    $result = $stmt->execute();
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        switch ($row['Type']) {
+            case 'checkbox':
+                switch ($row['Value']) {
+                    case "checked":
+                        $row['Value'] = true;
+                        break;
+                    default: 
+                    $row['Value'] = false;
+                }
+            break;
+            case 'number':
+                if (is_numeric($row['Value'])) {
+                    $row['Value'] = intval($row['Value']);
+                }
+                break;
+            case 'select':
+                $row['Value'] = strtolower($row['Value']);
+                break;
+        }
+        $settings[$row['Key']] = $row['Value'];
+    }
+    return $settings;
+}
+
+$set = serializeSettings();
+
+$root = $_SERVER['DOCUMENT_ROOT'].$set['dir'];
+$baseURL = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$set['dir'];
+$route = $baseURL.dirname($_SERVER['PHP_SELF']);
 
 function show($input) {
     if ($input) {
@@ -164,7 +196,7 @@ if (isset($_POST['submit_credentials'])) {
                 $msg .= "<p>The email to validate your account failed to send. Please try again.</p>";
              }
              //FOR TESTING 
-             echo $emailHeaders.'<br/><br/>'.$body;
+             //echo $body;
         } else {
             $msg = '<p>Credential submission failed. Please try again.</p>';
         }
@@ -193,9 +225,9 @@ function validateEmail($key) {
     if (!$expired && hash_equals(hash("sha256", $key), $keyHash)) {
         $updQry = "UPDATE Accounts SET Email_Valid = 1 WHERE Is_Admin = 1;";
         if ($conn->prepare($updQry)->execute()) {
-            if(is_writable($root.'/admin/install.php')){
+            if(is_writable('install.php')){
                 //Delete the file
-                if (!unlink($root.'/admin/install.php')) {
+                if (!unlink('install.php')) {
                     error_log('install.php failed to delete.');
                 }
             }
@@ -315,38 +347,6 @@ if (isset($_POST['reset_password'])) {
         }
 }
 
-function serializeSettings() {
-    global $db;
-    $conn = new SQLite3($db);
-    $settings = array();
-    $qry = 'SELECT Key, Value, Type FROM Settings;';
-    $stmt = $conn->prepare($qry);
-    $result = $stmt->execute();
-    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-        switch ($row['Type']) {
-            case 'checkbox':
-                switch ($row['Value']) {
-                    case "checked":
-                        $row['Value'] = true;
-                        break;
-                    default: 
-                    $row['Value'] = false;
-                }
-            break;
-            case 'number':
-                if (is_numeric($row['Value'])) {
-                    $row['Value'] = intval($row['Value']);
-                }
-                break;
-            case 'select':
-                $row['Value'] = strtolower($row['Value']);
-                break;
-        }
-        $settings[$row['Key']] = $row['Value'];
-    }
-    return $settings;
-}
-
 if (isset($_POST['login'])) {
     global $db;
     $conn = new SQLite3($db);
@@ -439,6 +439,7 @@ function logout() {
 
 
 function kickOut() {
+    global $baseURL;
     header('Location: '.$baseURL);
     // if header fails, do it with Javascript instead:
         echo '<script>window.location.replace("'.$baseURL.'")</script>';
@@ -537,8 +538,8 @@ if (isset($_POST['save_settings'])) {
 
 if (isset($_POST['create_category'])) {
     global $db;
+    global $set;
     $conn = new SQLite3($db);
-    $set = serializeSettings();
     $cPost = cleanServerPost($_POST);
     //TODO: get rid of the null imgPath value after testing
     $imgPath = null;
@@ -573,11 +574,11 @@ if (isset($_POST['create_category'])) {
 
 if (isset($_POST['create_item'])) {
     global $db;
+    global $set;
     $conn = new SQLite3($db);
-    $set = serializeSettings();
     $cPost = cleanServerPost($_POST);
     require_once 'imgUpload.php';
-    $dir = $root.'/assets/uploads/items/';
+    $dir = '/assets/uploads/items/';
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
     if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
     if ($_FILES['img_upload']['name']) {
@@ -649,6 +650,7 @@ function getCatInfo($id) {
 
 function getCatItems($id) {
     global $db;
+    $items = array();
     $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
     $conn = new SQLite3($db);
     $qry = 'SELECT * FROM Items WHERE Cat_ID = :catid;';
@@ -657,6 +659,7 @@ function getCatItems($id) {
     $result = $stmt->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         $row['Caption'] = html_entity_decode($row['Caption']);
-        return $row;
+        $items[] = $row;
     } 
+    return $items;
 }

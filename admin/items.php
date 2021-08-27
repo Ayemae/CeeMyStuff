@@ -1,9 +1,8 @@
 <?php 
-$root = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF'], 2);
-include_once $root.'/components/info-head.php';
 $admin_panel = true;
+include_once '../components/info-head.php';
 $page_title = 'Admin Panel';
-include $root.'/components/header.php';
+include '../components/header.php';
 if (isset($_GET['catid'])) {
     $catID = filter_var($_GET['catid'], FILTER_SANITIZE_NUMBER_INT);
     $catInfo = getCatInfo($catID);
@@ -18,10 +17,6 @@ if (isset($_GET['itemid'])) {
 } else {
     $itemID = false;
 }
-// if (!$loggedIn && $admin_panel) {
-//     kickOut();
-//     exit();
-// }
 ?>
 
 <main>
@@ -89,4 +84,4 @@ if (isset($_GET['itemid'])) {
 </main>
 
 <?php
-include $root.'/components/footer.php';
+include '../components/footer.php';

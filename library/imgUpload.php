@@ -50,8 +50,9 @@ function isAniGif($filename) {
 }
 
 function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $hIsSoft=false, $setName=false, $storageLimit=false) {
-    $dir = $target_dir;
-    global $allowedFT;
+  $root = '/home/lapsecomic/alyssadev/CeeMyStuff';
+  global $allowedFT;
+    $dir = $root.$target_dir;
     $msg = "<div class='error'><h2>Invalid Image Upload</h2>";
     //Check if the directory already exists.
     if(!is_dir($dir)){
@@ -95,7 +96,7 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
     if ($file["tmp_name"] && !$setName) {
       // Check if filename already exists within folder
       if (file_exists($target_file)) {
-        $errorMsg .= "Sorry, a file with this name already exists.<br/>";
+        $msg .= "Sorry, a file with this name already exists.<br/>";
         $valid = false;
       }
         };

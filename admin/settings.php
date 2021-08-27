@@ -1,13 +1,8 @@
 <?php 
-$root = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF'], 2);
-include_once $root.'/components/info-head.php';
 $admin_panel = true;
-if (!$loggedIn && $admin_panel) {
-    kickOut();
-    exit();
-}
+include_once '../components/info-head.php';
 $page_title = 'Settings';
-include $root.'/components/header.php';
+include '../components/header.php';
 
 // $conn = new SQLite3($root.'/data/database.db');
 // if ($conn->exec('UPDATE Settings SET Type="timezone" WHERE ID=5;')) {
@@ -51,7 +46,7 @@ $settings = fetchSettings();
                 <?php endif; ?>
                 <input type="<?show($stg['Type']);?>" id="<?show($stg['Key']);?>" name="<?show($stg['Key']);?>" value="<?show($stg['Value'])?>" <?show($checkbox);?>>
             <?php break;
-            
+
         endswitch; ?>
         </li>
     <?php endforeach; ?>
@@ -63,4 +58,4 @@ $settings = fetchSettings();
 </main>
 
 <?php
-include $root.'/components/footer.php';
+include '../components/footer.php';

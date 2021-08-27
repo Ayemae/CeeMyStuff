@@ -1,5 +1,3 @@
-<?php $catList = getCatList(); ?>
-    
 <h1>Category List</h1>
 
 <a href="?task=create">Add New Category</a>
