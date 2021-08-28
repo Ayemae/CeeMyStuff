@@ -46,7 +46,7 @@ $root = $_SERVER['DOCUMENT_ROOT'].$set['dir'];
 $baseURL = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$set['dir'];
 $route = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].dirname($_SERVER['PHP_SELF']);
 
-function show($input) {
+function show($input=false) {
     if ($input) {
         echo $input;
     } else {
@@ -452,6 +452,61 @@ if (isset($_POST['logout'])) {
 };
 
 
+
+function getCatList() {
+    global $db;
+    $conn = new SQLite3($db);
+    $catList = array();
+    $qry = 'SELECT ID, Name FROM Categories;';
+    $result = $conn->prepare($qry)->execute();
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $catList[]=$row;
+    } 
+    return $catList;
+}
+
+function getCatInfo($id) {
+    global $db;
+    $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
+    $conn = new SQLite3($db);
+    $qry = 'SELECT * FROM Categories WHERE ID = :id LIMIT 1;';
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+    $result = $stmt->execute();
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $row['Blurb'] = html_entity_decode($row['Blurb']);
+        return $row;
+    } 
+}
+
+function getCatItems($id) {
+    global $db;
+    global $set;
+    $items = array();
+    $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
+    $conn = new SQLite3($db);
+    $qry = 'SELECT * FROM Items WHERE Cat_ID = :catid;';
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(':catid', $id, SQLITE3_INTEGER);
+    $result = $stmt->execute();
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $row['Caption'] = html_entity_decode($row['Caption']);
+        $row['Img_Path'] = $set['dir'].$row['Img_Path'];
+        $row['Img_Thumb_Path'] = $set['dir'].$row['Img_Thumb_Path'];
+        $items[] = $row;
+    } 
+    return $items;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+if ($loggedIn) {
+
+
 function fetchSettings($arr=false) {
     global $db;
     $conn = new SQLite3($db);
@@ -517,16 +572,17 @@ if (isset($_POST['create_category'])) {
     global $set;
     $conn = new SQLite3($db);
     $cPost = cleanServerPost($_POST);
-    //TODO: get rid of the null imgPath value after testing
-    $imgPath = null;
-    // if (!empty($_FILES)) {
-    //     require_once 'imgUpload';
-    //     $dir = $root.'/assets/uploads/items/';
-    //     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
-    //     if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
-    //     $imgPath = uploadImage ($dir, $_FILES['header_image_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, $_POST['Title'], $set['max_storage']);
-    // }
-    $qry = 'INSERT INTO Categories (Name,Blurb,Header_Img_Path,Show_Images,Show_Titles,Show_Captions,Automate_Thumbs,Thumb_Size,Thumb_Size_Axis,Hidden,Format_ID) 
+    require_once 'imgUpload.php';
+    $dir = '/assets/uploads/cat-headers/';
+    if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
+    if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
+    if ($_FILES['header_img_upload']['name']) {
+        //sanitize img name
+        $_FILES['header_img_upload']['name'] = stripHTML($_FILES['header_img_upload']['name']);
+        $_FILES['header_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['img_upload']['name']));
+        $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage']);
+    }
+    $qry = 'INSERT INTO Categories (Name,Blurb,Header_Img_Path,Show_Images,Show_Titles,Show_Captions,Order_By,Auto_Thumbs,Thumb_Size,Thumb_Size_Axis,Hidden,Format_ID) 
     VALUES (?,?,?,?,?,?,?,?,?,?,?);';
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(1,$cPost['name'], SQLITE3_TEXT);
@@ -535,15 +591,62 @@ if (isset($_POST['create_category'])) {
     $stmt->bindValue(4,$cPost['n_show_images'], SQLITE3_INTEGER);
     $stmt->bindValue(5,$cPost['n_show_titles'], SQLITE3_INTEGER);
     $stmt->bindValue(6,$cPost['n_show_captions'], SQLITE3_INTEGER);
-    $stmt->bindValue(7,$cPost['n_create_thumbs'], SQLITE3_INTEGER);
-    $stmt->bindValue(8,$cPost['n_thumb_size'], SQLITE3_INTEGER);
-    $stmt->bindValue(9,$cPost['n_thumb_axis'], SQLITE3_INTEGER);
-    $stmt->bindValue(10,$cPost['n_hidden'], SQLITE3_INTEGER);
-    $stmt->bindValue(11,$cPost['n_format_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(7,$cPost['order_by'], SQLITE3_TEXT);
+    $stmt->bindValue(8,$cPost['n_create_thumbs'], SQLITE3_INTEGER);
+    $stmt->bindValue(9,$cPost['n_thumb_size'], SQLITE3_INTEGER);
+    $stmt->bindValue(10,$cPost['n_thumb_axis'], SQLITE3_INTEGER);
+    $stmt->bindValue(11,$cPost['n_hidden'], SQLITE3_INTEGER);
+    $stmt->bindValue(12,$cPost['n_format_id'], SQLITE3_INTEGER);
     if ($stmt->execute()) {
-        $msg="Created!";
+        $msg="New category created!";
     } else {
-        $msg="Creation failed.";
+        $msg="Category creation failed. Please try again.";
+    }
+}
+
+if (isset($_POST['edit_category'])) {
+    global $db;
+    global $set;
+    $conn = new SQLite3($db);
+    $cPost = cleanServerPost($_POST);
+    $dir = '/assets/uploads/cat-headers/';
+    if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
+    if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
+    if ($_FILES['header_img_upload']['name']) {
+        require_once 'imgUpload.php';
+        //sanitize img name
+        $_FILES['header_img_upload']['name'] = stripHTML($_FILES['header_img_upload']['name']);
+        $_FILES['header_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['img_upload']['name']));
+        if (!$cPost['header_img_stored']) {
+            $cPost['header_img_stored'] = false;
+        }
+        $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage'], $cPost['header_img_stored']);
+    } else if ($cPost['header_img_stored']) {
+        $imgPath = $cPost['header_img_stored'];
+    } else {
+        $imgPath = null;
+    }
+    $qry = 'UPDATE Categories 
+    SET Name=?,Blurb=?,Header_Img_Path=?,Show_Images=?,Show_Titles=?,Show_Captions=?,Order_By=?,Auto_Thumbs=?,Thumb_Size=?,Thumb_Size_Axis=?,Hidden=?,Format_ID=?
+    WHERE ID=?;';
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(1,$cPost['name'], SQLITE3_TEXT);
+    $stmt->bindValue(2,$cPost['b_blurb'], SQLITE3_TEXT);
+    $stmt->bindValue(3,$imgPath, SQLITE3_TEXT);
+    $stmt->bindValue(4,$cPost['n_show_images'], SQLITE3_INTEGER);
+    $stmt->bindValue(5,$cPost['n_show_titles'], SQLITE3_INTEGER);
+    $stmt->bindValue(6,$cPost['n_show_captions'], SQLITE3_INTEGER);
+    $stmt->bindValue(7,$cPost['order_by'], SQLITE3_TEXT);
+    $stmt->bindValue(8,$cPost['n_create_thumbs'], SQLITE3_INTEGER);
+    $stmt->bindValue(9,$cPost['n_thumb_size'], SQLITE3_INTEGER);
+    $stmt->bindValue(10,$cPost['n_thumb_axis'], SQLITE3_INTEGER);
+    $stmt->bindValue(11,$cPost['n_hidden'], SQLITE3_INTEGER);
+    $stmt->bindValue(12,$cPost['n_format_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(13,$cPost['n_cat_id'], SQLITE3_INTEGER);
+    if ($stmt->execute()) {
+        $msg="Category setting changes saved!";
+    } else {
+        $msg="Changes failed to save. Please try again.";
     }
 }
 
@@ -553,16 +656,15 @@ if (isset($_POST['create_item'])) {
     global $set;
     $conn = new SQLite3($db);
     $cPost = cleanServerPost($_POST);
-    require_once 'imgUpload.php';
     $dir = '/assets/uploads/items/';
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
     if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
     if ($_FILES['img_upload']['name']) {
+        require_once 'imgUpload.php';
+        //sanitize img name
         $_FILES['img_upload']['name'] = stripHTML($_FILES['img_upload']['name']);
+        $_FILES['img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['img_upload']['name']));
         $imgPath = uploadImage ($dir, $_FILES['img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage']);
-        if (!$imgPath) {
-            return;
-        }
         if ($cPost['create_thumbnail']) {
             $newH = false;
             $newW = $cPost['n_thumb_size'];
@@ -572,9 +674,6 @@ if (isset($_POST['create_item'])) {
             }
             $imgThumbPath = mkThumb($dir, $_FILES['img_upload']['name'], $imgPath, $newW, $newH);
         }
-    } else {
-        echo 'there was no image.';
-        return;
     }
     if ($cPost['publish_datetime']) {
         $pdtUnix = strtotime($cPost['publish_datetime']);
@@ -593,57 +692,71 @@ if (isset($_POST['create_item'])) {
     $stmt->bindValue(7,$cPost['n_format_id'], SQLITE3_INTEGER);
     $stmt->bindValue(8,$cPost['n_hidden'], SQLITE3_INTEGER);
     if ($stmt->execute()) {
-        $msg="Created!";
+        $msg="New item created!";
     } else {
-        $msg="Creation failed.";
+        $msg="Item creation failed. Please try again.";
     }
 }
 
-
-function getCatList() {
-    global $db;
-    $conn = new SQLite3($db);
-    $catList = array();
-    $qry = 'SELECT ID, Name FROM Categories;';
-    $result = $conn->prepare($qry)->execute();
-    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-        $catList[]=$row;
-    } 
-    return $catList;
-}
-
-function getCatInfo($id) {
-    global $db;
-    $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
-    $conn = new SQLite3($db);
-    $qry = 'SELECT * FROM Categories WHERE ID = :id LIMIT 1;';
-    $stmt = $conn->prepare($qry);
-    $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
-    $result = $stmt->execute();
-    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-        $row['Blurb'] = html_entity_decode($row['Blurb']);
-        return $row;
-    } 
-}
-
-function getCatItems($id) {
+if (isset($_POST['edit_item'])) {
     global $db;
     global $set;
-    $items = array();
-    $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
     $conn = new SQLite3($db);
-    $qry = 'SELECT * FROM Items WHERE Cat_ID = :catid;';
-    $stmt = $conn->prepare($qry);
-    $stmt->bindValue(':catid', $id, SQLITE3_INTEGER);
-    $result = $stmt->execute();
-    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-        $row['Caption'] = html_entity_decode($row['Caption']);
-        $row['Img_Path'] = $set['dir'].$row['Img_Path'];
-        if (!$row['Img_Thumb_Path']) {
-            $row['Img_Thumb_Path'] = $row['Img_Path'];
+    $cPost = cleanServerPost($_POST);
+    $dir = '/assets/uploads/items/';
+    if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
+    if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
+    if ($_FILES['img_upload']['name']) {
+        require_once 'imgUpload.php';
+        //sanitize img name
+        $_FILES['img_upload']['name'] = stripHTML($_FILES['img_upload']['name']);
+        $_FILES['img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['img_upload']['name']));
+        if (!$cPost['img_stored']) {
+            $cPost['img_stored'] = false;
+        } else {
+            $cPost['img_stored'] = stripHTML($cPost['img_stored']);
         }
-        $row['Img_Thumb_Path'] = $set['dir'].$row['Img_Thumb_Path'];
-        $items[] = $row;
-    } 
-    return $items;
+        $imgPath = uploadImage ($dir, $_FILES['img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage'], $cPost['img_stored']);
+        if ($cPost['create_thumbnail']) {
+            $newH = false;
+            $newW = $cPost['n_thumb_size'];
+            if ($cPost['n_thumb_size_axis'] === 1) {
+                $newH = $cPost['n_thumb_size'];
+                $newW = false;
+            }
+            $imgThumbPath = mkThumb($dir, $_FILES['img_upload']['name'], $imgPath, $newW, $newH);
+        }
+    } else {
+        if ($cPost['stored_img']) {
+            $imgPath = $cPost['stored_img'];
+        }
+        if ($cPost['stored_thumb']) {
+            $imgThumbPath = $cPost['stored_thumb'];
+        }
+    }
+    if ($cPost['publish_datetime']) {
+        $pdtUnix = strtotime($cPost['publish_datetime']);
+    } else {
+        $pdtUnix = time();
+    }
+    $qry = "UPDATE Items 
+            SET Cat_ID=?,Title=?,Img_Path=?,Img_Thumb_Path=?,Caption=?,Publish_Timestamp=?,Format_ID=?,Hidden=?
+            WHERE ID=?;";
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(1,$cPost['n_cat_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(2,$cPost['title'], SQLITE3_TEXT);
+    $stmt->bindValue(3,$imgPath, SQLITE3_TEXT);
+    $stmt->bindValue(4,$imgThumbPath, SQLITE3_TEXT);
+    $stmt->bindValue(5,$cPost['b_caption'], SQLITE3_TEXT);
+    $stmt->bindValue(6,$pdtUnix, SQLITE3_INTEGER);
+    $stmt->bindValue(7,$cPost['n_format_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(8,$cPost['n_hidden'], SQLITE3_INTEGER);
+    $stmt->bindValue(9,$cPost['n_item_id'], SQLITE3_INTEGER);
+    if ($stmt->execute()) {
+        $msg="Changes saved!";
+    } else {
+        $msg="Changes did not save. Please try again.";
+    }
 }
+
+} //end 'if $loggedIn'

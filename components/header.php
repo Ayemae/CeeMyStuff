@@ -7,6 +7,7 @@
     <?php if ($admin_panel) : ?>
         <link  rel="stylesheet" href="admin.css">
     <?php endif; ?>
+    <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-regular-straight/css/uicons-regular-straight.css'>
     <?php if ($page_title) :?>
         <title><?show($page_title);?></title>
     <?php endif; ?>

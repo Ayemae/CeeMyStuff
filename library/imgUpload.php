@@ -49,7 +49,7 @@ function isAniGif($filename) {
   return $count > 1;
 }
 
-function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $hIsSoft=false, $setName=false, $storageLimit=false) {
+function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $hIsSoft=false, $setName=false, $storageLimit=false, $storedName=false) {
   global $root;
   global $allowedFT;
     $dir = $root.$target_dir;
@@ -66,8 +66,6 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
     } else {
       $filename = str_replace(".".$imageFileType, "", basename($file["name"]));
     }
-    $filename = preg_replace("/[^A-Za-z0-9 \-_]/", '', $filename);
-    $filename = str_replace(" ","-",$filename);
     $target_file = $dir.$filename.".".$imageFileType;
     $valid = true;
     
@@ -89,12 +87,16 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
       $msg .= "'".$imageFileType."' files are not accepted.<br/>";
       $valid = false;
     };
-    if ($storageLimit && ($file["size"] > $storageLimit)) {
-      $msg .= "Your file is too large (over ".formatSizeUnits($storageLimit)."). Save it at a smaller size or lower quality, and try again.<br/>";
-      $valid = false;
+    if ($storageLimit) {
+      // convert kilobytes in $storage limit to bytes
+      $storageLimit = ($storageLimit*1000);
+      if ($file["size"] > $storageLimit) {
+        $msg .= "Your file is too large (over ".formatSizeUnits($storageLimit)."). Save it at a smaller size or lower quality, and try again.<br/>";
+        $valid = false;
+      }
     };
-    // if there is no $setName for this file
-    if ($file["tmp_name"] && !$setName) {
+    // if there is no $setName for this file, or the image being uploaded does not have the same name as the stored version
+    if (!$setName || ($storedName && $target_dir != $storedName)) {
       // Check if filename already exists within folder
 
       if (file_exists($dir.basename($file["name"]))) {

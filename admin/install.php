@@ -42,7 +42,7 @@ $conn->exec('INSERT INTO Settings (ID, Index_Order, Field, Key, Value, Type, Des
     (12, 12, "Enable Max Image Dimensions","has_max_img_dimns","checked", "checkbox", "Enable a maximum height/width on the images you can upload.", null),
     (13, 13, "Max Image Dimensions (in pixels)", "max_img_dimns", "2400","number", null, null),
     (14, 14, "Enable Max Image Storage Size","has_max_img_storage","checked", "checkbox", "Enable a maximum on how much storage a single image upload can take up.", null),
-    (15, 15, "Max Image Storage Size (in Bytes)","max_img_storage","750000", "number", null, null)
+    (15, 15, "Max Image Storage Size (in Kilobytes)","max_img_storage","1500", "number", "For reference, roughly 1000 kilobytes are in a megabyte, and rougly 1000000 are in a gigabyte.", null)
     ;');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Categories (
@@ -54,9 +54,10 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Categories (
     Show_Images INTEGER NOT NULL DEFAULT 1,
     Show_Titles INTEGER NOT NULL DEFAULT 1,
     Show_Captions INTEGER NOT NULL DEFAULT 1,
-    Automate_Thumbs INTEGER NOT NULL DEFAULT 1,
+    Auto_Thumbs INTEGER NOT NULL DEFAULT 1,
     Thumb_Size INTEGER NOT NULL DEFAULT 125,
     Thumb_Size_Axis INTEGER NOT NULL DEFAULT 0,
+    Order_By TEXT NOT NULL DEFAULT "date",
     Hidden INTEGER NOT NULL DEFAULT 0,
     Format_ID INTEGER
 )');
@@ -171,14 +172,14 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Social_Media_Defaults (
 
 $conn->exec('INSERT INTO Social_Media_Defaults (ID, Platform, Icon, URL)
     VALUES 
-        (1, "Instagram","/assets/icons/instagram_icon.svg","https://www.instagram.com/YOUR_HANDLE/"),
-        (2, "Facebook","/assets/icons/facebook_icon.svg","https://www.facebook.com/YOUR_HANDLE/"),
-        (3, "LinkedIn","/assets/icons/linkedin_icon.svg","https://www.linkedin.com/in/YOUR_HANDLE/"),
-        (4, "Patreon","/assets/icons/patreon_icon.svg","https://www.patreon.com/YOUR_HANDLE"),
-        (5, "Tumblr","/assets/icons/tumblr_icon.svg","https://YOUR_HANDLE.tumblr.com/"),
-        (6, "Twitch","/assets/icons/twitch_icon.svg","https://www.twitch.tv/YOUR_HANDLE"),
-        (7, "Twitter","/assets/icons/twitter_icon.svg","https://twitter.com/YOUR_HANDLE"),
-        (8, "YouTube","/assets/icons/youtube_icon.svg","https://www.youtube.com/user/YOUR_HANDLE");');
+        (1, "Instagram","/assets/icons/instagram.svg","https://www.instagram.com/YOUR_HANDLE/"),
+        (2, "Facebook","/assets/icons/facebook.svg","https://www.facebook.com/YOUR_HANDLE/"),
+        (3, "LinkedIn","/assets/icons/linkedin.svg","https://www.linkedin.com/in/YOUR_HANDLE/"),
+        (4, "Patreon","/assets/icons/patreon.svg","https://www.patreon.com/YOUR_HANDLE"),
+        (5, "Tumblr","/assets/icons/tumblr.svg","https://YOUR_HANDLE.tumblr.com/"),
+        (6, "Twitch","/assets/icons/twitch.svg","https://www.twitch.tv/YOUR_HANDLE"),
+        (7, "Twitter","/assets/icons/twitter.svg","https://twitter.com/YOUR_HANDLE"),
+        (8, "YouTube","/assets/icons/youtube.svg","https://www.youtube.com/user/YOUR_HANDLE");');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Blog_Posts (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -216,7 +217,6 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Tags (
 }
 
 include_once '../library/functions.php';
-$admin_panel = true;
 $page_title = 'Install CeeMyStuff';
 include '../components/header.php';
 ?>

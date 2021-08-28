@@ -6,7 +6,7 @@
     <ul class="index-list">
     <?php foreach ($items AS $item) : ?>
         <li id="item_<?show($item['ID']);?>">
-            <img src="<?show($item['Img_Thumb_Path']);?>" alt="<?show($item['Title']);?> Image"/> <a href=""><?show($item['Title']);?></a>
+            <img src="<?show(($item['Img_Thumb_Path'] ? $item['Img_Thumb_Path'] : $item['Img_Path'] ));?>" alt="<?show($item['Title']);?> Image"/> <a href=""><?show($item['Title']);?></a>
         </li>
     <?php endforeach;?>
     </ul>

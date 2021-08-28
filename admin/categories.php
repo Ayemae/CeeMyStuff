@@ -30,7 +30,8 @@ if (isset($_GET['catid'])) {
         include '_components/category-create.inc.php';
         break;
     case 'edit' :
-        echo 'UNDER CONSTRUCTION';
+        $cat = getCatInfo($catID);
+        include '_components/category-edit.inc.php';
         break;
     case 'list' :
         // do not break here, we want 'list' to inherit default

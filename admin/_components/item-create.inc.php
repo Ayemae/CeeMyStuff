@@ -1,30 +1,4 @@
-<?php 
-$admin_panel = true;
-include_once '../components/info-head.php';
-$page_title = 'Admin Panel';
-include '../components/header.php';
-if (isset($_GET['catid'])) {
-    $catID = filter_var($_GET['catid'], FILTER_SANITIZE_NUMBER_INT);
-    $catInfo = getCatInfo($catID);
-} else {
-    $catID="0";
-    $catInfo = false;
-}
-if (isset($_GET['task'])) {
-    $task = htmlspecialchars($_GET['task']);
-} else {
-    $task = false;
-}
-if (isset($_GET['itemid'])) {
-    $itemID = filter_var($_GET['itemid'], FILTER_SANITIZE_NUMBER_INT);
-} else {
-    $itemID = false;
-}
-?>
 
-<main>
-    <?php if (isset($catID) && $task === 'create') :
-    $catList = getCatList(); ?>
 <h1>Create New Item</h1>
 
 <form method="post" enctype="multipart/form-data">
@@ -61,8 +35,8 @@ if (isset($_GET['itemid'])) {
     <?php if (!$catInfo['Auto_Thumbs']) :?>
         <label for="create-thumbnail"> Create Thumbnail:</label>
         <input type="hidden" name="create_thumbnail" value="">
-        <input type="checkbox" id="create-thumbnail" class="chktoggle" name="create_thumbnail" value="checked">
-        <div class="chktoggle-show">
+        <input type="checkbox" id="create-thumbnail" class="show-sib-chktoggle" name="create_thumbnail" value="checked">
+        <div class="show-on-chk">
             <label for="thumb_size">Thumbnail Size:</label>
             <input type="number" id="thumb_size" name="n_thumb_size" value="<?show($catInfo['Thumb_Size'])?>">
             <label for="thumb_size_axis">Axis of Thumbnail Size:</label>
@@ -89,9 +63,3 @@ if (isset($_GET['itemid'])) {
     <input type="hidden" name="n_format_id" value="0">
   <button name="create_item">Submit</button>
 </form>
-
-<?php endif; ?>
-</main>
-
-<?php
-include '../components/footer.php';
