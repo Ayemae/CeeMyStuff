@@ -6,7 +6,7 @@ if ($showErrors) {
     error_reporting(-1);
 }
 
-$db = '../data/database.db';
+$db = dirname(__FILE__).'/../data/database.db';
 
 function serializeSettings() {
     global $db;

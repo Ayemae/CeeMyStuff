@@ -1,14 +1,13 @@
 <?php
 $loggedIn = false;
 
-
 function validateAdmin($id, $key) {
     if (!isset($key) || !$key) {
         session_unset();
         session_destroy();
         return false;
     } else {
-     $conn = NEW SQLite3('../data/database.db');
+     $conn = New SQLite3(dirname(__FILE__).'/../data/database.db');
      $qry = 'SELECT Curr_Sess_Key FROM Accounts WHERE Is_Admin = 1 LIMIT 1;';
      $result = $conn->prepare($qry)->execute();
      while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
