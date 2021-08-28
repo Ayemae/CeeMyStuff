@@ -38,7 +38,7 @@
         <label for="show_titles">Show Item Titles:</label>
         <select id="show_titles" name="n_show_titles">
             <option value="0" <?show((!$cat['Show_Titles'] ? 'selected' : null ))?>>No</option>
-            <option value="2"  <?show(($cat['Show_Images'] ? 'selected' : null ))?>>Yes</option>
+            <option value="2"  <?show(($cat['Show_Titles'] ? 'selected' : null ))?>>Yes</option>
         </select>
     </li>
 
@@ -46,8 +46,8 @@
         <label for="show_captions">Show Item Captions:</label>
         <select id="show_captions" name="n_show_captions">
             <option value="0" <?show((!$cat['Show_Captions'] ? 'selected' : null ))?>>No</option>
-            <option value="1" <?show(($cat['Show_Images']==1 ? 'selected' : null ))?>>Show Truncated Captions</option>
-            <option value="2" <?show(($cat['Show_Images']==2 ? 'selected' : null ))?>>Show Full Captions</option>
+            <option value="1" <?show(($cat['Show_Captions']==1 ? 'selected' : null ))?>>Show Truncated Captions</option>
+            <option value="2" <?show(($cat['Show_Captions']==2 ? 'selected' : null ))?>>Show Full Captions</option>
         </select>
     </li>
 

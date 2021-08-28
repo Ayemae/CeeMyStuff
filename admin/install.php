@@ -128,7 +128,7 @@ $conn->exec('INSERT INTO Accounts (
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Pages (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Page_Name TEXT,
+    Page_Name TEXT UNIQUE,
     Link_Text TEXT,
     Page_Header TEXT
 )');

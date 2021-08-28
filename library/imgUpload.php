@@ -96,8 +96,13 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
       }
     };
     // if there is no $setName for this file, or the image being uploaded does not have the same name as the stored version
-    if (!$setName || ($storedName && $target_dir != $storedName)) {
+    if ((!$setName) || $storedName && ($target_dir.basename($file["name"]) != $storedName)) {
       // Check if filename already exists within folder
+      if ($target_dir.basename($file["name"]) == $storedName) {
+          $msg .= "<br/>The filenames are the same.";
+      } else {
+        $msg .= "<br/>The filenames are NOT the same.";
+      }
 
       if (file_exists($dir.basename($file["name"]))) {
         $msg .= "Sorry, a file with this name already exists.<br/>";
@@ -137,7 +142,6 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
   }
     // Check if $valid is false
     if (!$valid) {
-      $msg .= "Your image could not be uploaded.</div>";
       $_SESSION['Msg'] = $msg;
     // if everything is ok, try to upload file
     } else {
@@ -170,6 +174,8 @@ function mkThumb($dir, $destImage, $oriImage, $newW, $newH, $resizeRatio=false, 
     case 'jpg': $img = imagecreatefromjpeg($oriImage); break;
     case 'png': $img = imagecreatefrompng($oriImage); break;
     case 'webp': $img = imagecreatefromwebp($oriImage); break;
+    case '' : 
+    case null : $_SESSION['Msg'] = "Image is invalid. Cannot create thumbnail."; return;
     default : $_SESSION['Msg'] = "Thumbnail creation does not support ".$fileType." images."; return;
   }
   $destImage = preg_replace("/[^A-Za-z0-9. \-_]/", '', $destImage);

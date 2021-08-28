@@ -437,6 +437,38 @@ function logout() {
     //setcookie(session_name(),'',0,'/');
 }
 
+function getPage($page){
+    global $db;
+    $conn = New SQLite3($db);
+    $page = stripHTML($page);
+    $qry = "SELECT * FROM Pages WHERE Page_Name=:request LIMIT 1;";
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(':request', $page, SQLITE3_TEXT);
+    $result = $stmt->execute();
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        return $row;
+    }
+}
+
+function printPage($request) {
+    global $db;
+    $conn = New SQLite3($db);
+    $page = stripHTML($request);
+    $qry = "SELECT * FROM Pages WHERE Page_Name=:request LIMIT 1;";
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(':request', $request, SQLITE3_TEXT);
+    $result = $stmt->execute();
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $request = $row;
+    }
+    $admin_panel = false;
+    $page_title = $page['Page_Header'];
+    include_once 'components/info-head.php';
+    include_once 'components/header.php';
+    echo '<h1>'.$page['Page_Header'].'</h1>';
+    include_once 'components/footer.php';
+}
+
 
 function kickOut() {
     global $baseURL;
@@ -455,9 +487,15 @@ if (isset($_POST['logout'])) {
 
 function getCatList() {
     global $db;
+    global $admin_area;
+    global $loggedIn;
     $conn = new SQLite3($db);
     $catList = array();
-    $qry = 'SELECT ID, Name FROM Categories;';
+    $qry = 'SELECT ID, Name FROM Categories';
+    if (!$admin_area || !$loggedIn) {
+        $qry .= ' WHERE Hidden=0';
+    }
+    $qry .= ';';
     $result = $conn->prepare($qry)->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         $catList[]=$row;
@@ -485,7 +523,7 @@ function getCatItems($id) {
     $items = array();
     $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
     $conn = new SQLite3($db);
-    $qry = 'SELECT * FROM Items WHERE Cat_ID = :catid;';
+    $qry = 'SELECT * FROM Items WHERE Cat_ID = :catid AND Hidden=0;';
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(':catid', $id, SQLITE3_INTEGER);
     $result = $stmt->execute();
@@ -496,6 +534,32 @@ function getCatItems($id) {
         $items[] = $row;
     } 
     return $items;
+}
+
+function getItem($id) {
+    global $db;
+    global $set;
+    global $admin_area;
+    global $loggedIn;
+    $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
+    $conn = new SQLite3($db);
+    $qry = 'SELECT * FROM Items WHERE ID = :itemid';
+    if (!$admin_area || !$loggedIn) {
+        $qry .= ' AND Hidden=0';
+    }
+    $qry .= ' LIMIT 1;';
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(':itemid', $id, SQLITE3_INTEGER);
+    $result = $stmt->execute();
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $row['Caption'] = html_entity_decode($row['Caption']);
+        $row['Img_Path'] = $row['Img_Path'];
+        $row['Img_Thumb_Path'] = $row['Img_Thumb_Path'];
+        $dt = new DateTime('@'.$row['Publish_Timestamp']);
+        $dt->setTimeZone(new DateTimeZone($set['timezone']));
+        $row['Publish_Timestamp'] = $dt->format('Y-m-d\TH:i');
+        return $row;
+    } 
 }
 
 
@@ -545,8 +609,9 @@ function selectTimezone($selected = '') {
     $timezones = timezone_identifiers_list();
         $inputSelect= '<select name="timezone">';
         foreach ($timezones AS $key=>$row) {
-            $inputSelect .='<option value="'.$key.'"';
-            $inputSelect .= ($key == $selected ? ' selected' : '');
+            // note: 'key' is the numerical value of the timezone
+            $inputSelect .='<option value="'.$row.'"';
+            $inputSelect .= ($row == $selected ? ' selected' : '');
             $inputSelect .= '>'.$row.'</option>';
         }  // endwhile;
         $inputSelect.='</select>';
@@ -665,6 +730,10 @@ if (isset($_POST['create_item'])) {
         $_FILES['img_upload']['name'] = stripHTML($_FILES['img_upload']['name']);
         $_FILES['img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['img_upload']['name']));
         $imgPath = uploadImage ($dir, $_FILES['img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage']);
+        if (!$imgPath) {
+            $msg = 'Image upload failed. Please try again.';
+            return;
+        }
         if ($cPost['create_thumbnail']) {
             $newH = false;
             $newW = $cPost['n_thumb_size'];
@@ -717,6 +786,10 @@ if (isset($_POST['edit_item'])) {
             $cPost['img_stored'] = stripHTML($cPost['img_stored']);
         }
         $imgPath = uploadImage ($dir, $_FILES['img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage'], $cPost['img_stored']);
+        if (!$imgPath) {
+            $msg = 'Image upload failed. Please try again.';
+            return;
+        }
         if ($cPost['create_thumbnail']) {
             $newH = false;
             $newW = $cPost['n_thumb_size'];
@@ -727,11 +800,11 @@ if (isset($_POST['edit_item'])) {
             $imgThumbPath = mkThumb($dir, $_FILES['img_upload']['name'], $imgPath, $newW, $newH);
         }
     } else {
-        if ($cPost['stored_img']) {
-            $imgPath = $cPost['stored_img'];
+        if ($cPost['img_stored']) {
+            $imgPath = $cPost['img_stored'];
         }
-        if ($cPost['stored_thumb']) {
-            $imgThumbPath = $cPost['stored_thumb'];
+        if ($cPost['thumb_stored']) {
+            $imgThumbPath = $cPost['thumb_stored'];
         }
     }
     if ($cPost['publish_datetime']) {

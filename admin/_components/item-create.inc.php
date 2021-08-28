@@ -1,4 +1,3 @@
-
 <h1>Create New Item</h1>
 
 <form method="post" enctype="multipart/form-data">
@@ -35,8 +34,8 @@
     <?php if (!$catInfo['Auto_Thumbs']) :?>
         <label for="create-thumbnail"> Create Thumbnail:</label>
         <input type="hidden" name="create_thumbnail" value="">
-        <input type="checkbox" id="create-thumbnail" class="show-sib-chktoggle" name="create_thumbnail" value="checked">
-        <div class="show-on-chk">
+        <input type="checkbox" id="create-thumbnail" class="chktoggle" name="create_thumbnail" value="checked">
+        <div class="chktoggle-show">
             <label for="thumb_size">Thumbnail Size:</label>
             <input type="number" id="thumb_size" name="n_thumb_size" value="<?show($catInfo['Thumb_Size'])?>">
             <label for="thumb_size_axis">Axis of Thumbnail Size:</label>
