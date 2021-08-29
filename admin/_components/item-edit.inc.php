@@ -1,3 +1,5 @@
+<a href="<?show($set['dir'])?>/admin/categories.php?task=view&catid=<?show($item['Cat_ID']);?>">
+    <i class="fi fi-rs-angle-double-small-left"></i> back to Category Items</a>
 
 <h1>Edit Item</h1>
 

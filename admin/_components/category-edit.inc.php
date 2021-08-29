@@ -1,3 +1,5 @@
+<a href="?task=list"><i class="fi fi-rs-angle-double-small-left"></i> back to Category List</a>
+
 <h1>Edit Category Settings</h1>
 
 <form method="post" enctype="multipart/form-data">

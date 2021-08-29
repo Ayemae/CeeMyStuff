@@ -13,13 +13,19 @@
     <?php endif; ?>
 </head>
 <body>
-    <?php if ($page_title) :?>
-        <h1><?show($page_title);?></h1>
-    <?php endif; ?>
-
-    <?php if ($admin_panel) : 
-        include '_components/menu.inc.php';
+<header>
+    <?php if ($admin_panel) : ?>
+        <div class="space-btwn">
+            <h2>Admin Panel</h2>
+            <?php if ($loggedIn) :?>
+            <form method="post">
+                <button class="logout-btn" name="logout"><i class="fi fi-rs-power"></i> Logout</button>
+            </form>
+            <?php  endif; ?>
+        </div>
+        <?php include '_components/menu.inc.php';
     endif; ?>
+</header>
 
 <?php 
 if (isset($_SESSION['Msg'])) {

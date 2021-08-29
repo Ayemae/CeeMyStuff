@@ -518,12 +518,15 @@ function getCatInfo($id) {
 }
 
 function getCatItems($id) {
-    global $db;
-    global $set;
+    global $db;global $set;global $admin_panel;global $loggedIn;
     $items = array();
     $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
     $conn = new SQLite3($db);
-    $qry = 'SELECT * FROM Items WHERE Cat_ID = :catid AND Hidden=0;';
+    $qry = 'SELECT * FROM Items WHERE Cat_ID = :catid ';
+    if (!$loggedIn || !$admin_panel) {
+        $qry .= ' AND Hidden=0';
+    }
+    $qry .= ';';
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(':catid', $id, SQLITE3_INTEGER);
     $result = $stmt->execute();
@@ -539,12 +542,12 @@ function getCatItems($id) {
 function getItem($id) {
     global $db;
     global $set;
-    global $admin_area;
+    global $admin_panel;
     global $loggedIn;
     $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
     $conn = new SQLite3($db);
     $qry = 'SELECT * FROM Items WHERE ID = :itemid';
-    if (!$admin_area || !$loggedIn) {
+    if (!$admin_panel || !$loggedIn) {
         $qry .= ' AND Hidden=0';
     }
     $qry .= ' LIMIT 1;';
@@ -802,9 +805,13 @@ if (isset($_POST['edit_item'])) {
     } else {
         if ($cPost['img_stored']) {
             $imgPath = $cPost['img_stored'];
+        } else {
+            $imgPath = null;
         }
         if ($cPost['thumb_stored']) {
             $imgThumbPath = $cPost['thumb_stored'];
+        } else {
+            $imgPath = null;
         }
     }
     if ($cPost['publish_datetime']) {

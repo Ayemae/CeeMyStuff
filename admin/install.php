@@ -128,20 +128,25 @@ $conn->exec('INSERT INTO Accounts (
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Pages (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Page_Name TEXT UNIQUE,
-    Link_Text TEXT,
-    Page_Header TEXT
+    Name TEXT UNIQUE,
+    Header TEXT,
+    Meta TEXT,
+    Format_ID INTEGER
 )');
+
+$conn->exec('INSERT INTO Pages (ID,Name,Meta,Header) VALUES (1,"Index","","");');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Content (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Header TEXT,
+    Title TEXT,
+    Show_Title INTEGER,
+    Is_Code INTEGER,
     Content TEXT,
-    Format_ID TEXT
+    Format_ID TEXT,
+    Cat_ID INTEGER
 )');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Page_x_Content (
-    Is_Cat INTEGER,
     Content_ID INTEGER,
     Page_ID INTEGER,
     Hidden INTEGER

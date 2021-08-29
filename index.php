@@ -10,10 +10,10 @@ $page = getPage($request);
 
 // Add base route (startpage)
 Route::add('/',function(){
-    echo 'Welcome :-)';
+    echo 'This is a homepage';
 });
 
-// Simple test route that simulates static html file
+// custom pages route!
 Route::add('/'.$page['Page_Name'],function(){
     global $set;global $db;global $page;
     $admin_panel = false;
