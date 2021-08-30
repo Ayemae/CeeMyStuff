@@ -1,5 +1,7 @@
 # Don't track content of these files/folders
 /__IGNORE/
+__IGNORE/
 .DS_Store
 .htaccess
 /data/
+data/
