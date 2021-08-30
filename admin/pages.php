@@ -2,11 +2,7 @@
 $admin_panel = true;
 include_once '../components/info-head.php';
 $page_title = 'Admin Panel: Pages';
-include '../components/header.php';
-if (!$loggedIn && $admin_panel) {
-    // kickOut();
-    // exit();
-}
+include '_components/admin-header.inc.php';
 if (isset($_GET['task'])) {
     $task = $_GET['task'];
 } else {
@@ -36,7 +32,7 @@ if (isset($_GET['pageid'])) {
     case 'list' :
         // do not break here, we want 'list' to inherit default
     default : 
-        $catList = getCatList(); 
+        //$pgList = getPageList(); 
         include '_components/page-list.inc.php';
         break;
     endswitch;?>

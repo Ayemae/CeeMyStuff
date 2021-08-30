@@ -2,16 +2,19 @@
 $admin_panel = true;
 include_once '../components/info-head.php';
 $page_title = 'Admin Panel';
-include '../components/header.php';
+include '_components/admin-header.inc.php';
 ?>
 
 <main>
 
-<?php if (!$loggedIn) {
+<?php if (!$loggedIn) :
 include 'login.php';
-}
-var_dump($set);
-?>
+ else :?>
+    <p>Logged in!</p>
+    <script>
+        window.location.replace("<?show($route)?>/categories.php");
+    </script>
+<?php endif; ?>
 
 </main>
 

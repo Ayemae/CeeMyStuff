@@ -223,7 +223,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Tags (
 
 include_once '../library/functions.php';
 $page_title = 'Install CeeMyStuff';
-include '../components/header.php';
+include '_components/admin-header.inc.php';
 ?>
 
 

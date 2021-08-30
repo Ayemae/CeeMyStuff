@@ -1,6 +1,6 @@
 <?php 
 include_once '../components/info-head.php';
-include '../components/header.php';
+include '_components/admin-header.inc.php';
 ?>
 
 <main>

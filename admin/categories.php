@@ -2,11 +2,7 @@
 $admin_panel = true;
 include_once '../components/info-head.php';
 $page_title = 'Admin Panel: Categories';
-include '../components/header.php';
-if (!$loggedIn && $admin_panel) {
-    // kickOut();
-    // exit();
-}
+include '_components/admin-header.inc.php';
 if (isset($_GET['task'])) {
     $task = $_GET['task'];
 } else {

@@ -2,7 +2,7 @@
 $admin_panel = true;
 include_once '../components/info-head.php';
 $page_title = 'Admin Panel';
-include '../components/header.php';
+include '_components/admin-header.inc.php';
 if (isset($_GET['catid'])) {
     $catID = filter_var($_GET['catid'], FILTER_SANITIZE_NUMBER_INT);
     $catInfo = getCatInfo($catID);

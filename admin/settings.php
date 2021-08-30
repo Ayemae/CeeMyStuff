@@ -2,7 +2,7 @@
 $admin_panel = true;
 include_once '../components/info-head.php';
 $page_title = 'Settings';
-include '../components/header.php';
+include '_components/admin-header.inc.php';
 $settings = fetchSettings();
 ?>
 

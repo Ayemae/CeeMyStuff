@@ -19,5 +19,6 @@
     <?php endforeach;?>
     </ul>
 <?php else : ?>
+    <p><i>There are no categories yet, and you'll need one to start adding items! <a href="?task=create">Click here to create one!</a></i></p>
 
 <?php endif;?>
