@@ -8,6 +8,8 @@ $settings = fetchSettings();
 
 <main>
 
+<h1>Site Settings</h1>
+
 <form method="post">
 <ul class="form-list">
     <?php foreach ($settings AS $stg) :?>
