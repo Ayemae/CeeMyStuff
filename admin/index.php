@@ -1,8 +1,10 @@
 <?php 
 $admin_panel = true;
 include_once '../components/info-head.php';
-$page_title = 'Admin Panel';
-include '_components/admin-header.inc.php';
+if ($_SESSION && $_SESSION['Key']) {
+    $page_title = 'Admin Panel';
+    include '_components/admin-header.inc.php';
+}
 ?>
 
 <main>

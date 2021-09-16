@@ -176,7 +176,7 @@ ul.index-list li img {
 ul.index-list li,
 ul.form-list li {
     background: var(--highlight1);
-    background: linear-gradient(90deg, rgba(133, 231, 209, 1) 0%, rgba(133, 231, 209, 0) 100%)
+    background: linear-gradient(90deg, rgb(84, 95, 93) 0%, rgba(133, 231, 209, 0) 100%)
 }
 ul.index-list li:nth-child(even),
 ul.index-list a:nth-child(even) li,

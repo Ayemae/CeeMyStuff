@@ -472,9 +472,9 @@ function printPage($request) {
 
 function kickOut() {
     global $baseURL;
-    header('Location: '.$baseURL);
+    header('Location: '.$baseURL.'/admin/account.php');
     // if header fails, do it with Javascript instead:
-        echo '<script>window.location.replace("'.$baseURL.'")</script>';
+        echo '<script>window.location.replace("'.$baseURL.'/admin/account.php")</script>';
     exit();
 }
 
@@ -732,12 +732,17 @@ if (isset($_POST['create_item'])) {
         //sanitize img name
         $_FILES['img_upload']['name'] = stripHTML($_FILES['img_upload']['name']);
         $_FILES['img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['img_upload']['name']));
+        $imgName = str_replace(pathinfo($_FILES['img_upload']['name'],PATHINFO_EXTENSION),"",$_FILES['img_upload']['name']);
         $imgPath = uploadImage ($dir, $_FILES['img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage']);
         if (!$imgPath) {
             $msg = 'Image upload failed. Please try again.';
-            return;
         }
-        if ($cPost['create_thumbnail']) {
+        if ($_FILES['thumb_upload']['name']) {
+            $imgThumbPath = uploadImage ($dir, $_FILES['thumb_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, $imgName.'_thumb', $set['max_img_storage']);
+            if (!$imgThumbPath) {
+                $msg = 'Thumbnail image upload failed. Please try again.';
+            }
+        } else if ($cPost['create_thumbnail']) {
             $newH = false;
             $newW = $cPost['n_thumb_size'];
             if ($cPost['n_thumb_size_axis'] === 1) {
@@ -745,6 +750,8 @@ if (isset($_POST['create_item'])) {
                 $newW = false;
             }
             $imgThumbPath = mkThumb($dir, $_FILES['img_upload']['name'], $imgPath, $newW, $newH);
+        } else {
+            $imgThumbPath = null;
         }
     }
     if ($cPost['publish_datetime']) {
@@ -776,13 +783,16 @@ if (isset($_POST['edit_item'])) {
     $conn = new SQLite3($db);
     $cPost = cleanServerPost($_POST);
     $dir = '/assets/uploads/items/';
+    $msg ="";
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
     if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
+    require_once 'imgUpload.php';
+    $imgName = str_replace($dir, "", str_replace('.'.pathinfo($cPost['img_stored'],PATHINFO_EXTENSION),"",$cPost['img_stored']));
     if ($_FILES['img_upload']['name']) {
-        require_once 'imgUpload.php';
         //sanitize img name
         $_FILES['img_upload']['name'] = stripHTML($_FILES['img_upload']['name']);
         $_FILES['img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['img_upload']['name']));
+        $imgName = str_replace(pathinfo($_FILES['img_upload']['name'],PATHINFO_EXTENSION),"",$_FILES['img_upload']['name']);
         if (!$cPost['img_stored']) {
             $cPost['img_stored'] = false;
         } else {
@@ -793,25 +803,39 @@ if (isset($_POST['edit_item'])) {
             $msg = 'Image upload failed. Please try again.';
             return;
         }
-        if ($cPost['create_thumbnail']) {
-            $newH = false;
-            $newW = $cPost['n_thumb_size'];
-            if ($cPost['n_thumb_size_axis'] === 1) {
-                $newH = $cPost['n_thumb_size'];
-                $newW = false;
-            }
-            $imgThumbPath = mkThumb($dir, $_FILES['img_upload']['name'], $imgPath, $newW, $newH);
-        }
     } else {
         if ($cPost['img_stored']) {
             $imgPath = $cPost['img_stored'];
         } else {
             $imgPath = null;
         }
-        if ($cPost['thumb_stored']) {
+    }
+    if ($_FILES['thumb_upload']['name'] || $cPost['create_thumbnail']) {
+        if ($_FILES['thumb_upload']['name']) {
+            $imgThumbPath = uploadImage ($dir, $_FILES['thumb_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, $imgName.'_thumb', $set['max_img_storage'],$cPost['thumb_stored']);
+            if (!$imgThumbPath) {
+                $msg .= 'Thumbnail image upload failed. Please try again.';
+                return;
+            }
+        } else {
+            if ($_FILES['img_upload']['name']) {
+                $oriImg = $_FILES['img_upload']['name'];
+            } else {
+                $oriImg = $cPost['img_stored'];
+            }
+            $newH = false;
+            $newW = $cPost['n_thumb_size'];
+            if ($cPost['n_thumb_size_axis'] === 1) {
+                $newH = $cPost['n_thumb_size'];
+                $newW = false;
+            }
+            $imgThumbPath = mkThumb($dir, $oriImg, $imgPath, $newW, $newH);
+        }
+    } else {
+        if (isset($cPost['thumb_stored'])) {
             $imgThumbPath = $cPost['thumb_stored'];
         } else {
-            $imgPath = null;
+            $imgThumbPath = null;
         }
     }
     if ($cPost['publish_datetime']) {

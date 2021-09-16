@@ -136,19 +136,21 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Pages (
 
 $conn->exec('INSERT INTO Pages (ID,Name,Meta,Header) VALUES (1,"Index","","");');
 
-$conn->exec('CREATE TABLE IF NOT EXISTS Content (
+$conn->exec('CREATE TABLE IF NOT EXISTS Extra_Content (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     Title TEXT,
-    Show_Title INTEGER,
-    Is_Code INTEGER,
     Content TEXT,
-    Format_ID TEXT,
-    Cat_ID INTEGER
+    Is_Code INTEGER
 )');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Page_x_Content (
+    Is_Cat INTEGER,
     Content_ID INTEGER,
     Page_ID INTEGER,
+    Show_Title INTEGER,
+    Show_Cat_Blurb INTEGER,
+    Show_Cat_Items INTEGER,
+    Format_ID TEXT,
     Hidden INTEGER
 )');
 

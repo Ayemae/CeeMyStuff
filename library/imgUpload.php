@@ -95,20 +95,19 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
         $valid = false;
       }
     };
+    $storedName = trim($storedName);
     // if there is no $setName for this file, or the image being uploaded does not have the same name as the stored version
-    if ((!$setName) || $storedName && ($target_dir.basename($file["name"]) != $storedName)) {
+    if (!$setName) {
+      if ($storedName && ($target_dir.basename($file["name"]) != $storedName)) {
       // Check if filename already exists within folder
-      if ($target_dir.basename($file["name"]) == $storedName) {
-          $msg .= "<br/>The filenames are the same.";
-      } else {
-        $msg .= "<br/>The filenames are NOT the same.";
+        if ($target_dir.basename($file["name"]) != $storedName) {
+          if (file_exists($dir.basename($file["name"]))) {
+            $msg .= "<br/>Sorry, a file with this name already exists.<br/>";
+            $valid = false;
+          }
+        }
       }
-
-      if (file_exists($dir.basename($file["name"]))) {
-        $msg .= "Sorry, a file with this name already exists.<br/>";
-        $valid = false;
-      }
-        };
+    };
     // if file is not an animated gif, check the size
     if ($imageFileType != 'gif' && !isAniGif($file["tmp_name"])) {
       if ($w || $h) {
@@ -146,15 +145,15 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
     // if everything is ok, try to upload file
     } else {
       if (move_uploaded_file($file["tmp_name"], $target_file)) {
-            if (file_exists($dir.basename($file["name"]))) {
-              return $target_dir.basename($file["name"]);
+            if (file_exists($dir.basename($target_file))) {
+              return $target_dir.basename($target_file);
             } else {
-              $msg = "<div class='error'><h2>Image Upload Failed</h2>There was an error uploading your image. Please try again.</div>";
+              $msg .= "There was an error uploading your image.";
               $_SESSION['Msg'] = $msg;
               return false;
             }
       } else {
-        $msg = "<div class='error'><h2>Image Upload Failed</h2>There was an error uploading your image. Please try again.</div>";
+        $msg .= "There was an error uploading your image.";
         $_SESSION['Msg'] = $msg;
         return false;
       }

@@ -13,9 +13,14 @@
     </li>
 
     <li>
-        <label for="img_upload">Image:</label>
-        <input type="file" id="img_upload" name="img_upload">
+        <label>Image:</label>
+        <img src="<?show($set['dir'])?><?show($item['Img_Path'])?>" alt="<?show($item['Title'])?> Image">
         <input type="hidden" id="img_stored" name="img_stored" value="<?show($item['Img_Path'])?>">
+    </li>
+
+    <li>
+        <label for="img_upload">Re-upload Image:</label>
+        <input type="file" id="img_upload" name="img_upload">
     </li>
 
     <li>
@@ -30,9 +35,17 @@
 </li>
 
     <li>
-    <input type="hidden" id="img_stored" name="thumb_stored" value="<?show($item['Img_Thumb_Path'])?>">
+        <label>Thumbnail:</label>
+        <img src="<?show($set['dir'])?><?show($item['Img_Thumb_Path'])?>" alt="<?show($item['Title'])?> Thumbnail">
+        <input type="hidden" id="thumb_stored" name="thumb_stored" value="<?show($item['Img_Thumb_Path'])?>">
+    </li>
+
+    <li>
     <?php if (!$catInfo['Auto_Thumbs']) :?>
-        <label for="create-thumbnail"> Create Thumbnail:</label>
+        <label for="thumb_upload">Upload Thumbnail:</label>
+        <input type="file" id="thumb_upload" name="thumb_upload">
+        <p> - OR - </p>
+        <label for="create-thumbnail"> Auto-Create Thumbnail:</label>
         <input type="hidden" name="create_thumbnail" value="">
         <input type="checkbox" id="create-thumbnail" name="create_thumbnail" value="checked">
         <ul class="form-list">
