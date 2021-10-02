@@ -1,5 +1,5 @@
 <?php
-$showErrors = 1;
+$showErrors = 0;
 if ($showErrors) {
     ini_set('display_errors', '1');
     ini_set('display_startup_errors', '1');
@@ -39,7 +39,7 @@ function serializeSettings() {
     }
     return $settings;
 }
-
+// run/get settings
 $set = serializeSettings();
 
 $root = $_SERVER['DOCUMENT_ROOT'].$set['dir'];
@@ -47,7 +47,7 @@ $baseURL = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$set['dir'];
 $route = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].dirname($_SERVER['PHP_SELF']);
 
 function show($input=false) {
-    if ($input) {
+    if ($input || $input === 0 || $input === "0") {
         echo $input;
     } else {
         return;
@@ -138,10 +138,9 @@ function formatSizeUnits($bytes)
 }
 
 if (isset($_POST['submit_credentials'])) {
-
     $msg= '';
-    global $db; global $route; 
-    //global $emailHeaders;
+    global $db; global $route;
+    global $emailHeaders;
     $name = stripHTML($_POST['name']);
     if ($_POST['email'] && $_POST['password'] && $_POST['password2']) {
         $passw = $_POST['password'];
@@ -165,7 +164,7 @@ if (isset($_POST['submit_credentials'])) {
         $failed = false;
         $conn = new SQLite3($db);
         $dateQry = "UPDATE Accounts SET 
-                        Name = :u_name, 
+                        Username = :u_name, 
                         Email = :email, 
                         Activation_Timestamp = :time, 
                         Activation_Key = :key,
@@ -184,9 +183,16 @@ if (isset($_POST['submit_credentials'])) {
             $failed = true;
         }
         if ($failed === false) {
+            // $nameQry = "UPDATE Settings SET 
+            //             Value = :u_name
+            //             WHERE Key = 'owner_name';";
+            // $stmt = $conn->prepare($nameQry);
+            // $stmt->bindValue(':u_name', $name, SQLITE3_TEXT);
+            // $stmt->execute();
+            
             $body = "Welcome to your new CeeMyStuff Site!<br/><br/>"; 
             $body .= "To activate your admin panel, click the following link:<br/>";
-            $activateUrl = html_entity_decode($route."/account.php?key=$key");
+            $activateUrl = html_entity_decode($route."/index.php?key=$key");
             $body .=  '<a href="'.$activateUrl.'">'.$activateUrl.'</a>';
              if (mail($email, 'Validate your credentials', $body, $emailHeaders)) {
                 $msg .= "<p>Thank you! A confirmation email has been sent. If it hasn't shown up after a few minutes, 
@@ -268,7 +274,7 @@ if (isset($_POST['send_password_reset'])) {
         }
         if ($failed === false) {
             $body = "To reset your admin password, click the following link:<br/>";
-            $activateUrl = html_entity_decode($route."/account.php?key=$key");
+            $activateUrl = html_entity_decode($route."?key=$key");
             $body .= '<a href="'.$activateUrl.'">'.$activateUrl.'</a>';
                 mail($email, 'CeeMyStuff Password Reset', $body, $emailHeaders);
                 $msg .= "<p>An email with the link to reset your password has been sent. If it hasn't shown up after a few minutes, 
@@ -279,7 +285,7 @@ if (isset($_POST['send_password_reset'])) {
             $msg = 'Credential submission failed. Please try again.';
         }
     } else {
-        $msg = 'The email for this account was never confirmed. Please <a href="'.$route.'/account.php">confirm your email here</a>.';
+        $msg = 'The email for this account was never confirmed. Please <a href="'.$route.'">confirm your email here</a>.';
     }
 }
 
@@ -318,7 +324,7 @@ if (isset($_POST['reset_password'])) {
         } else {
             $msg .= 'Your password and password confirmation do not match.<br/>';
         }
-        //TODO: stop password from being email?
+        //TODO: stop password from being the same as user's email?
     } else {
         $msg .= 'Please fill out the following fields.';
     }
@@ -437,13 +443,20 @@ function logout() {
     //setcookie(session_name(),'',0,'/');
 }
 
-function getPage($page){
+function getPage($page, $key="id"){
     global $db;
     $conn = New SQLite3($db);
-    $page = stripHTML($page);
-    $qry = "SELECT * FROM Pages WHERE Page_Name=:request LIMIT 1;";
+    if ($key === 'name') {
+        $page = stripHTML($page);
+        $where = "Name=?";
+    } else {
+        $key = "id";
+        $page = filter_var($page, FILTER_SANITIZE_NUMBER_INT);
+        $where = "ID=?";
+    }
+    $qry = "SELECT * FROM Pages WHERE ".$where." LIMIT 1;";
     $stmt = $conn->prepare($qry);
-    $stmt->bindValue(':request', $page, SQLITE3_TEXT);
+    $stmt->bindValue(1, $page, SQLITE3_TEXT);
     $result = $stmt->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         return $row;
@@ -461,9 +474,10 @@ function printPage($request) {
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         $request = $row;
     }
+    global $set;global $db;global $page;
     $admin_panel = false;
-    $page_title = $page['Page_Header'];
-    include_once 'components/info-head.php';
+    include 'components/info-head.php';
+    echo '<title>'.$page['Page_Name'].'</title>';
     include_once 'components/header.php';
     echo '<h1>'.$page['Page_Header'].'</h1>';
     include_once 'components/footer.php';
@@ -472,9 +486,9 @@ function printPage($request) {
 
 function kickOut() {
     global $baseURL;
-    header('Location: '.$baseURL.'/admin/account.php');
+    header('Location: '.$baseURL.'/admin/');
     // if header fails, do it with Javascript instead:
-        echo '<script>window.location.replace("'.$baseURL.'/admin/account.php")</script>';
+        echo '<script>window.location.replace("'.$baseURL.'/admin/")</script>';
     exit();
 }
 
@@ -483,17 +497,44 @@ if (isset($_POST['logout'])) {
     kickOut();
 };
 
+function getPageList() {
+    global $db;
+    global $admin_area;
+    global $loggedIn;
+    $conn = new SQLite3($db);
+    $pageList = array();
+    $qry = 'SELECT ID, Name, Multi_Cat FROM Pages';
+    if (!$admin_area || !$loggedIn) {
+        $qry .= ' WHERE Hidden=0';
+    }
+    $qry .= ';';
+    $result = $conn->prepare($qry)->execute();
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $pageList[]=$row;
+    } 
+    return $pageList;
+}
 
-
-function getCatList() {
+function getCatList($pageID=false) {
     global $db;
     global $admin_area;
     global $loggedIn;
     $conn = new SQLite3($db);
     $catList = array();
-    $qry = 'SELECT ID, Name FROM Categories';
+    $qry = 'SELECT ID, Name, Hidden FROM Categories';
+    $where = "";
+    if ($pageID || $pageID === "0") {
+        $pageID = filter_var($pageID, FILTER_SANITIZE_NUMBER_INT);
+        $where = ' Page_ID='.$pageID;
+    }
     if (!$admin_area || !$loggedIn) {
-        $qry .= ' WHERE Hidden=0';
+        if ($where) {
+            $where .= " AND";
+        }
+        $where .= ' Hidden=0';
+    }
+    if ($where) {
+        $qry .= ' WHERE '.$where;
     }
     $qry .= ';';
     $result = $conn->prepare($qry)->execute();
@@ -512,7 +553,7 @@ function getCatInfo($id) {
     $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
     $result = $stmt->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-        $row['Blurb'] = html_entity_decode($row['Blurb']);
+        $row['Text'] = html_entity_decode($row['Text']);
         return $row;
     } 
 }
@@ -571,7 +612,7 @@ function getItem($id) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-if ($loggedIn) {
+if (isset($loggedIn) && $loggedIn===true) {
 
 
 function fetchSettings($arr=false) {
@@ -635,6 +676,146 @@ if (isset($_POST['save_settings'])) {
     $msg= "Saved!";
 }
 
+
+if (isset($_POST['create_page'])) {
+    global $db;
+    global $set;
+    $conn = new SQLite3($db);
+    $cPost = cleanServerPost($_POST);
+    require_once 'imgUpload.php';
+    $dir = '/assets/uploads/cat-headers/';
+    if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
+    if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
+    if ($_FILES['header_img_upload']['name']) {
+        //sanitize img name
+        $_FILES['header_img_upload']['name'] = stripHTML($_FILES['header_img_upload']['name']);
+        $_FILES['header_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['header_img_upload']['name']));
+        $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage']);
+    } else {
+        $imgPath = null;
+    }
+    if ($_FILES['menu_img_upload']['name']) {
+        //sanitize img name
+        $_FILES['menu_img_upload']['name'] = stripHTML($_FILES['menu_img_upload']['name']);
+        $_FILES['menu_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['menu_img_upload']['name']));
+        $menuImgPath = uploadImage ($dir, $_FILES['menu_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage']);
+    } else {
+        $menuImgPath = null;
+    }
+    $qry = 'INSERT INTO Pages (Name,Meta_Text,Header_Img_Path,Show_Title,Show_Header_Img,Multi_Cat,Paginate,Paginate_After,Menu_Link_Img,Format,Hidden) 
+    VALUES (?,?,?,?,?,?,?,?,?,?,?);';
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(1,$cPost['name'], SQLITE3_TEXT);
+    $stmt->bindValue(2,$cPost['meta_text'], SQLITE3_TEXT);
+    $stmt->bindValue(3,$imgPath, SQLITE3_TEXT);
+    $stmt->bindValue(4,$cPost['n_show_title'], SQLITE3_INTEGER);
+    $stmt->bindValue(5,$cPost['n_show_header_img'], SQLITE3_INTEGER);
+    $stmt->bindValue(6,$cPost['n_multi_cat'], SQLITE3_INTEGER);
+    $stmt->bindValue(7,$cPost['n_paginate'], SQLITE3_INTEGER);
+    $stmt->bindValue(8,$cPost['n_paginate_after'], SQLITE3_INTEGER);
+    $stmt->bindValue(9,$menuImgPath, SQLITE3_TEXT);
+    $stmt->bindValue(10,$cPost['format'], SQLITE3_TEXT);
+    $stmt->bindValue(11,$cPost['n_hidden'], SQLITE3_INTEGER);
+    // $stmt->bindValue(12,$cPost['n_create_thumbs'], SQLITE3_INTEGER);
+    // $stmt->bindValue(13,$cPost['n_thumb_size'], SQLITE3_INTEGER);
+    // $stmt->bindValue(14,$cPost['n_thumb_axis'], SQLITE3_INTEGER);
+    if ($stmt->execute()) {
+        $pageID = $conn->lastInsertRowID();
+        $catQry = 'INSERT INTO Categories (Name,Page_ID,Page_Index_Order) 
+            VALUES (?,?,1);';
+            $catName= $cPost['name'].' Content';
+            $catStmt = $conn->prepare($catQry);
+            $catStmt->bindValue(1,$catName, SQLITE3_TEXT);
+            $catStmt->bindValue(2,$pageID, SQLITE3_INTEGER);
+            $catStmt->execute();
+        $msg="New page created!";
+    } else {
+        $msg="Page creation failed. Please try again.";
+    }
+}
+
+if (isset($_POST['edit_page'])) {
+    global $db;
+    global $set;
+    $conn = new SQLite3($db);
+    $cPost = cleanServerPost($_POST);
+    require_once 'imgUpload.php';
+    $dir = '/assets/uploads/cat-headers/';
+    if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
+    if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
+    if ($_FILES['header_img_upload']['name']) {
+        //sanitize img name
+        $_FILES['header_img_upload']['name'] = stripHTML($_FILES['header_img_upload']['name']);
+        $_FILES['header_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['header_img_upload']['name']));
+        $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage']);
+    } else {
+        if ($cPost['stored_header_img']) {
+            $imgPath = $cPost['stored_header_img'];
+        } else {
+            $imgPath = null;
+        }
+    }
+    if ($_FILES['menu_img_upload']['name']) {
+        //sanitize img name
+        $_FILES['menu_img_upload']['name'] = stripHTML($_FILES['menu_img_upload']['name']);
+        $_FILES['menu_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['menu_img_upload']['name']));
+        $menuImgPath = uploadImage ($dir, $_FILES['menu_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage']);
+    } else {
+        if ($cPost['stored_menu_img']) {
+            $menuImgPath = $cPost['stored_menu_img'];
+        } else {
+            $menuImgPath = null;
+        }
+    }
+    $qry = 'UPDATE Pages 
+    SET Name=?,Meta_Text=?,Header_Img_Path=?,Show_Title=?,Show_Header_Img=?,Multi_Cat=?,Paginate=?,Paginate_After=?,Menu_Link_Img=?,Format=?,Hidden=?
+    WHERE ID=?;';
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(1,$cPost['name'], SQLITE3_TEXT);
+    $stmt->bindValue(2,$cPost['meta_text'], SQLITE3_TEXT);
+    $stmt->bindValue(3,$imgPath, SQLITE3_TEXT);
+    $stmt->bindValue(4,$cPost['n_show_title'], SQLITE3_INTEGER);
+    $stmt->bindValue(5,$cPost['n_show_header_img'], SQLITE3_INTEGER);
+    $stmt->bindValue(6,$cPost['n_multi_cat'], SQLITE3_INTEGER);
+    $stmt->bindValue(7,$cPost['n_paginate'], SQLITE3_INTEGER);
+    $stmt->bindValue(8,$cPost['n_paginate_after'], SQLITE3_INTEGER);
+    $stmt->bindValue(9,$menuImgPath, SQLITE3_TEXT);
+    $stmt->bindValue(10,$cPost['format'], SQLITE3_TEXT);
+    $stmt->bindValue(11,$cPost['n_hidden'], SQLITE3_INTEGER);
+    $stmt->bindValue(12,$cPost['n_page_id'], SQLITE3_INTEGER);
+    // $stmt->bindValue(13,$cPost['n_create_thumbs'], SQLITE3_INTEGER);
+    // $stmt->bindValue(14,$cPost['n_thumb_size'], SQLITE3_INTEGER);
+    // $stmt->bindValue(15,$cPost['n_thumb_axis'], SQLITE3_INTEGER);
+    if ($stmt->execute()) {
+        $msg="Changes to '".$cPost['name']."' have been saved!";
+    } else {
+        $msg="Changes failed to save. Please try again.";
+    }
+}
+
+
+if (isset($_POST['delete_page'])) {
+    global $db;
+    $conn = new SQLite3($db);
+    $pageID = filter_var($_POST['n_page_id'], FILTER_SANITIZE_NUMBER_INT);
+    $moveCatQry = 'UPDATE Categories SET Page_ID=null WHERE Page_ID=?;';
+    $catStmt = $conn->prepare($moveCatQry);
+    $catStmt->bindValue(1,$pageID, SQLITE3_INTEGER);
+    if ($catStmt->execute()) {
+        $qry = 'DELETE FROM Pages WHERE ID=?;';
+        $stmt = $conn->prepare($qry);
+        $stmt->bindValue(1,$pageID, SQLITE3_INTEGER);
+        if ($stmt->execute()) {
+            $msg="Category deleted!";
+        } else {
+            $msg="Category failed to delete. Please try again.";
+        }
+    } else {
+        $msg="Category failed to delete. Please try again.";
+    }
+}
+
+
 if (isset($_POST['create_category'])) {
     global $db;
     global $set;
@@ -650,21 +831,24 @@ if (isset($_POST['create_category'])) {
         $_FILES['header_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['img_upload']['name']));
         $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage']);
     }
-    $qry = 'INSERT INTO Categories (Name,Blurb,Header_Img_Path,Show_Images,Show_Titles,Show_Captions,Order_By,Auto_Thumbs,Thumb_Size,Thumb_Size_Axis,Hidden,Format_ID) 
-    VALUES (?,?,?,?,?,?,?,?,?,?,?);';
+    $qry = 'INSERT INTO Categories (Name,Page_ID,Text,Header_Img_Path,Show_Title,Show_Header_Img,Show_Item_Images,Show_Item_Titles,Show_Item_Text,Order_By,Auto_Thumbs,Thumb_Size,Thumb_Size_Axis,Format,Hidden) 
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);';
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(1,$cPost['name'], SQLITE3_TEXT);
-    $stmt->bindValue(2,$cPost['b_blurb'], SQLITE3_TEXT);
-    $stmt->bindValue(3,$imgPath, SQLITE3_TEXT);
-    $stmt->bindValue(4,$cPost['n_show_images'], SQLITE3_INTEGER);
-    $stmt->bindValue(5,$cPost['n_show_titles'], SQLITE3_INTEGER);
-    $stmt->bindValue(6,$cPost['n_show_captions'], SQLITE3_INTEGER);
-    $stmt->bindValue(7,$cPost['order_by'], SQLITE3_TEXT);
-    $stmt->bindValue(8,$cPost['n_create_thumbs'], SQLITE3_INTEGER);
-    $stmt->bindValue(9,$cPost['n_thumb_size'], SQLITE3_INTEGER);
-    $stmt->bindValue(10,$cPost['n_thumb_axis'], SQLITE3_INTEGER);
-    $stmt->bindValue(11,$cPost['n_hidden'], SQLITE3_INTEGER);
-    $stmt->bindValue(12,$cPost['n_format_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(2,$cPost['n_page_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(3,$cPost['b_text'], SQLITE3_TEXT);
+    $stmt->bindValue(4,$imgPath, SQLITE3_TEXT);
+    $stmt->bindValue(5,$cPost['n_show_title'], SQLITE3_INTEGER);
+    $stmt->bindValue(6,$cPost['n_show_header_img'], SQLITE3_INTEGER);
+    $stmt->bindValue(7,$cPost['n_show_images'], SQLITE3_INTEGER);
+    $stmt->bindValue(8,$cPost['n_show_titles'], SQLITE3_INTEGER);
+    $stmt->bindValue(9,$cPost['n_show_text'], SQLITE3_INTEGER);
+    $stmt->bindValue(10,$cPost['order_by'], SQLITE3_TEXT);
+    $stmt->bindValue(11,$cPost['n_create_thumbs'], SQLITE3_INTEGER);
+    $stmt->bindValue(12,$cPost['n_thumb_size'], SQLITE3_INTEGER);
+    $stmt->bindValue(13,$cPost['n_thumb_axis'], SQLITE3_INTEGER);
+    $stmt->bindValue(14,$cPost['format'], SQLITE3_TEXT);
+    $stmt->bindValue(15,$cPost['n_hidden'], SQLITE3_INTEGER);
     if ($stmt->execute()) {
         $msg="New category created!";
     } else {
@@ -684,7 +868,7 @@ if (isset($_POST['edit_category'])) {
         require_once 'imgUpload.php';
         //sanitize img name
         $_FILES['header_img_upload']['name'] = stripHTML($_FILES['header_img_upload']['name']);
-        $_FILES['header_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['img_upload']['name']));
+        $_FILES['header_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['header_img_upload']['name']));
         if (!$cPost['header_img_stored']) {
             $cPost['header_img_stored'] = false;
         }
@@ -694,27 +878,53 @@ if (isset($_POST['edit_category'])) {
     } else {
         $imgPath = null;
     }
-    $qry = 'UPDATE Categories 
-    SET Name=?,Blurb=?,Header_Img_Path=?,Show_Images=?,Show_Titles=?,Show_Captions=?,Order_By=?,Auto_Thumbs=?,Thumb_Size=?,Thumb_Size_Axis=?,Hidden=?,Format_ID=?
+    $qry = 'UPDATE Categories SET 
+        Name=?,Text=?,
+        Header_Img_Path=?,Show_Title=?,Show_Header_Img=?,Show_Item_Images=?,
+        Show_Item_Titles=?,Show_Item_Text=?,Order_By=?,Auto_Thumbs=?,
+        Thumb_Size=?,Thumb_Size_Axis=?,Format=?,Hidden=?
     WHERE ID=?;';
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(1,$cPost['name'], SQLITE3_TEXT);
-    $stmt->bindValue(2,$cPost['b_blurb'], SQLITE3_TEXT);
+    $stmt->bindValue(2,$cPost['b_text'], SQLITE3_TEXT);
     $stmt->bindValue(3,$imgPath, SQLITE3_TEXT);
-    $stmt->bindValue(4,$cPost['n_show_images'], SQLITE3_INTEGER);
-    $stmt->bindValue(5,$cPost['n_show_titles'], SQLITE3_INTEGER);
-    $stmt->bindValue(6,$cPost['n_show_captions'], SQLITE3_INTEGER);
-    $stmt->bindValue(7,$cPost['order_by'], SQLITE3_TEXT);
-    $stmt->bindValue(8,$cPost['n_create_thumbs'], SQLITE3_INTEGER);
-    $stmt->bindValue(9,$cPost['n_thumb_size'], SQLITE3_INTEGER);
-    $stmt->bindValue(10,$cPost['n_thumb_axis'], SQLITE3_INTEGER);
-    $stmt->bindValue(11,$cPost['n_hidden'], SQLITE3_INTEGER);
-    $stmt->bindValue(12,$cPost['n_format_id'], SQLITE3_INTEGER);
-    $stmt->bindValue(13,$cPost['n_cat_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(4,$cPost['n_show_title'], SQLITE3_INTEGER);
+    $stmt->bindValue(5,$cPost['n_show_header_img'], SQLITE3_INTEGER);
+    $stmt->bindValue(6,$cPost['n_show_images'], SQLITE3_INTEGER);
+    $stmt->bindValue(7,$cPost['n_show_titles'], SQLITE3_INTEGER);
+    $stmt->bindValue(8,$cPost['n_show_text'], SQLITE3_INTEGER);
+    $stmt->bindValue(9,$cPost['order_by'], SQLITE3_TEXT);
+    $stmt->bindValue(10,$cPost['n_create_thumbs'], SQLITE3_INTEGER);
+    $stmt->bindValue(11,$cPost['n_thumb_size'], SQLITE3_INTEGER);
+    $stmt->bindValue(12,$cPost['n_thumb_axis'], SQLITE3_INTEGER);
+    $stmt->bindValue(13,$cPost['format'], SQLITE3_TEXT);
+    $stmt->bindValue(14,$cPost['n_hidden'], SQLITE3_INTEGER);
+    $stmt->bindValue(15,$cPost['n_cat_id'], SQLITE3_INTEGER);
     if ($stmt->execute()) {
         $msg="Category setting changes saved!";
     } else {
         $msg="Changes failed to save. Please try again.";
+    }
+}
+
+if (isset($_POST['delete_category'])) {
+    global $db;
+    $conn = new SQLite3($db);
+    $catID = filter_var($_POST['n_cat_id'], FILTER_SANITIZE_NUMBER_INT);
+    $moveItemsQry = 'UPDATE Items SET Cat_ID=0 WHERE Cat_ID=?;';
+    $itemStmt = $conn->prepare($moveItemsQry);
+    $itemStmt->bindValue(1,$catID, SQLITE3_INTEGER);
+    if ($itemStmt->execute()) {
+        $qry = 'DELETE FROM Categories WHERE ID=?;';
+        $stmt = $conn->prepare($qry);
+        $stmt->bindValue(1,$catID, SQLITE3_INTEGER);
+        if ($stmt->execute()) {
+            $msg="Category deleted!";
+        } else {
+            $msg="Category failed to delete. Please try again.";
+        }
+    } else {
+        $msg="Category failed to delete. Please try again.";
     }
 }
 
@@ -759,16 +969,16 @@ if (isset($_POST['create_item'])) {
     } else {
         $pdtUnix = time();
     }
-    $qry = "INSERT INTO Items (Cat_ID,Title,Img_Path,Img_Thumb_Path,Caption,Publish_Timestamp,Format_ID,Hidden)
+    $qry = "INSERT INTO Items (Cat_ID,Title,Img_Path,Img_Thumb_Path,Text,Publish_Timestamp,Hidden,Format)
     VALUES (?,?,?,?,?,?,?,?);";
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(1,$cPost['n_cat_id'], SQLITE3_INTEGER);
     $stmt->bindValue(2,$cPost['title'], SQLITE3_TEXT);
     $stmt->bindValue(3,$imgPath, SQLITE3_TEXT);
     $stmt->bindValue(4,$imgThumbPath, SQLITE3_TEXT);
-    $stmt->bindValue(5,$cPost['b_caption'], SQLITE3_TEXT);
+    $stmt->bindValue(5,$cPost['b_text'], SQLITE3_TEXT);
     $stmt->bindValue(6,$pdtUnix, SQLITE3_INTEGER);
-    $stmt->bindValue(7,$cPost['n_format_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(7,$cPost['format'], SQLITE3_TEXT);
     $stmt->bindValue(8,$cPost['n_hidden'], SQLITE3_INTEGER);
     if ($stmt->execute()) {
         $msg="New item created!";
@@ -844,22 +1054,36 @@ if (isset($_POST['edit_item'])) {
         $pdtUnix = time();
     }
     $qry = "UPDATE Items 
-            SET Cat_ID=?,Title=?,Img_Path=?,Img_Thumb_Path=?,Caption=?,Publish_Timestamp=?,Format_ID=?,Hidden=?
+            SET Cat_ID=?,Title=?,Img_Path=?,Img_Thumb_Path=?,Text=?,Publish_Timestamp=?,Format=?,Hidden=?
             WHERE ID=?;";
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(1,$cPost['n_cat_id'], SQLITE3_INTEGER);
     $stmt->bindValue(2,$cPost['title'], SQLITE3_TEXT);
     $stmt->bindValue(3,$imgPath, SQLITE3_TEXT);
     $stmt->bindValue(4,$imgThumbPath, SQLITE3_TEXT);
-    $stmt->bindValue(5,$cPost['b_caption'], SQLITE3_TEXT);
+    $stmt->bindValue(5,$cPost['b_text'], SQLITE3_TEXT);
     $stmt->bindValue(6,$pdtUnix, SQLITE3_INTEGER);
-    $stmt->bindValue(7,$cPost['n_format_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(7,$cPost['format'], SQLITE3_TEXT);
     $stmt->bindValue(8,$cPost['n_hidden'], SQLITE3_INTEGER);
     $stmt->bindValue(9,$cPost['n_item_id'], SQLITE3_INTEGER);
     if ($stmt->execute()) {
         $msg="Changes saved!";
     } else {
         $msg="Changes did not save. Please try again.";
+    }
+}
+
+if (isset($_POST['delete_item'])) {
+    global $db;
+    $conn = new SQLite3($db);
+    $itemID = filter_var($_POST['n_item_id'], FILTER_SANITIZE_NUMBER_INT);
+    $qry = 'DELETE FROM Items WHERE ID=?;';
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(1,$itemID, SQLITE3_INTEGER);
+    if ($stmt->execute()) {
+        $msg="Item deleted!";
+    } else {
+        $msg="Item failed to delete. Please try again.";
     }
 }
 

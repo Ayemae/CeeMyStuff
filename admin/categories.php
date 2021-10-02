@@ -9,9 +9,14 @@ if (isset($_GET['task'])) {
     $task = false;
 }
 if (isset($_GET['catid'])) {
-    $catID = $_GET['catid'];
+    $catID = filter_var($_GET['catid'], FILTER_SANITIZE_NUMBER_INT);
 } else {
     $catID = 0;
+}
+if (isset($_GET['pageid'])) {
+    $pageID = filter_var($_GET['pageid'], FILTER_SANITIZE_NUMBER_INT);
+} else {
+    $pageID = 0;
 }
 ?>
 

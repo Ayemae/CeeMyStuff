@@ -10,17 +10,25 @@
     <li>
         <label for="name">Name:</label>
         <input type="text" name="name" id="name" max-length="255" value="<?show($cat['Name'])?>">
+        <br/>
+        <label for="n_show_title">Show category name on the website:</label>
+        <input type="hidden" name="n_show_title" value="0">
+        <input type="checkbox" name="n_show_title" id="n_show_title" value="1" <?=(isset($_POST['n_show_title']) && $_POST['n_show_title']<1 ? null : 'checked')?>>
     </li>
 
     <li>
     <label for="header_img_upload">Header Image:</label>
         <input type="file" id="header_img_upload" name="header_img_upload">
         <input type="hidden" name="header_img_stored" value="<?show($cat['Img_Path'])?>">
+        <br/>
+        <label for="n_show_title">Show header image on the website:</label>
+        <input type="hidden" name="n_show_header_img" value="0">
+        <input type="checkbox" name="n_show_header_img" id="n_show_header_img" value="1" <?=(isset($_POST['n_show_header_img']) && $_POST['n_show_header_img']<1 ? null : 'checked')?>>
     </li>
 
     <li>
-        <label for="b_blurb">Blurb:</label><br/>
-        <textarea name="b_blurb"><?show($cat['Blurb'])?></textarea>
+        <label for="b_text">Text:</label><br/>
+        <textarea name="b_text"><?show($cat['Text'])?></textarea>
     </li>
 </ul>
 
@@ -45,20 +53,20 @@
     </li>
 
     <li>
-        <label for="show_captions">Show Item Captions:</label>
-        <select id="show_captions" name="n_show_captions">
-            <option value="0" <?show((!$cat['Show_Captions'] ? 'selected' : null ))?>>No</option>
-            <option value="1" <?show(($cat['Show_Captions']==1 ? 'selected' : null ))?>>Show Truncated Captions</option>
-            <option value="2" <?show(($cat['Show_Captions']==2 ? 'selected' : null ))?>>Show Full Captions</option>
+        <label for="show_text">Show Item Text:</label>
+        <select id="show_text" name="n_show_text">
+            <option value="0" <?show((!$cat['Show_text'] ? 'selected' : null ))?>>No</option>
+            <option value="1" <?show(($cat['Show_text']==1 ? 'selected' : null ))?>>Show Truncated Text</option>
+            <option value="2" <?show(($cat['Show_text']==2 ? 'selected' : null ))?>>Show Full Text</option>
         </select>
     </li>
 
     <li>
         <label for="order_by">Order Items By:</label>
         <select id="order_by" name="order_by">
-            <option value="date" <?show((!$cat['Order_By'] == 'date' ? 'selected' : null ))?>>Date</option>
-            <option value="title" <?show(($cat['Order_By']== 'title' ? 'selected' : null ))?>>Title</option>
-            <option value="random" <?show(($cat['Order_By']== 'random' ? 'selected' : null ))?>>Random</option>
+            <option value="Date" <?show((!$cat['Order_By'] == 'date' ? 'selected' : null ))?>>Date</option>
+            <option value="Title" <?show(($cat['Order_By']== 'title' ? 'selected' : null ))?>>Title</option>
+            <option value="Random" <?show(($cat['Order_By']== 'random' ? 'selected' : null ))?>>Random</option>
             <!-- <option value="custom" <?show(($cat['Order_By']== 'custom' ? 'selected' : null ))?>>Custom</option> -->
         </select>
     </li>
@@ -90,7 +98,7 @@
             <input type="checkbox" id="hidden" name="n_hidden" value="1" <?show(($cat['Hidden'] ? 'checked' : null ))?>>
     </li>
     </ul>
-    <input type="hidden" id="format_id" name="n_format_id" value='0'>
+    <input type="hidden" id="format" name="format" value=''>
 
   <button name="edit_category">Submit</button>
 </form>

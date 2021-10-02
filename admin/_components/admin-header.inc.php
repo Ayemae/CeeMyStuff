@@ -21,15 +21,13 @@
             </form>
             <?php  endif; ?>
         </div>
+        <?php if ($_SESSION && $_SESSION['Key']) :?>
         <?php include '_components/menu.inc.php';
+        endif;
     endif; ?>
 </header>
 
 <?php 
-if (!$loggedIn && $admin_panel) {
-    // kickOut();
-    // exit();
-}
 if (isset($_SESSION['Msg'])) {
     echo $_SESSION['Msg'];
     unset($_SESSION['Msg']);

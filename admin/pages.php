@@ -8,8 +8,8 @@ if (isset($_GET['task'])) {
 } else {
     $task = false;
 }
-if (isset($_GET['pageid'])) {
-    $pageID = $_GET['pageid'];
+if (isset($_GET['id'])) {
+    $pageID = filter_var($_GET['id'], FILTER_SANITIZE_NUMBER_INT);
 } else {
     $pageID = 0;
 }
@@ -19,20 +19,20 @@ if (isset($_GET['pageid'])) {
 
 <?php switch ($task) :
     case 'view' :
-        $items = getCatItems($catID);
+        //$items = getCatItems($catID);
         include '_components/page-view.inc.php';
         break;
     case 'create' :
         include '_components/page-create.inc.php';
         break;
     case 'edit' :
-        $cat = getCatInfo($catID);
+        $page = getPage($pageID);
         include '_components/page-edit.inc.php';
         break;
     case 'list' :
-        // do not break here, we want 'list' to inherit default
+        // do not break here, we want default to inherit 'list'
     default : 
-        //$pgList = getPageList(); 
+        $pgList = getPageList(); 
         include '_components/page-list.inc.php';
         break;
     endswitch;?>

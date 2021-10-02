@@ -17,13 +17,13 @@ $conn = new SQLite3('../data/database.db');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Settings (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    Index_Order INTEGER,
     Field TEXT UNIQUE,
     Key TEXT UNIQUE,
     Value TEXT,
     Type TEXT,
     Description TEXT,
-    Options TEXT,
-    Index_Order INTEGER
+    Options TEXT
 )');
 
 $conn->exec('INSERT INTO Settings (ID, Index_Order, Field, Key, Value, Type, Description, Options)
@@ -35,55 +35,78 @@ $conn->exec('INSERT INTO Settings (ID, Index_Order, Field, Key, Value, Type, Des
     (5, 5, "Header Image", "header_img", null, "file", "If you want to use a header image, upload it here.",null),
     (6, 6, "Timezone", "timezone", "America/New_York", "timezone", null,null),
     (7, 7, "Social Media Button Format", "sm_format", "Icons", "select", "How your social media buttons will display.", "Icons, Text"),
-    (8, 8, "Collapse Menu on Mobile","mobile_collapse_menu","checked","checkbox", null, null),
-    (9, 9, "Automate Thumbnails by Default","auto_thumbs","checked","checkbox", "If you prefer that categories default to automatically making thumbnails.", null),
-    (10, 10, "Thumbnail Size (in pixels)","thumb_size","125","number", null, null),
-    (11, 11, "Thumbnail Size Axis","thumb_size_axis","width", "select", "Is your thumbnail size restriction for its width, or for its height?", "Width, Height"),
-    (12, 12, "Enable Max Image Dimensions","has_max_img_dimns","checked", "checkbox", "Enable a maximum height/width on the images you can upload.", null),
-    (13, 13, "Max Image Dimensions (in pixels)", "max_img_dimns", "2400","number", null, null),
-    (14, 14, "Enable Max Image Storage Size","has_max_img_storage","checked", "checkbox", "Enable a maximum on how much storage a single image upload can take up.", null),
-    (15, 15, "Max Image Storage Size (in Kilobytes)","max_img_storage","1500", "number", "For reference, roughly 1000 kilobytes are in a megabyte, and rougly 1000000 are in a gigabyte.", null)
+    (8, 8, "Enable Max Image Dimensions", "has_max_img_dimns","checked", "checkbox", "Enable a maximum height/width on the images you can upload.", null),
+    (9, 9, "Max Image Dimensions (in pixels)", "max_img_dimns", "2400","number", null, null),
+    (10, 10, "Enable Max Image Storage Size","has_max_img_storage","checked", "checkbox", "Enable a maximum on how much storage a single image upload can take up.", null),
+    (11, 11, "Max Image Storage Size (in Kilobytes)","max_img_storage","75000", "number", "For reference, roughly 1000 kilobytes are in a megabyte, and rougly 1000000 are in a gigabyte.", null)
     ;');
+
+$conn->exec('CREATE TABLE IF NOT EXISTS Pages (
+    ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    Name TEXT UNIQUE NOT NULL,
+    Meta_Text TEXT DEFAULT null,
+    Header_Img_Path TEXT DEFAULT null,
+    Show_Title INTEGER NOT NULL DEFAULT 1,
+    Show_Header_Img INTEGER NOT NULL DEFAULT 1,
+    Multi_Cat INTEGER NOT NULL DEFAULT 0,
+    Paginate INTEGER NOT NULL DEFAULT 0,
+    Paginate_After INTEGER NOT NULL DEFAULT 20,
+    Menu_Link_Img TEXT DEFAULT null,
+    Default_Auto_Thumbs INTEGER NOT NULL DEFAULT 1,
+    Default_Thumb_Size INTEGER NOT NULL DEFAULT 125,
+    Default_Thumb_Size_Axis INTEGER NOT NULL DEFAULT 0,
+    Format TEXT,
+    Hidden INTEGER NOT NULL DEFAULT 0
+)');
+
+$conn->exec('INSERT INTO Pages (ID, Name, Meta_Text)
+    VALUES 
+    (0, "Home", "Portfolio homepage.");');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Categories (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Index_Order INTEGER,
     Name TEXT UNIQUE NOT NULL,
-    Blurb TEXT,
+    Page_ID INTEGER DEFAULT 0,
+    Page_Index_Order INTEGER,
+    Text TEXT,
     Header_Img_Path TEXT,
-    Show_Images INTEGER NOT NULL DEFAULT 1,
-    Show_Titles INTEGER NOT NULL DEFAULT 1,
-    Show_Captions INTEGER NOT NULL DEFAULT 1,
+    Show_Title INTEGER NOT NULL DEFAULT 1,
+    Show_Header_Img INTEGER NOT NULL DEFAULT 1,
+    Show_Text INTEGER NOT NULL DEFAULT 1,
+    Show_Item_Images INTEGER NOT NULL DEFAULT 1,
+    Show_Item_Titles INTEGER NOT NULL DEFAULT 1,
+    Show_Item_Text INTEGER NOT NULL DEFAULT 1,
+    Order_By TEXT NOT NULL DEFAULT "Date",
     Auto_Thumbs INTEGER NOT NULL DEFAULT 1,
     Thumb_Size INTEGER NOT NULL DEFAULT 125,
     Thumb_Size_Axis INTEGER NOT NULL DEFAULT 0,
-    Order_By TEXT NOT NULL DEFAULT "date",
-    Hidden INTEGER NOT NULL DEFAULT 0,
-    Format_ID INTEGER
+    Format TEXT,
+    Hidden INTEGER NOT NULL DEFAULT 0
 )');
 
-$conn->exec('INSERT INTO Categories (ID, Index_Order, Name, Blurb, Hidden)
+$conn->exec('INSERT INTO Categories (ID, Page_ID, Page_Index_Order, Name, Text, Hidden)
     VALUES 
-    (0, 0, "None", "Items that are not sorted into any category.", 1);');
+    (0, null, 0, "None", "Items that are not sorted into any category.", 1),
+    (1, 0, 1, "Home Content", "See my stuff!", 0);');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Items (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     Cat_ID INTEGER,
+    Type TEXT DEFAULT "Image",
     Title TEXT NOT NULL,
     Img_Path TEXT,
     Img_Thumb_Path TEXT,
-    Caption TEXT,
+    Text TEXT,
     Publish_Timestamp INTEGER,
-    Index_Order INTEGER,
     Cat_Index_Order INTEGER,
-    Format_ID INTEGER,
-    Hidden INTEGER
+    Format TEXT,
+    Hidden INTEGER NOT NULL DEFAULT 0
 )');
 
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Accounts (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Name TEXT,
+    Username TEXT,
     Email TEXT,
     Email_Valid INTEGER,
     Password TEXT,
@@ -98,7 +121,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Accounts (
 
 $conn->exec('INSERT INTO Accounts (
     ID,
-    Name,
+    Username,
     Email,
     Password,
     Is_Admin,
@@ -112,7 +135,7 @@ $conn->exec('INSERT INTO Accounts (
 )
     VALUES 
     (1,
-    "My Name",
+    "Admin",
     null,
     null,
     1,
@@ -126,40 +149,12 @@ $conn->exec('INSERT INTO Accounts (
     );
 
 
-$conn->exec('CREATE TABLE IF NOT EXISTS Pages (
-    ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Name TEXT UNIQUE,
-    Header TEXT,
-    Meta TEXT,
-    Format_ID INTEGER
-)');
-
-$conn->exec('INSERT INTO Pages (ID,Name,Meta,Header) VALUES (1,"Index","","");');
-
-$conn->exec('CREATE TABLE IF NOT EXISTS Extra_Content (
-    ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Title TEXT,
-    Content TEXT,
-    Is_Code INTEGER
-)');
-
-$conn->exec('CREATE TABLE IF NOT EXISTS Page_x_Content (
-    Is_Cat INTEGER,
-    Content_ID INTEGER,
+$conn->exec('CREATE TABLE IF NOT EXISTS Menu_Options (
     Page_ID INTEGER,
-    Show_Title INTEGER,
-    Show_Cat_Blurb INTEGER,
-    Show_Cat_Items INTEGER,
-    Format_ID TEXT,
-    Hidden INTEGER
-)');
-
-$conn->exec('CREATE TABLE IF NOT EXISTS Menu (
     Index_Order INTEGER,
-    Page_ID INTEGER,
     Outgoing_Link TEXT,
-    In_Drop INTEGER,
-    Image TEXT,
+    In_Dropdown INTEGER,
+    Img_Path TEXT,
     Hidden INTEGER
 )');
 
@@ -170,36 +165,27 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Social_Media (
     Hidden INTEGER
 )');
 
-$conn->exec('CREATE TABLE IF NOT EXISTS Social_Media_Defaults (
-    ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Platform TEXT,
-    Icon TEXT,
-    URL TEXT
-)');
+// $conn->exec('CREATE TABLE IF NOT EXISTS Social_Media_Defaults (
+//     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+//     Platform TEXT,
+//     Icon TEXT,
+//     URL TEXT
+// )');
 
-$conn->exec('INSERT INTO Social_Media_Defaults (ID, Platform, Icon, URL)
-    VALUES 
-        (1, "Instagram","/assets/icons/instagram.svg","https://www.instagram.com/YOUR_HANDLE/"),
-        (2, "Facebook","/assets/icons/facebook.svg","https://www.facebook.com/YOUR_HANDLE/"),
-        (3, "LinkedIn","/assets/icons/linkedin.svg","https://www.linkedin.com/in/YOUR_HANDLE/"),
-        (4, "Patreon","/assets/icons/patreon.svg","https://www.patreon.com/YOUR_HANDLE"),
-        (5, "Tumblr","/assets/icons/tumblr.svg","https://YOUR_HANDLE.tumblr.com/"),
-        (6, "Twitch","/assets/icons/twitch.svg","https://www.twitch.tv/YOUR_HANDLE"),
-        (7, "Twitter","/assets/icons/twitter.svg","https://twitter.com/YOUR_HANDLE"),
-        (8, "YouTube","/assets/icons/youtube.svg","https://www.youtube.com/user/YOUR_HANDLE");');
-
-$conn->exec('CREATE TABLE IF NOT EXISTS Blog_Posts (
-    ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Title TEXT,
-    Content TEXT,
-    Timestamp INTEGER,
-    Public INTEGER
-)');
+// $conn->exec('INSERT INTO Social_Media_Defaults (ID, Platform, Icon, URL)
+//     VALUES 
+//         (1, "Instagram","/assets/icons/instagram.svg","https://www.instagram.com/YOUR_HANDLE/"),
+//         (2, "Facebook","/assets/icons/facebook.svg","https://www.facebook.com/YOUR_HANDLE/"),
+//         (3, "LinkedIn","/assets/icons/linkedin.svg","https://www.linkedin.com/in/YOUR_HANDLE/"),
+//         (4, "Patreon","/assets/icons/patreon.svg","https://www.patreon.com/YOUR_HANDLE"),
+//         (5, "Tumblr","/assets/icons/tumblr.svg","https://YOUR_HANDLE.tumblr.com/"),
+//         (6, "Twitch","/assets/icons/twitch.svg","https://www.twitch.tv/YOUR_HANDLE"),
+//         (7, "Twitter","/assets/icons/twitter.svg","https://twitter.com/YOUR_HANDLE"),
+//         (8, "YouTube","/assets/icons/youtube.svg","https://www.youtube.com/user/YOUR_HANDLE");');
 
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Tags (
-    Parent_Type TEXT,
-    Parent_ID INTEGER,
+    Item_ID INTEGER,
     Name TEXT
 )');
 
@@ -236,17 +222,24 @@ include '_components/admin-header.inc.php';
 <p>Let's add your user credentials.</p>
 
 <form method="post" action="?submitted=1">
-    <label for="name">Name:</label>
-    <input type="text" id="name" name="name" max-length="255"/>
-
-    <label for="email">Email:</label>
-    <input type="email" id="email" name="email" max-length="255"/>
-
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password" max-length="255"/>
-
-    <label for="password2">Confirm Password:</label>
-    <input type="password" id="password2" name="password2" max-length="255"/>
+    <ul>
+        <li>
+            <label for="name">Choose a Username:</label>
+            <input type="text" id="name" name="name" max-length="255"/>
+        </li>
+        <li>
+            <label for="email">Your Email (a confirmation email will be sent):</label>
+            <input type="email" id="email" name="email" max-length="255"/>
+        </li>
+        <li>
+            <label for="password">Your Password:</label>
+            <input type="password" id="password" name="password" max-length="255"/>
+        </li>
+        <li>
+            <label for="password2">Confirm Your Password:</label>
+            <input type="password" id="password2" name="password2" max-length="255"/>
+        </li>
+    </ul>
 
     <button name="submit_credentials">Submit</button>
 </form>
