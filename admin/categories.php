@@ -32,7 +32,10 @@ if (isset($_GET['pageid'])) {
         include '_components/category-create.inc.php';
         break;
     case 'edit' :
+        if ($loggedIn) { echo 'logged in';}
+        if ($admin_panel) { echo 'logged in';}
         $cat = getCatInfo($catID);
+        $pgList = getPageList();
         include '_components/category-edit.inc.php';
         break;
     case 'list' :

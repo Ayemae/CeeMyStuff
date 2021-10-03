@@ -28,17 +28,18 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Settings (
 
 $conn->exec('INSERT INTO Settings (ID, Index_Order, Field, Key, Value, Type, Description, Options)
     VALUES 
-    (1, 3, "Sub-directory", "dir", "", "text", "If your CeeMyStuff site is in a subdirectory, write it in here.", null),
+    (1, 3, "Sub-directory", "dir", "", "text", "If this portfolio site is in a subdirectory, write which subdirectory in here.", null),
     (2, 1, "Site Name", "site_name", "My Portfolio", "text", null, null),
     (3, 2, "Owner Name", "owner_name", "My Name", "text", "Your name, or the name of the group this site belongs to.", null),
     (4, 4, "Initial Copyright Year", "c_year", "", "number", null, null),
     (5, 5, "Header Image", "header_img", null, "file", "If you want to use a header image, upload it here.",null),
     (6, 6, "Timezone", "timezone", "America/New_York", "timezone", null,null),
-    (7, 7, "Social Media Button Format", "sm_format", "Icons", "select", "How your social media buttons will display.", "Icons, Text"),
-    (8, 8, "Enable Max Image Dimensions", "has_max_img_dimns","checked", "checkbox", "Enable a maximum height/width on the images you can upload.", null),
-    (9, 9, "Max Image Dimensions (in pixels)", "max_img_dimns", "2400","number", null, null),
-    (10, 10, "Enable Max Image Storage Size","has_max_img_storage","checked", "checkbox", "Enable a maximum on how much storage a single image upload can take up.", null),
-    (11, 11, "Max Image Storage Size (in Kilobytes)","max_img_storage","75000", "number", "For reference, roughly 1000 kilobytes are in a megabyte, and rougly 1000000 are in a gigabyte.", null)
+    (7, 7, "Enable Max Image Dimensions", "has_max_img_dimns","checked", "checkbox", "Enable a maximum height/width on the images you can upload.", null),
+    (8, 8, "Max Image Dimensions (in pixels)", "max_img_dimns", "2400","number", null, null),
+    (9, 9, "Enable Max Image Storage Size","has_max_img_storage","checked", "checkbox", "Enable a maximum on how much storage a single image upload can take up.", null),
+    (10, 10, "Max Image Storage Size (in Megabytes)","max_img_storage","25", "number", "For reference, rougly 1000 megabytes are in a gigabyte.", null),
+    (11, 11, "Site Menu Button Format", "menu_format", "Text", "select", "How your site menu buttons will display.", "Images, Text"),
+    (12, 12, "Social Media Button Format", "sm_format", "Icons", "select", "How your social media buttons will display.", "Icons, Text")
     ;');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Pages (
@@ -51,7 +52,6 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Pages (
     Multi_Cat INTEGER NOT NULL DEFAULT 0,
     Paginate INTEGER NOT NULL DEFAULT 0,
     Paginate_After INTEGER NOT NULL DEFAULT 20,
-    Menu_Link_Img TEXT DEFAULT null,
     Default_Auto_Thumbs INTEGER NOT NULL DEFAULT 1,
     Default_Thumb_Size INTEGER NOT NULL DEFAULT 125,
     Default_Thumb_Size_Axis INTEGER NOT NULL DEFAULT 0,
@@ -69,6 +69,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Categories (
     Page_ID INTEGER DEFAULT 0,
     Page_Index_Order INTEGER,
     Text TEXT,
+    Item_Type TEXT NOT NULL DEFAULT "Code",
     Header_Img_Path TEXT,
     Show_Title INTEGER NOT NULL DEFAULT 1,
     Show_Header_Img INTEGER NOT NULL DEFAULT 1,
@@ -86,17 +87,19 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Categories (
 
 $conn->exec('INSERT INTO Categories (ID, Page_ID, Page_Index_Order, Name, Text, Hidden)
     VALUES 
-    (0, null, 0, "None", "Items that are not sorted into any category.", 1),
+    (0, null, 0, "Orphaned Items", "Items that are not sorted into any category.", 1),
     (1, 0, 1, "Home Content", "See my stuff!", 0);');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Items (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     Cat_ID INTEGER,
-    Type TEXT DEFAULT "Image",
+    Type TEXT DEFAULT "Code",
     Title TEXT NOT NULL,
+    Text TEXT,
     Img_Path TEXT,
     Img_Thumb_Path TEXT,
-    Text TEXT,
+    File_Path TEXT,
+    Embed_HTML TEXT,
     Publish_Timestamp INTEGER,
     Cat_Index_Order INTEGER,
     Format TEXT,
@@ -165,6 +168,18 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Social_Media (
     Hidden INTEGER
 )');
 
+$conn->exec('CREATE TABLE IF NOT EXISTS Uploads (
+    ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    File_Path TEXT,
+    File_Type TEXT DEFAUlT "Image",
+    Timestamp INTEGER
+)');
+
+$conn->exec('CREATE TABLE IF NOT EXISTS Tags (
+    Item_ID INTEGER,
+    Name TEXT
+)');
+
 // $conn->exec('CREATE TABLE IF NOT EXISTS Social_Media_Defaults (
 //     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 //     Platform TEXT,
@@ -182,12 +197,6 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Social_Media (
 //         (6, "Twitch","/assets/icons/twitch.svg","https://www.twitch.tv/YOUR_HANDLE"),
 //         (7, "Twitter","/assets/icons/twitter.svg","https://twitter.com/YOUR_HANDLE"),
 //         (8, "YouTube","/assets/icons/youtube.svg","https://www.youtube.com/user/YOUR_HANDLE");');
-
-
-$conn->exec('CREATE TABLE IF NOT EXISTS Tags (
-    Item_ID INTEGER,
-    Name TEXT
-)');
 
 
 

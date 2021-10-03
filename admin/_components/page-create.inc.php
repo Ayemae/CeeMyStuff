@@ -1,6 +1,6 @@
+<form method="post" enctype="multipart/form-data" action="?task=list">
 <h1>Create New Page</h1>
 
-<form method="post" enctype="multipart/form-data">
 <ul class="form-list">
     <li>
         <label for="name">Name:</label>
@@ -57,5 +57,5 @@
 
     <input type="hidden" id="format" name="format" value=''>
 
-  <button name="create_page">Submit</button>
+  <button name="create_page"><i class="fi fi-rs-check"></i> Submit</button>
 </form>

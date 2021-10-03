@@ -517,26 +517,28 @@ function getPageList() {
 
 function getCatList($pageID=false) {
     global $db;
-    global $admin_area;
+    global $admin_panel;
     global $loggedIn;
     $conn = new SQLite3($db);
     $catList = array();
-    $qry = 'SELECT ID, Name, Hidden FROM Categories';
+    $qry = 'SELECT c.ID, c.Page_ID, c.Name, p.Name AS Page_Name, c.Hidden 
+    FROM Categories AS c
+    LEFT JOIN Pages AS p ON p.ID=c.Page_ID ';
     $where = "";
     if ($pageID || $pageID === "0") {
         $pageID = filter_var($pageID, FILTER_SANITIZE_NUMBER_INT);
-        $where = ' Page_ID='.$pageID;
+        $where = ' c.Page_ID='.$pageID;
     }
-    if (!$admin_area || !$loggedIn) {
+    if (!$admin_panel || !$loggedIn) {
         if ($where) {
             $where .= " AND";
         }
-        $where .= ' Hidden=0';
+        $where .= ' c.Hidden=0';
     }
     if ($where) {
         $qry .= ' WHERE '.$where;
     }
-    $qry .= ';';
+    $qry .= ' ORDER BY c.Name;';
     $result = $conn->prepare($qry)->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         $catList[]=$row;
@@ -798,6 +800,10 @@ if (isset($_POST['delete_page'])) {
     global $db;
     $conn = new SQLite3($db);
     $pageID = filter_var($_POST['n_page_id'], FILTER_SANITIZE_NUMBER_INT);
+    if ($pageID==0) {
+        $msg="You cannot delete your homepage.";
+        return;
+    }
     $moveCatQry = 'UPDATE Categories SET Page_ID=null WHERE Page_ID=?;';
     $catStmt = $conn->prepare($moveCatQry);
     $catStmt->bindValue(1,$pageID, SQLITE3_INTEGER);
@@ -806,12 +812,12 @@ if (isset($_POST['delete_page'])) {
         $stmt = $conn->prepare($qry);
         $stmt->bindValue(1,$pageID, SQLITE3_INTEGER);
         if ($stmt->execute()) {
-            $msg="Category deleted!";
+            $msg="Page deleted!";
         } else {
-            $msg="Category failed to delete. Please try again.";
+            $msg="Page failed to delete. Please try again.";
         }
     } else {
-        $msg="Category failed to delete. Please try again.";
+        $msg="Page failed to delete. Please try again.";
     }
 }
 
@@ -882,7 +888,7 @@ if (isset($_POST['edit_category'])) {
         Name=?,Text=?,
         Header_Img_Path=?,Show_Title=?,Show_Header_Img=?,Show_Item_Images=?,
         Show_Item_Titles=?,Show_Item_Text=?,Order_By=?,Auto_Thumbs=?,
-        Thumb_Size=?,Thumb_Size_Axis=?,Format=?,Hidden=?
+        Thumb_Size=?,Thumb_Size_Axis=?,Format=?,Hidden=?,Page_ID=?
     WHERE ID=?;';
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(1,$cPost['name'], SQLITE3_TEXT);
@@ -899,7 +905,8 @@ if (isset($_POST['edit_category'])) {
     $stmt->bindValue(12,$cPost['n_thumb_axis'], SQLITE3_INTEGER);
     $stmt->bindValue(13,$cPost['format'], SQLITE3_TEXT);
     $stmt->bindValue(14,$cPost['n_hidden'], SQLITE3_INTEGER);
-    $stmt->bindValue(15,$cPost['n_cat_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(15,$cPost['n_page_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(16,$cPost['n_cat_id'], SQLITE3_INTEGER);
     if ($stmt->execute()) {
         $msg="Category setting changes saved!";
     } else {
@@ -911,6 +918,10 @@ if (isset($_POST['delete_category'])) {
     global $db;
     $conn = new SQLite3($db);
     $catID = filter_var($_POST['n_cat_id'], FILTER_SANITIZE_NUMBER_INT);
+    if ($pageID==0) {
+        $msg="You cannot delete a non-category.";
+        return;
+    }
     $moveItemsQry = 'UPDATE Items SET Cat_ID=0 WHERE Cat_ID=?;';
     $itemStmt = $conn->prepare($moveItemsQry);
     $itemStmt->bindValue(1,$catID, SQLITE3_INTEGER);

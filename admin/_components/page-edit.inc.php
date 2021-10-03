@@ -1,6 +1,9 @@
-<h1>Edit Page Settings</h1>
+<form method="post" enctype="multipart/form-data" action="?task=list">
+<div class="space-btwn">
+    <h1>Edit Page Settings</h1>
+    <button name="delete_page" id="delete-page" class="small red"><i class="fi fi-rs-trash"></i> Delete Page</button>
+</div>
 
-<form method="post" enctype="multipart/form-data">
 <input type="hidden" name="n_page_id" value="<?show($pageID);?>">
 <ul class="form-list">
     <li>
@@ -60,5 +63,24 @@
 
     <input type="hidden" id="format" name="format" value=''>
 
-  <button name="edit_page">Submit</button>
+  <button name="edit_page"><i class="fi fi-rs-check"></i> Submit</button>
+  <div id="modal-home"></div>
 </form>
+
+<script src="_js/modal.js"></script>
+<script>
+let modalHTML = `<h2>Are you sure?</h2>
+                <p>This cannot be undone.</p>
+                <div class="flex">
+                <button type="submit" class="button red" name="delete_page"/>Yes, delete this page</button>
+                <button class="button modal-close" onclick="event.preventDefault()"/>Never mind</button>
+                </div>`;
+const modalPageDelete = new Modal('modal-page-delete', modalHTML, false, false);
+modalPageDelete.appendToForm('modal-home');
+
+document.getElementById('delete-page').addEventListener('click', function(e) {
+    e.preventDefault();
+    modalPageDelete.trigger();
+}, false);
+
+</script>

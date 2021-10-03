@@ -1,8 +1,7 @@
-<a href="?task=list"><i class="fi fi-rs-angle-double-small-left"></i> back to Category List</a>
 
+<form method="post" enctype="multipart/form-data" action="?task=list">
 <h1>Create New Category</h1>
 
-<form method="post" enctype="multipart/form-data">
 <input type="hidden" name="n_page_id" value="<?show($pageID);?>">
 <ul class="form-list">
     <li>
@@ -94,8 +93,22 @@
             <input type="hidden" id="hidden" name="n_hidden" value="0">
             <input type="checkbox" id="hidden" name="n_hidden" value="1" <?(!isset($_POST['n_hidden']) ? null : show((!$_POST['n_hidden'] ? null : 'checked')))?>>
     </li>
+    <?php if ($pageID != 0 && !$pageList) :
+        $pgList = getPageList();?>
+        <li>
+            <label for="n_page_id">Add Category to Page:</label>
+            <select id="n_page_id" name="n_page_id">
+                <option selected>None</option>
+                <?php foreach($pgList AS $page) : ?>
+                    <option value="<?show($page['ID']);?>" <?=($pageID===$page['ID'] ? 'selected' : null)?>>
+                        <?show($page['Name']);?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+    </li>
+    <?php endif;?>
     </ul>
     <input type="hidden" id="format" name="format" value=''>
 
-  <button name="create_category">Submit</button>
+  <button name="create_category"><i class="fi fi-rs-check"></i> Submit</button>
 </form>

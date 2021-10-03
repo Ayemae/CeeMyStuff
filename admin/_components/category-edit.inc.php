@@ -1,8 +1,8 @@
-<a href="?task=list"><i class="fi fi-rs-angle-double-small-left"></i> back to Category List</a>
-
-<h1>Edit Category Settings</h1>
-
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" action="?task=list">
+    <div class="space-btwn">
+        <h1>Edit Category Settings</h1>
+        <button name="delete_category" id="delete-category" class="small red"><i class="fi fi-rs-trash"></i> Delete Category</button>
+    </div>
 
 <input type="hidden" name="n_cat_id" value="<?show($cat['ID'])?>">
 
@@ -97,8 +97,37 @@
             <input type="hidden" id="hidden" name="n_hidden" value="0">
             <input type="checkbox" id="hidden" name="n_hidden" value="1" <?show(($cat['Hidden'] ? 'checked' : null ))?>>
     </li>
+    <li>
+            <label for="n_page_id">Move Category to Page:</label>
+            <select id="n_page_id" name="n_page_id">
+                <option>None</option>
+                <?php foreach($pgList AS $page) : ?>
+                    <option value="<?show($page['ID']);?>" <?=($cat['Page_ID']===$page['ID'] ? 'selected' : null)?>>
+                        <?show($page['Name']);?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+    </li>
     </ul>
     <input type="hidden" id="format" name="format" value=''>
 
-  <button name="edit_category">Submit</button>
+  <button name="edit_category"><i class="fi fi-rs-check"></i> Submit</button>
+  <div id="modal-home"></div>
 </form>
+
+<script src="_js/modal.js"></script>
+<script>
+let modalHTML = `<h2>Are you sure?</h2>
+                <p>This cannot be undone.</p>
+                <div class="flex">
+                <button type="submit" class="button red" name="delete_category"/>Yes, delete this category</button>
+                <button class="button modal-close" onclick="event.preventDefault()"/>Never mind</button>
+                </div>`;
+const modalCatDelete = new Modal('modal-cat-delete', modalHTML, false, false);
+modalCatDelete.appendToForm('modal-home');
+
+document.getElementById('delete-category').addEventListener('click', function(e) {
+    e.preventDefault();
+    modalCatDelete.trigger();
+}, false);
+</script>

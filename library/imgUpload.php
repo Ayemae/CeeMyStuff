@@ -88,8 +88,8 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
       $valid = false;
     };
     if ($storageLimit) {
-      // convert kilobytes in $storage limit to bytes
-      $storageLimit = ($storageLimit*1000);
+      // convert megabytes in $storageLimit to bytes
+      $storageLimit = ($storageLimit*1000000);
       if ($file["size"] > $storageLimit) {
         $msg .= "Your file is too large (over ".formatSizeUnits($storageLimit)."). Save it at a smaller size or lower quality, and try again.<br/>";
         $valid = false;
