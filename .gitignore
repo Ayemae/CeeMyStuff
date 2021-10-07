@@ -3,5 +3,5 @@
 __IGNORE/
 .DS_Store
 .htaccess
-/data/
-data/
+/data/database.db
+data/database.db

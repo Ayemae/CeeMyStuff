@@ -78,6 +78,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Categories (
     Show_Item_Titles INTEGER NOT NULL DEFAULT 1,
     Show_Item_Text INTEGER NOT NULL DEFAULT 1,
     Order_By TEXT NOT NULL DEFAULT "Date",
+    Order_Dir TEXT NOT NULL DEFAULT "ASC",
     Auto_Thumbs INTEGER NOT NULL DEFAULT 1,
     Thumb_Size INTEGER NOT NULL DEFAULT 125,
     Thumb_Size_Axis INTEGER NOT NULL DEFAULT 0,

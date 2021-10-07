@@ -1,11 +1,12 @@
 <form method="post" enctype="multipart/form-data" action="?task=list">
     <div class="space-btwn">
-        <h1>Edit Category Settings</h1>
+        <h1>Edit Category Settings : <?show($cat['Name'])?></h1>
         <button name="delete_category" id="delete-category" class="small red"><i class="fi fi-rs-trash"></i> Delete Category</button>
     </div>
 
 <input type="hidden" name="n_cat_id" value="<?show($cat['ID'])?>">
 
+<?php if ($cat['ID']>0) :?>
 <ul class="form-list">
     <li>
         <label for="name">Name:</label>
@@ -31,10 +32,11 @@
         <textarea name="b_text"><?show($cat['Text'])?></textarea>
     </li>
 </ul>
+<?php endif;?>
 
     <h2>Category Page Display Settings</h2>
     <ul class="form-list">
-
+    <?php if ($cat['ID']>0) :?>
     <li>
         <label for="show_images">Show Item Images:</label>
         <select id="show_images" name="n_show_images">
@@ -70,9 +72,10 @@
             <!-- <option value="custom" <?show(($cat['Order_By']== 'custom' ? 'selected' : null ))?>>Custom</option> -->
         </select>
     </li>
+    <?php endif;?>
 
     <li>
-        <label for="create-thumbs">Auto-Create Thumbnails for this Category:</label>
+        <label for="create-thumbs">Auto-Create Thumbnails for Image Items:</label>
         <input type="hidden" name="n_create_thumbs" value="0">
         <input type="checkbox" id="create-thumbs" name="n_create_thumbs" class="chktoggle" value="1" <?php echo ($cat['Auto_Thumbs'] ? "checked=checked" : null );?>>
         <div class="chktoggle-show">
@@ -92,6 +95,7 @@
         </div>
     </li>
 
+    <?php if ($cat['ID']>0) :?>
     <li>
             <label for="hidden"> Hide this category:</label>
             <input type="hidden" id="hidden" name="n_hidden" value="0">
@@ -99,15 +103,19 @@
     </li>
     <li>
             <label for="n_page_id">Move Category to Page:</label>
+            <p>If you don't see the page you want to move to, make sure that page has 'Multiple Content Categories' enabled in its settings.</p>
             <select id="n_page_id" name="n_page_id">
                 <option>None</option>
-                <?php foreach($pgList AS $page) : ?>
+                <?php foreach($pgList AS $page) : 
+                    if ($cat['Page_ID']===$page['ID'] || $page['Can_Add_Cat']) : ?>
                     <option value="<?show($page['ID']);?>" <?=($cat['Page_ID']===$page['ID'] ? 'selected' : null)?>>
                         <?show($page['Name']);?>
                     </option>
-                <?php endforeach; ?>
+                <?php endif;
+            endforeach; ?>
             </select>
     </li>
+    <?php endif;?>
     </ul>
     <input type="hidden" id="format" name="format" value=''>
 

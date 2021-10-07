@@ -1,6 +1,6 @@
 <form method="post" enctype="multipart/form-data" action="?task=list">
 <div class="space-btwn">
-    <h1>Edit Page Settings</h1>
+    <h1>Edit Page Settings : <?show($page['Name'])?></h1>
     <button name="delete_page" id="delete-page" class="small red"><i class="fi fi-rs-trash"></i> Delete Page</button>
 </div>
 

@@ -15,6 +15,13 @@ if (isset($_GET['task'])) {
 } else {
     $task = false;
 }
+if (isset($_GET['type']) && (
+    $_GET['type']=='text' || $_GET['type']=='embed'
+)) {
+    $type = ucfirst(htmlspecialchars($_GET['type']));
+} else {
+    $type = "Text";
+}
 if (isset($_GET['id'])) {
     $itemID = filter_var($_GET['id'], FILTER_SANITIZE_NUMBER_INT);
 } else {

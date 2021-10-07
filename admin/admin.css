@@ -1,7 +1,7 @@
 :root {
     --col-1: #fffbf1;
     --col-2: #fad2ae;
-    --col-3: #c5e785;
+    --col-3: #cbf184;
     --col-4: #39a583;
     --col-5: #d91571;
     --col-6: #1a1a5f;
@@ -52,7 +52,7 @@ hr {
     border-color: var(--col-6);
     width: 100%;
     padding: 0;
-    margin: 0 auto 10px;
+    margin: 0 auto;
 }
 
 button,
@@ -139,16 +139,22 @@ i.fi {
     display: none;
 }
 .chktoggle-show {
-    display: none;
+    display: none !important;
 }
 .chktoggle-hide {
-    display: flex;
+    display: flex !important;
 }
 .chktoggle:checked ~ .chktoggle-show {
-    display: flex;
+    display: flex !important;
 }
 .chktoggle:checked ~ .chktoggle-hide {
-    display: none;
+    display: none !important;
+}
+
+ul.page-list,
+ul.category-list {
+    padding: 0;
+    margin: 0;
 }
 
 .page-box {
@@ -169,20 +175,31 @@ i.fi {
     height: 100%;
 }
 
+.btns-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 a.opt {
     color: #fff;
     display: inline-block;
     background-color: var(--col-4);
     padding: 1px 8px;
-    margin: 4px;
     border-radius: 3px;
     transition-duration: .25s;
     flex:1;
     width:100%;
 }
-a.opt:hover {
-    background-color: #2bd59f;
-    transition-duration: .25s;
+a.opt.settings {
+    display: block;
+    padding: 0px 8px;
+    background-color: #f16f44;
+}
+.cat-box a.opt.settings {
+    display: block;
+    padding: 0px 8px;
+    background-color: #00adcc;
 }
 
 .page-box:hover,
@@ -200,22 +217,31 @@ a.opt:hover {
     background-color: var(--col-3);
     line-height: 2em;
     padding: 5px 10px;
-    margin: 4px;
+    margin: 4px 0;
     border-radius: 3px;
     transition-duration: .25s;
+}
+
+.page-box .cat-box {
+    margin: 4px 0 4px 5%;
+}
+
+.cat-options {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
 }
 
 .cat-options a.opt {
     background-color: var(--col-4);
     padding: 5px 10px;
-    margin: 4px;
     border-radius: 3px;
-    text-align: center;
 }
 
 
 ul.index-list,
 ul.form-list,
+ul.page-list,
 ul.category-list {
     list-style: none;
 }
@@ -253,6 +279,11 @@ ul.form-list li textarea {
     width: 100%;
     max-width: 600px;
     min-height: 125px;
+}
+ul.form-list p {
+    font-size: .8rem;
+    margin:0;
+    line-height: 1rem;
 }
 
 
