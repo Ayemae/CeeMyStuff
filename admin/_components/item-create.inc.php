@@ -65,13 +65,25 @@
         <?php endif;?>
     <?php endif; ?>
     </li>
+
+    <?php if ($formatList) :?>
+    <li>
+        <label for="format">Display Format:</label>
+        <select name="format" id="format">
+            <?php foreach ($formatList AS $format) :?>
+            <option value="<?show($format)?>">
+                <?show($format)?>
+            </option>
+            <?php endforeach;?>
+        </select>
+    </li>
+    <?php endif;?>
     
     <li>
-        <label for="hidden">Hide this item:</hidden>
+        <label for="hidden">Hide this item:</label>
         <input type="hidden" name="n_hidden" value="0">
         <input type="checkbox" id="hidden" name="n_hidden" value="1">
     </li>
 
-    <input type="hidden" name="format" value="">
   <button name="create_item">Submit</button>
 </form>

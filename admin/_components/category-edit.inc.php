@@ -40,26 +40,26 @@
     <li>
         <label for="show_images">Show Item Images:</label>
         <select id="show_images" name="n_show_images">
-            <option value="0" <?show((!$cat['Show_Images'] ? 'selected' : null ))?>>No</option>
-            <option value="1" <?show(($cat['Show_Images'] ==1 ? 'selected' : null ))?>>Show Thumbnails</option>
-            <option value="2" <?show(($cat['Show_Images'] ==2 ? 'selected' : null ))?>>Show Full-Sized Images</option>
+            <option value="0" <?show((!$cat['Show_Item_Images'] ? 'selected' : null ))?>>No</option>
+            <option value="1" <?show(($cat['Show_Item_Images'] ==1 ? 'selected' : null ))?>>Show Thumbnails</option>
+            <option value="2" <?show(($cat['Show_Item_Images'] ==2 ? 'selected' : null ))?>>Show Full-Sized Images</option>
         </select>
     </li>
 
     <li>
         <label for="show_titles">Show Item Titles:</label>
         <select id="show_titles" name="n_show_titles">
-            <option value="0" <?show((!$cat['Show_Titles'] ? 'selected' : null ))?>>No</option>
-            <option value="2"  <?show(($cat['Show_Titles'] ? 'selected' : null ))?>>Yes</option>
+            <option value="0" <?show((!$cat['Show_Item_Titles'] ? 'selected' : null ))?>>No</option>
+            <option value="2"  <?show(($cat['Show_Item_Titles'] ? 'selected' : null ))?>>Yes</option>
         </select>
     </li>
 
     <li>
         <label for="show_text">Show Item Text:</label>
         <select id="show_text" name="n_show_text">
-            <option value="0" <?show((!$cat['Show_text'] ? 'selected' : null ))?>>No</option>
-            <option value="1" <?show(($cat['Show_text']==1 ? 'selected' : null ))?>>Show Truncated Text</option>
-            <option value="2" <?show(($cat['Show_text']==2 ? 'selected' : null ))?>>Show Full Text</option>
+            <option value="0" <?show((!$cat['Show_Item_Text'] ? 'selected' : null ))?>>No</option>
+            <option value="1" <?show(($cat['Show_Item_Text']==1 ? 'selected' : null ))?>>Show Truncated Text</option>
+            <option value="2" <?show(($cat['Show_Item_Text']==2 ? 'selected' : null ))?>>Show Full Text</option>
         </select>
     </li>
 

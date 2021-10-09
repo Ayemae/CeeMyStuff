@@ -16,7 +16,7 @@ if (isset($_GET['task'])) {
     $task = false;
 }
 if (isset($_GET['type']) && (
-    $_GET['type']=='text' || $_GET['type']=='embed'
+    $_GET['type']=='image' || $_GET['type']=='embed'
 )) {
     $type = ucfirst(htmlspecialchars($_GET['type']));
 } else {
@@ -32,10 +32,12 @@ if (isset($_GET['id'])) {
 <main>
     <?php if (isset($catID) && $task === 'create') :
         $catList = getCatList(); 
+        $formatList = getFormatList();
         include_once '_components/item-create.inc.php';
     elseif (isset($catID) && $task === 'edit') :
         $item = getItem($itemID); 
         $catInfo = getCatInfo($item['Cat_ID']);
+        $formatList = getFormatList();
         include_once '_components/item-edit.inc.php';
     endif;?>
 

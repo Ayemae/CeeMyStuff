@@ -32,19 +32,22 @@ $conn->exec('INSERT INTO Settings (ID, Index_Order, Field, Key, Value, Type, Des
     (2, 1, "Site Name", "site_name", "My Portfolio", "text", null, null),
     (3, 2, "Owner Name", "owner_name", "My Name", "text", "Your name, or the name of the group this site belongs to.", null),
     (4, 4, "Initial Copyright Year", "c_year", "", "number", null, null),
-    (5, 5, "Header Image", "header_img", null, "file", "If you want to use a header image, upload it here.",null),
-    (6, 6, "Timezone", "timezone", "America/New_York", "timezone", null,null),
-    (7, 7, "Enable Max Image Dimensions", "has_max_img_dimns","checked", "checkbox", "Enable a maximum height/width on the images you can upload.", null),
-    (8, 8, "Max Image Dimensions (in pixels)", "max_img_dimns", "2400","number", null, null),
-    (9, 9, "Enable Max Image Storage Size","has_max_img_storage","checked", "checkbox", "Enable a maximum on how much storage a single image upload can take up.", null),
-    (10, 10, "Max Image Storage Size (in Megabytes)","max_img_storage","25", "number", "For reference, rougly 1000 megabytes are in a gigabyte.", null),
-    (11, 11, "Site Menu Button Format", "menu_format", "Text", "select", "How your site menu buttons will display.", "Images, Text"),
-    (12, 12, "Social Media Button Format", "sm_format", "Icons", "select", "How your social media buttons will display.", "Icons, Text")
+    (5, 5, "Timezone", "timezone", "America/New_York", "timezone", null,null),
+    (6, 6, "Date Format", "date_format", "j F, Y g:i A", "text", "What format you\'d like the date to be in. <a href=\'https://www.php.net/manual/en/datetime.format.php\'>Check here for details</a>.",null),
+    (7, 7, "Header Image", "header_img", null, "file", "If you want to use a header image, upload it here.",null),
+    (8, 8, "Favicon", "favicon", null, "file", "Upload your favicon, or browser icon, here. Must be 16x16 pixels.",null),
+    (9, 9, "Mobile Browser Icon", "mobile_icon", null, "file", "Upload your mobile browser icon here. Must be 180x180 pixels.",null),
+    (10, 10, "Site Menu Button Format", "menu_format", "Text", "select", "How your site menu buttons will display.", "Images, Text"),
+    (11, 11, "Social Media Button Format", "sm_format", "Icons", "select", "How your social media buttons will display.", "Icons, Text")
+    (12, 12, "Enable Max Image Dimensions", "has_max_img_dimns","checked", "checkbox", "Enable a maximum height/width on the images you can upload.", null),
+    (13, 13, "Max Image Dimensions (in pixels)", "max_img_dimns", "2400","number", "Must be enabled to take effect.", null),
+    (14, 14, "Enable Max Upload Storage Size","has_max_upld_storage","checked", "checkbox", "Enable a maximum on how much storage a single image upload can take up.", null),
+    (15, 15, "Max Upload Storage Size (in Megabytes)","max_upld_storage","25", "number", "For reference, rougly 1000 megabytes are in a gigabyte. Must be enabled to take effect.", null)
     ;');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Pages (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Name TEXT UNIQUE NOT NULL,
+    Name TEXT COLLATE NOCASE UNIQUE NOT NULL,
     Meta_Text TEXT DEFAULT null,
     Header_Img_Path TEXT DEFAULT null,
     Show_Title INTEGER NOT NULL DEFAULT 1,
@@ -78,7 +81,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Categories (
     Show_Item_Titles INTEGER NOT NULL DEFAULT 1,
     Show_Item_Text INTEGER NOT NULL DEFAULT 1,
     Order_By TEXT NOT NULL DEFAULT "Date",
-    Order_Dir TEXT NOT NULL DEFAULT "ASC",
+    Order_Dir INTEGER NOT NULL DEFAULT 0,
     Auto_Thumbs INTEGER NOT NULL DEFAULT 1,
     Thumb_Size INTEGER NOT NULL DEFAULT 125,
     Thumb_Size_Axis INTEGER NOT NULL DEFAULT 0,

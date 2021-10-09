@@ -14,17 +14,17 @@ $items = getCatItems($catID);
 <main>
 
 <?php if ($items) : ?>
-    <ul class="works-list">
+    <section class="content-category">
     <?php foreach ($items AS $item) : ?>
-        <li id="item_<?show($item['ID']);?>" class="piece">
-            <div class="piece-image-wrapper">
+        <div id="item_<?show($item['ID']);?>" class="item">
+            <div class="item-image-wrapper">
                 <?showImage($cat['Show_Images'], $item['Img_Path'], $item['Img_Thumb_Path'], $item['Title'])?>
             </div>
             <?showTitle($cat['Show_Titles'], $item['Title'])?>
-            <?showCaption($cat['Show_Captions'], $item['Caption'])?>
-        </li>
+            <?showText($cat['Show_Text'], $item['Text'])?>
+        </div>
     <?php endforeach;?>
-    </ul>
+    </section>
 <?php endif;?>
 
 </main>

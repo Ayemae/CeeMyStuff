@@ -41,6 +41,9 @@ function serializeSettings() {
 }
 // run/get settings
 $set = serializeSettings();
+if (!isset($set['date_format']) || !$set['date_format']) {
+    $set['date_format'] = "j F, Y g:i A";
+}
 
 $root = $_SERVER['DOCUMENT_ROOT'].$set['dir'];
 $baseURL = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$set['dir'];
@@ -102,17 +105,17 @@ function cleanServerPost($post){
             $t = substr($key,0,2);
             $val = trim($val);
             switch ($t) {
+                case 'n_':
+                    $val = intval(filter_var($val, FILTER_SANITIZE_NUMBER_INT));
+                    break;
                 case 'b_':
+                    // might treat these ('blocks') differently than regular text if I find a need to in the future.
+                    //break;
+                default:
                     $val = nl2br($val);
                     $val = iconv('UTF-8', 'ASCII//TRANSLIT', $val);
-                    $val = htmlentities($val);
+                    $val = htmlspecialchars($val);
                     break;
-                case 'n_':
-                    $val = filter_var($val, FILTER_SANITIZE_NUMBER_INT);
-                    break;
-                default:
-                $val = htmlspecialchars($val);
-                break;
             }
             return $post;
         }
@@ -148,6 +151,21 @@ function formatSizeUnits($bytes)
     }
 
     return $bytes;
+}
+
+function getFormatList($key='item') {
+    global $root;
+    $formatList = array();
+    $dirContent = scandir('../formats/'.$key);
+    // echo $root.'/formats/'.$key.'/*.php';
+    // $formatList = glob($root.'/formats/'.$key.'/*.php', GLOB_ONLYDIR);
+    foreach($dirContent AS &$file) {
+        if (substr($file, -4)==='.php') {
+            $file = str_replace('.php','',$file);
+            $formatList[] = $file;
+        }
+    }
+    return $formatList;
 }
 
 if (isset($_POST['submit_credentials'])) {
@@ -467,33 +485,13 @@ function getPage($page, $key="id"){
         $page = filter_var($page, FILTER_SANITIZE_NUMBER_INT);
         $where = "ID=?";
     }
-    $qry = "SELECT * FROM Pages WHERE ".$where." LIMIT 1;";
+    $qry = "SELECT * FROM Pages WHERE ".$where." COLLATE NOCASE LIMIT 1;";
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(1, $page, SQLITE3_TEXT);
     $result = $stmt->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         return $row;
     }
-}
-
-function printPage($request) {
-    global $db;
-    $conn = New SQLite3($db);
-    $page = stripHTML($request);
-    $qry = "SELECT * FROM Pages WHERE Page_Name=:request LIMIT 1;";
-    $stmt = $conn->prepare($qry);
-    $stmt->bindValue(':request', $request, SQLITE3_TEXT);
-    $result = $stmt->execute();
-    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-        $request = $row;
-    }
-    global $set;global $db;global $page;
-    $admin_panel = false;
-    include 'components/info-head.php';
-    echo '<title>'.$page['Page_Name'].'</title>';
-    include_once 'components/header.php';
-    echo '<h1>'.$page['Page_Header'].'</h1>';
-    include_once 'components/footer.php';
 }
 
 
@@ -547,7 +545,7 @@ function getCatList($pageID=false) {
     $qry = 'SELECT c.ID, c.Page_ID, c.Name, p.Name AS Page_Name, c.Hidden 
     FROM Categories AS c
     LEFT JOIN Pages AS p ON p.ID=c.Page_ID WHERE c.ID !=0 ';
-    if ($pageID || $pageID === "0") {
+    if ($pageID || $pageID === 0 || $pageID === "0") {
         $pageID = filter_var($pageID, FILTER_SANITIZE_NUMBER_INT);
         $qry .= ' AND c.Page_ID='.$pageID;
     }
@@ -558,6 +556,25 @@ function getCatList($pageID=false) {
     $result = $conn->prepare($qry)->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         $catList[]=$row;
+    } 
+    return $catList;
+}
+
+function getPageCats($pageID) {
+    global $db;
+    $catList = array();
+    $pageID = filter_var($pageID, FILTER_SANITIZE_NUMBER_INT);
+    $conn = new SQLite3($db);
+    $qry = 'SELECT c.*, COUNT(i.ID) AS Total_Items
+            FROM Categories AS c
+            LEFT JOIN Items AS i ON c.ID=i.Cat_ID
+            WHERE c.Page_ID = :id;';
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(':id', $pageID, SQLITE3_INTEGER);
+    $result = $stmt->execute();
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $row['Text'] = html_entity_decode($row['Text']);
+        $catList[]= $row;
     } 
     return $catList;
 }
@@ -576,23 +593,55 @@ function getCatInfo($id) {
     } 
 }
 
-function getCatItems($id) {
+function getCatItems($id, $pageNum=1,
+            $orderBy='Date', $orderDir=false, 
+            $paginate=false, $pgAfter=15) {
     global $db;global $set;global $admin_panel;global $loggedIn;
     $items = array();
     $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
     $conn = new SQLite3($db);
-    $qry = 'SELECT * FROM Items WHERE Cat_ID = :catid ';
+    $qry = "SELECT * FROM Items WHERE Cat_ID = :catid ";
     if (!$loggedIn || !$admin_panel) {
-        $qry .= ' AND Hidden=0';
+        $qry .= " AND Hidden=0 AND Publish_Timestamp<=strftime('%s','now')";
+    }
+    $qry .= " ORDER BY ";
+    switch ($orderBy) {
+        case 'Title':
+            $qry .= 'Title';
+            break;
+        case 'Custom':
+            $qry .= 'Cat_Index_Order';
+            break;
+        case 'Random':
+            $qry .= 'RANDOM() ';
+            break;
+        case 'Date':
+        default:
+            $qry .= 'Publish_Timestamp';
+            break;
+    }
+    if ($orderBy != 'Random') {
+        if (intval($orderDir)===1) {
+            $qry .= ' DESC ';
+        } else {
+            $qry .= ' ASC ';
+        }
+    }
+    if ($paginate && !$admin_panel) {
+        $pgAfter = filter_var($pgAfter, FILTER_SANITIZE_NUMBER_INT);
+        $strt = paginateStrt($pageNum, $pgAfter);
+        $qry .= ' LIMIT '.$strt.', '.$pgAfter;
     }
     $qry .= ';';
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(':catid', $id, SQLITE3_INTEGER);
     $result = $stmt->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-        $row['Caption'] = html_entity_decode($row['Caption']);
-        $row['Img_Path'] = $set['dir'].$row['Img_Path'];
-        $row['Img_Thumb_Path'] = $set['dir'].$row['Img_Thumb_Path'];
+        $row['Text'] = htmlspecialchars_decode($row['Text']);
+        $dt = new DateTime('@'.$row['Publish_Timestamp']);
+        $dt->setTimeZone(new DateTimeZone($set['timezone']));
+        $row['Publish_Timestamp'] = $dt->format('Y-m-d\TH:i');
+        $row['Date'] = $dt->format($set['date_format']);
         $items[] = $row;
     } 
     return $items;
@@ -614,14 +663,166 @@ function getItem($id) {
     $stmt->bindValue(':itemid', $id, SQLITE3_INTEGER);
     $result = $stmt->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-        $row['Caption'] = html_entity_decode($row['Caption']);
-        $row['Img_Path'] = $row['Img_Path'];
-        $row['Img_Thumb_Path'] = $row['Img_Thumb_Path'];
+        $row['Text'] = htmlspecialchars_decode($row['Text']);
         $dt = new DateTime('@'.$row['Publish_Timestamp']);
         $dt->setTimeZone(new DateTimeZone($set['timezone']));
         $row['Publish_Timestamp'] = $dt->format('Y-m-d\TH:i');
+        $row['Date'] = $dt->format($set['date_format']);
         return $row;
     } 
+}
+
+
+// Public-Facing page functions
+
+function showTitle($setShowTitle, $title) {
+    global $set;
+    if (is_array($setShowTitle)) {
+        $setShowTitle = $setShowTitle['Show_Item_Titles'];
+    }
+    if ($setShowTitle) {
+        $title = '<h3 class="item-title">'.$title.'</h3>';
+    } else {
+        $title = '';
+    }
+    return $title;
+}
+
+function showText($setShowText, $text) {
+    global $set;
+    if (is_array($setShowText)) {
+        $setShowText = $setShowText['Show_Item_Text'];
+    }
+    $text = htmlspecialchars_decode($text);
+    switch ($setShowText) {
+        case 1:
+            $text=truncateTxt($text);
+        case 2:
+            $text = '<div class="item-text">'.$text.'</div>';
+         break;
+        default:
+            $text = '';
+    }
+    return $text;
+}
+
+function showImage($setShowImg, $img=false, $thumb=false, $title=false) {
+    global $set;
+    if (is_array($setShowImg)) {
+        $setShowImg = $setShowImg['Show_Item_Images'];
+    }
+    switch ($setShowImg) {
+        case 0:
+            $img='';
+         break;
+        case 1:
+            if ($thumb) {
+                $img = $thumb;
+            }
+    }
+    if ($img) {
+        $img = '<img class="item-image" src="'.$set['dir'].$img.'" alt="'.$title.' Image">';
+    }
+    return $img;
+}
+
+function className($str) {
+    return strtolower(preg_replace("/[^A-Za-z-]/",'',str_replace(' ','-',$str)));
+}
+
+function printPage($page=false,$pageNum=1) {
+    global $db; global $root; global $set; 
+    $conn = New SQLite3($db);
+    if (!$page) {
+        $pgQry = "SELECT * FROM Pages WHERE ID=0 LIMIT 1;";
+        $result = $conn->prepare($pgQry)->execute();
+        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+            $page = $row;
+        }
+    }
+    $catList = getPageCats($page['ID']);
+    global $set;global $db;
+    $admin_panel = false;
+    include 'components/info-head.php';
+    echo '<title>'.$set['site_name'].': '.$page['Name'].'</title>';
+    echo '<meta name="description" content="'.$page['Text'].'">';
+    include_once 'components/header.php';
+    $pgClass = className($page['Name']);
+
+    echo '<main id="page_'.$page['ID'].'" class="page '.$pgClass.'">';
+    echo '<h1 class="page-title">'.$page['Name'].'</h1>';
+    
+    foreach($catList AS $cat) {
+        $catClass = className($cat['Name']);
+        echo '<section id="cat_'.$cat['ID'].'" class="category '.$catClass.'">';
+        
+        if ($cat['Show_Header_Img'] && $cat['Header_Img_Path']) {
+            echo '<img src="'.$set['dir'].$cat['Header_Img_Path'].'" alt="'.$cat['Name'].' Header">';
+        }
+        if ($cat['Show_Title']) {
+            echo '<h2 class="cat-title">'.$cat['Name'].'</h2>';
+        }
+        if ($cat['Text']) {
+            echo $cat['Text'];
+        }
+
+        $itemList = getCatItems($cat['ID'],$pageNum,
+                                $cat['OrderBy'],$cat['OrderDir'],
+                                $page['Paginate'],$page['Paginate_After']);
+        if ($itemList) {
+            foreach($itemList AS $item){
+                $id = $item['ID'];
+                $title = showTitle($cat['Show_Item_Titles'], $item['Title']);
+                $text = showText($cat['Show_Item_Text'], $item['Text']);
+                $image = showImage($cat['Show_Item_Images'], $item['Img_Path'], $item['Img_Thumb_Path'], $item['Title']);
+                $date = $item['Date'];
+                $embed = $item['Embed_HTML'];
+                $srcImgFull = $set['dir'].$item['Img_Path'];
+                $srcImgThumb = $set['dir'].$item['Img_Thumb_Path'];
+                $class = className($item['Title']);
+                if ($item['Format']) {
+                    include 'formats/item/'.$item['Format'].'.php';
+                } else {
+                    echo '<div id="item_'.$id.'" class="item '.$class.'">';
+                    if ($title) {
+                        echo '<h3>'.$title.'</h3>';
+                    }
+                    echo '<!--No item format assigned.-->';
+                    if ($image) {
+                        echo $image;
+                    }
+                    if ($embed) {
+                        echo $embed;
+                    }
+                    if ($text) {
+                        echo $text;
+                    }
+                    echo '</div>';
+                }
+            }unset($item);
+        } else {
+            //if no items
+            if ($page['Paginate']) {
+                echo "<div class='got-nothin'><i>There's nothing here!</i></div>";
+            }
+        }
+        if ($page['Paginate'] && ($cat['Total_Items']>$page['Paginate_After'])) {
+                $backURL = '';
+                $nextURL = '';
+            if ($pageNum>1) {
+                $backURL = $set['dir'].'/'.urlencode($page['Name']).'/page/'.($pageNum-1);
+            }
+            if (($page['Paginate_After']*$pageNum)<$cat['Total_Items']) {
+                $nextURL = $set['dir'].'/'.urlencode($page['Name']).'/page/'.($pageNum+1);
+            }
+            include 'components/paginator.php';
+        }
+        // end category section
+        echo '</section>';
+    }unset($cat);
+    // end page main
+    echo '</main>';
+    include_once 'components/footer.php';
 }
 
 
