@@ -904,12 +904,12 @@ if (isset($_POST['create_page'])) {
     require_once 'imgUpload.php';
     $dir = '/assets/uploads/cat-headers/';
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
-    if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
+    if (!$set['has_max_upld_storage']) {$set['max_upld_storage'] = false;}
     if ($_FILES['header_img_upload']['name']) {
         //sanitize img name
         $_FILES['header_img_upload']['name'] = stripHTML($_FILES['header_img_upload']['name']);
         $_FILES['header_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['header_img_upload']['name']));
-        $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage']);
+        $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
     } else {
         $imgPath = null;
     }
@@ -944,7 +944,7 @@ if (isset($_POST['create_page'])) {
             //sanitize img name
             $_FILES['menu_img_upload']['name'] = stripHTML($_FILES['menu_img_upload']['name']);
             $_FILES['menu_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['menu_img_upload']['name']));
-            $menuImgPath = uploadImage ($dir, $_FILES['menu_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage']);
+            $menuImgPath = uploadImage ($dir, $_FILES['menu_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
         } else {
             $menuImgPath = null;
         }
@@ -962,12 +962,12 @@ if (isset($_POST['edit_page'])) {
     require_once 'imgUpload.php';
     $dir = '/assets/uploads/cat-headers/';
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
-    if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
+    if (!$set['has_max_upld_storage']) {$set['max_upld_storage'] = false;}
     if ($_FILES['header_img_upload']['name']) {
         //sanitize img name
         $_FILES['header_img_upload']['name'] = stripHTML($_FILES['header_img_upload']['name']);
         $_FILES['header_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['header_img_upload']['name']));
-        $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage']);
+        $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
     } else {
         if ($cPost['stored_header_img']) {
             $imgPath = $cPost['stored_header_img'];
@@ -1000,7 +1000,7 @@ if (isset($_POST['edit_page'])) {
             //sanitize img name
             $_FILES['menu_img_upload']['name'] = stripHTML($_FILES['menu_img_upload']['name']);
             $_FILES['menu_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['menu_img_upload']['name']));
-            $menuImgPath = uploadImage ($dir, $_FILES['menu_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage']);
+            $menuImgPath = uploadImage ($dir, $_FILES['menu_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
         } else {
             if ($cPost['stored_menu_img']) {
                 $menuImgPath = $cPost['stored_menu_img'];
@@ -1050,12 +1050,12 @@ if (isset($_POST['create_category'])) {
     require_once 'imgUpload.php';
     $dir = '/assets/uploads/cat-headers/';
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
-    if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
+    if (!$set['has_max_upld_storage']) {$set['max_upld_storage'] = false;}
     if ($_FILES['header_img_upload']['name']) {
         //sanitize img name
         $_FILES['header_img_upload']['name'] = stripHTML($_FILES['header_img_upload']['name']);
         $_FILES['header_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['img_upload']['name']));
-        $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage']);
+        $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
     }
     $qry = 'INSERT INTO Categories (Name,Page_ID,Text,Header_Img_Path,Show_Title,Show_Header_Img,Show_Item_Images,Show_Item_Titles,Show_Item_Text,Order_By,Auto_Thumbs,Thumb_Size,Thumb_Size_Axis,Format,Hidden) 
     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);';
@@ -1089,7 +1089,7 @@ if (isset($_POST['edit_category'])) {
     $cPost = cleanServerPost($_POST);
     $dir = '/assets/uploads/cat-headers/';
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
-    if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
+    if (!$set['has_max_upld_storage']) {$set['max_upld_storage'] = false;}
     if ($_FILES['header_img_upload']['name']) {
         require_once 'imgUpload.php';
         //sanitize img name
@@ -1098,7 +1098,7 @@ if (isset($_POST['edit_category'])) {
         if (!$cPost['header_img_stored']) {
             $cPost['header_img_stored'] = false;
         }
-        $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage'], $cPost['header_img_stored']);
+        $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage'], $cPost['header_img_stored']);
     } else if ($cPost['header_img_stored']) {
         $imgPath = $cPost['header_img_stored'];
     } else {
@@ -1168,19 +1168,19 @@ if (isset($_POST['create_item'])) {
     $type = $cPost['type'];
     $dir = '/assets/uploads/items/';
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
-    if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
+    if (!$set['has_max_upld_storage']) {$set['max_upld_storage'] = false;}
     if ($type==='Image' && $_FILES['img_upload']['name']) {
         require_once 'imgUpload.php';
         //sanitize img name
         $_FILES['img_upload']['name'] = stripHTML($_FILES['img_upload']['name']);
         $_FILES['img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['img_upload']['name']));
         $imgName = str_replace(pathinfo($_FILES['img_upload']['name'],PATHINFO_EXTENSION),"",$_FILES['img_upload']['name']);
-        $imgPath = uploadImage ($dir, $_FILES['img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage']);
+        $imgPath = uploadImage ($dir, $_FILES['img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
         if (!$imgPath) {
             $msg = 'Image upload failed. Please try again.';
         }
         if ($_FILES['thumb_upload']['name']) {
-            $imgThumbPath = uploadImage ($dir, $_FILES['thumb_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, $imgName.'_thumb', $set['max_img_storage']);
+            $imgThumbPath = uploadImage ($dir, $_FILES['thumb_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, $imgName.'_thumb', $set['max_upld_storage']);
             if (!$imgThumbPath) {
                 $msg = 'Thumbnail image upload failed. Please try again.';
             }
@@ -1244,7 +1244,7 @@ if (isset($_POST['edit_item'])) {
     $dir = '/assets/uploads/items/';
     $msg ="";
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
-    if (!$set['has_max_img_storage']) {$set['max_img_storage'] = false;}
+    if (!$set['has_max_upld_storage']) {$set['max_upld_storage'] = false;}
     require_once 'imgUpload.php';
     $imgName = str_replace($dir, "", str_replace('.'.pathinfo($cPost['img_stored'],PATHINFO_EXTENSION),"",$cPost['img_stored']));
     if ($type==='Image' && $_FILES['img_upload']['name']) {
@@ -1257,7 +1257,7 @@ if (isset($_POST['edit_item'])) {
         } else {
             $cPost['img_stored'] = stripHTML($cPost['img_stored']);
         }
-        $imgPath = uploadImage ($dir, $_FILES['img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_img_storage'], $cPost['img_stored']);
+        $imgPath = uploadImage ($dir, $_FILES['img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage'], $cPost['img_stored']);
         if (!$imgPath) {
             $msg .= 'Image upload failed. Please try again.';
             return;
@@ -1271,7 +1271,7 @@ if (isset($_POST['edit_item'])) {
     }
     if ($_FILES['thumb_upload']['name'] || $cPost['create_thumbnail']) {
         if ($_FILES['thumb_upload']['name']) {
-            $imgThumbPath = uploadImage ($dir, $_FILES['thumb_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, $imgName.'_thumb', $set['max_img_storage'],$cPost['thumb_stored']);
+            $imgThumbPath = uploadImage ($dir, $_FILES['thumb_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, $imgName.'_thumb', $set['max_upld_storage'],$cPost['thumb_stored']);
             if (!$imgThumbPath) {
                 $msg .= 'Thumbnail image upload failed. Please try again.';
                 return;

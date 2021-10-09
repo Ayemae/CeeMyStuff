@@ -47,7 +47,7 @@ $conn->exec('INSERT INTO Settings (ID, Index_Order, Field, Key, Value, Type, Des
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Pages (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Name TEXT COLLATE NOCASE UNIQUE NOT NULL,
+    Name TEXT UNIQUE COLLATE NOCASE NOT NULL,
     Meta_Text TEXT DEFAULT null,
     Header_Img_Path TEXT DEFAULT null,
     Show_Title INTEGER NOT NULL DEFAULT 1,
