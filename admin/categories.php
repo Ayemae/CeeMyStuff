@@ -29,11 +29,11 @@ if (isset($_GET['pageid'])) {
         include '_components/category-view.inc.php';
         break;
     case 'create' :
+        $formatList = getFormatList('category');
         include '_components/category-create.inc.php';
         break;
     case 'edit' :
-        if ($loggedIn) { echo 'logged in';}
-        if ($admin_panel) { echo 'logged in';}
+        $formatList = getFormatList('category');
         $cat = getCatInfo($catID);
         $pgList = getPageList();
         include '_components/category-edit.inc.php';
@@ -49,3 +49,4 @@ if (isset($_GET['pageid'])) {
 
 <?php
 include '../components/footer.php';
+

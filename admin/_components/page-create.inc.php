@@ -43,6 +43,19 @@
         </ul>
     </li>
 
+    <?php if ($formatList) :?>
+    <li>
+        <label for="format">Display Format:</label>
+        <select name="format" id="format">
+            <?php foreach ($formatList AS $format) :?>
+            <option value="<?show($format)?>">
+                <?show($format)?>
+            </option>
+            <?php endforeach;?>
+        </select>
+    </li>
+    <?php endif;?>
+
     <li>
         <label for="header_img_upload">Menu Link Image (Optional):</label>
         <input type="file" id="menu_img_upload" name="menu_img_upload" value="<?(!isset($_POST['menu_img_upload']) ? null : show($_POST['menu_img_upload']))?>">

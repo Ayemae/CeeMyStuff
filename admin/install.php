@@ -1,14 +1,12 @@
 <?php 
 
-$showErrors = 1;
+$showErrors = 0;
 
 if ($showErrors) {
     ini_set('display_errors', '1');
     ini_set('display_startup_errors', '1');
     error_reporting(-1);
 }
-
-// $root = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF'], 2);
 
 if (empty($_GET)) {
 mkdir('../data', 755);
@@ -33,12 +31,12 @@ $conn->exec('INSERT INTO Settings (ID, Index_Order, Field, Key, Value, Type, Des
     (3, 2, "Owner Name", "owner_name", "My Name", "text", "Your name, or the name of the group this site belongs to.", null),
     (4, 4, "Initial Copyright Year", "c_year", "", "number", null, null),
     (5, 5, "Timezone", "timezone", "America/New_York", "timezone", null,null),
-    (6, 6, "Date Format", "date_format", "j F, Y g:i A", "text", "What format you\'d like the date to be in. <a href=\'https://www.php.net/manual/en/datetime.format.php\'>Check here for details</a>.",null),
+    (6, 6, "Date Format", "date_format", "j F, Y g:i A", "text", "What format you want the date to be in. Look up PHP date formats for details.",null),
     (7, 7, "Header Image", "header_img", null, "file", "If you want to use a header image, upload it here.",null),
     (8, 8, "Favicon", "favicon", null, "file", "Upload your favicon, or browser icon, here. Must be 16x16 pixels.",null),
     (9, 9, "Mobile Browser Icon", "mobile_icon", null, "file", "Upload your mobile browser icon here. Must be 180x180 pixels.",null),
     (10, 10, "Site Menu Button Format", "menu_format", "Text", "select", "How your site menu buttons will display.", "Images, Text"),
-    (11, 11, "Social Media Button Format", "sm_format", "Icons", "select", "How your social media buttons will display.", "Icons, Text")
+    (11, 11, "Social Media Button Format", "sm_format", "Icons", "select", "How your social media buttons will display.", "Icons, Text"),
     (12, 12, "Enable Max Image Dimensions", "has_max_img_dimns","checked", "checkbox", "Enable a maximum height/width on the images you can upload.", null),
     (13, 13, "Max Image Dimensions (in pixels)", "max_img_dimns", "2400","number", "Must be enabled to take effect.", null),
     (14, 14, "Enable Max Upload Storage Size","has_max_upld_storage","checked", "checkbox", "Enable a maximum on how much storage a single image upload can take up.", null),
@@ -48,23 +46,21 @@ $conn->exec('INSERT INTO Settings (ID, Index_Order, Field, Key, Value, Type, Des
 $conn->exec('CREATE TABLE IF NOT EXISTS Pages (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     Name TEXT UNIQUE COLLATE NOCASE NOT NULL,
+    Link TEXT UNIQUE COLLATE NOCASE NOT NULL,
     Meta_Text TEXT DEFAULT null,
     Header_Img_Path TEXT DEFAULT null,
     Show_Title INTEGER NOT NULL DEFAULT 1,
     Show_Header_Img INTEGER NOT NULL DEFAULT 1,
     Multi_Cat INTEGER NOT NULL DEFAULT 0,
     Paginate INTEGER NOT NULL DEFAULT 0,
-    Paginate_After INTEGER NOT NULL DEFAULT 20,
-    Default_Auto_Thumbs INTEGER NOT NULL DEFAULT 1,
-    Default_Thumb_Size INTEGER NOT NULL DEFAULT 125,
-    Default_Thumb_Size_Axis INTEGER NOT NULL DEFAULT 0,
+    Paginate_After INTEGER NOT NULL DEFAULT 15,
     Format TEXT,
     Hidden INTEGER NOT NULL DEFAULT 0
 )');
 
-$conn->exec('INSERT INTO Pages (ID, Name, Meta_Text)
+$conn->exec('INSERT INTO Pages (ID, Name, Link, Meta_Text)
     VALUES 
-    (0, "Home", "Portfolio homepage.");');
+    (0, "Home", "/", "Portfolio homepage.");');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Categories (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -113,8 +109,8 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Items (
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Accounts (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Username TEXT,
-    Email TEXT,
+    Username TEXT COLLATE NOCASE,
+    Email TEXT COLLATE NOCASE,
     Email_Valid INTEGER,
     Password TEXT,
     Is_Admin INTEGER,
@@ -175,7 +171,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Social_Media (
 $conn->exec('CREATE TABLE IF NOT EXISTS Uploads (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     File_Path TEXT,
-    File_Type TEXT DEFAUlT "Image",
+    File_Type TEXT DEFAULT "Image",
     Timestamp INTEGER
 )');
 

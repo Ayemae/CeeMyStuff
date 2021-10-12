@@ -15,6 +15,9 @@ $settings = fetchSettings();
     <?php foreach ($settings AS $stg) :?>
         <li>
             <label for="<?show($stg['Field']);?>"><?show($stg['Field']);?>:</label>
+            
+            <p><?show($stg['Description'])?></p>
+
             <?php switch ($stg['Type']) :
 
                 case 'select': ?>

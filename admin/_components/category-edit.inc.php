@@ -95,6 +95,19 @@
         </div>
     </li>
 
+    <?php if ($formatList) :?>
+    <li>
+        <label for="format">Display Format:</label>
+        <select name="format" id="format">
+            <?php foreach ($formatList AS $format) :?>
+            <option value="<?show($format)?>" <?=($cat['Hidden']===$format ? 'selected' : null)?>>
+                <?show($format)?>
+            </option>
+            <?php endforeach;?>
+        </select>
+    </li>
+    <?php endif;?>
+
     <?php if ($cat['ID']>0) :?>
     <li>
             <label for="hidden"> Hide this category:</label>

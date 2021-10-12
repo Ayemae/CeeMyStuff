@@ -23,10 +23,12 @@ if (isset($_GET['id'])) {
         include '_components/page-view.inc.php';
         break;
     case 'create' :
+        $formatList = getFormatList('page');
         include '_components/page-create.inc.php';
         break;
     case 'edit' :
         $page = getPage($pageID);
+        $formatList = getFormatList('page');
         include '_components/page-edit.inc.php';
         break;
     case 'list' :

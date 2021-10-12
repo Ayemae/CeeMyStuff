@@ -88,6 +88,19 @@
             </ul>
     </li>
 
+    <?php if ($formatList) :?>
+    <li>
+        <label for="format">Display Format:</label>
+        <select name="format" id="format">
+            <?php foreach ($formatList AS $format) :?>
+            <option value="<?show($format)?>">
+                <?show($format)?>
+            </option>
+            <?php endforeach;?>
+        </select>
+    </li>
+    <?php endif;?>
+
     <li>
             <label for="hidden"> Hide this category:</label>
             <input type="hidden" id="hidden" name="n_hidden" value="0">
