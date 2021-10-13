@@ -53,7 +53,7 @@
         <label for="format">Display Format:</label>
         <select name="format" id="format">
             <?php foreach ($formatList AS $format) :?>
-            <option value="<?show($format)?>" <?=($page['Hidden']===$format ? 'selected' : null)?>>
+            <option value="<?show($format)?>" <?=($page['Format']===$format ? 'selected' : null)?>>
                 <?show($format)?>
             </option>
             <?php endforeach;?>
@@ -73,8 +73,6 @@
             <input type="checkbox" id="hidden" name="n_hidden" value="1" <?=($page['Hidden'] ? 'checked' : null)?>>
     </li>
 </ul>
-
-    <input type="hidden" id="format" name="format" value=''>
 
   <button name="edit_page"><i class="fi fi-rs-check"></i> Submit</button>
   <div id="modal-home"></div>

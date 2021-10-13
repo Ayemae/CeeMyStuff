@@ -121,7 +121,6 @@
     </li>
     <?php endif;?>
     </ul>
-    <input type="hidden" id="format" name="format" value=''>
 
   <button name="create_category"><i class="fi fi-rs-check"></i> Submit</button>
 </form>

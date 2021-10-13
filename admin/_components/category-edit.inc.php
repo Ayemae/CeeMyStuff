@@ -100,7 +100,7 @@
         <label for="format">Display Format:</label>
         <select name="format" id="format">
             <?php foreach ($formatList AS $format) :?>
-            <option value="<?show($format)?>" <?=($cat['Hidden']===$format ? 'selected' : null)?>>
+            <option value="<?show($format)?>" <?=($cat['Format']===$format ? 'selected' : null)?>>
                 <?show($format)?>
             </option>
             <?php endforeach;?>
@@ -130,7 +130,6 @@
     </li>
     <?php endif;?>
     </ul>
-    <input type="hidden" id="format" name="format" value=''>
 
   <button name="edit_category"><i class="fi fi-rs-check"></i> Submit</button>
   <div id="modal-home"></div>

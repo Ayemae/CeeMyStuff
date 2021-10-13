@@ -848,7 +848,7 @@ function printPageCats($catList=false, $pageNum=1, $paginate=false, $pgAfter=15,
             $content .= ob_get_clean();
             ob_end_clean();
         } else {
-            $content .= '<section id="cat_'.$cat['ID'].'" class="category '.$cat['Class'].'">';
+            $content .= '<section id="cat_'.$cat['ID'].'" class="category '.$class.'">';
             $content .= '<!-- No valid category format assigned. -->';
             $content .= $image.$title.$text;
             $content .= $items_content;
@@ -882,10 +882,14 @@ function printPage($page=false,$pageNum=1) {
     $id = $page['ID'];
     $class = className($page['Name']);
     if ($page['Show_Title']) {
-        $title = $page['Name'];
+        $title = '<h1 class="page-title">'.$page['Name'].'</h1>';
+    } else {
+        $title = '';
     }
-    if ($page['Show_Header_Img']) {
+    if ($page['Header_Img_Path'] && $page['Show_Header_Img']) {
         $image = '<img src="'.$page['Header_Img_Path'].'" alt="'.$page['Name'].' header"/>';
+    } else {
+        $image='';
     }
     $catList = getPageCats($page['ID']);
     $category_content = printPageCats($catList,$pageNum,$page['Paginate'],$page['Paginate_After'],$paginator);
@@ -903,7 +907,7 @@ function printPage($page=false,$pageNum=1) {
         $content .= ob_get_clean();
         ob_end_clean();
     } else {
-        $content .= '<main id="page_'.$page['ID'].'" class="page '.$page['Class'].'">';
+        $content .= '<main id="page_'.$page['ID'].'" class="page '.$class.'">';
         $content .= '<h1 class="page-title">'.$page['Name'].'</h1>';
         $content .= '<!-- No valid page format assigned. -->';
         

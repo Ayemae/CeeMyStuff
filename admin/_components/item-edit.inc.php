@@ -86,7 +86,7 @@
         <label for="format">Display Format:</label>
         <select name="format" id="format">
             <?php foreach ($formatList AS $format) :?>
-            <option value="<?show($format)?>" <?=($item['Hidden']===$format ? 'selected' : null)?>>
+            <option value="<?show($format)?>" <?show($item['Format']===$format ? 'selected' : null)?>>
                 <?show($format)?>
             </option>
             <?php endforeach;?>

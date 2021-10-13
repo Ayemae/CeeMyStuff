@@ -68,7 +68,5 @@
     </li>
 </ul>
 
-    <input type="hidden" id="format" name="format" value=''>
-
   <button name="create_page"><i class="fi fi-rs-check"></i> Submit</button>
 </form>
