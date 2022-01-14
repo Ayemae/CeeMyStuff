@@ -492,7 +492,11 @@ function getPage($page, $key="id"){
     $qry = "SELECT p.*, COUNT(i.ID) AS Total_Items
     FROM Pages AS p
     LEFT JOIN Categories AS c ON p.ID=c.Page_ID
-    LEFT JOIN Items AS i ON c.ID=i.Cat_ID
+    LEFT JOIN  (SELECT ID, Cat_ID FROM Items";
+    if (!$admin_panel || !$loggedIn) {
+        $qry .= ' WHERE Hidden=0 ';
+    }
+    $qry .= ") AS i ON c.ID=i.Cat_ID
     WHERE ".$where." COLLATE NOCASE LIMIT 1;";
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(1, $page, SQLITE3_TEXT);
@@ -518,7 +522,7 @@ if (isset($_POST['logout'])) {
 
 function getPageList() {
     global $db;
-    global $admin_area;
+    global $admin_panel;
     global $loggedIn;
     $conn = new SQLite3($db);
     $pageList = array();
@@ -533,7 +537,7 @@ function getPageList() {
     SELECT COUNT(ID) AS Cat_Num, Page_ID FROM Categories 
     GROUP BY Page_ID
     ) AS c ON c.Page_ID = p.ID';
-    if (!$admin_area || !$loggedIn) {
+    if (!$admin_panel || !$loggedIn) {
         $qry .= ' WHERE Hidden=0';
     }
     $qry .= ';';
@@ -575,7 +579,11 @@ function getPageCats($pageID) {
     $conn = new SQLite3($db);
     $qry = 'SELECT c.*, COUNT(i.ID) AS Total_Items
             FROM Categories AS c
-            LEFT JOIN Items AS i ON c.ID=i.Cat_ID
+            LEFT JOIN (SELECT ID, Cat_ID FROM Items';
+    if (!$admin_panel || !$loggedIn) {
+        $qry .= ' WHERE Hidden=0 ';
+    }
+    $qry .= ') AS i ON c.ID=i.Cat_ID
             WHERE c.Page_ID = :id;';
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(':id', $pageID, SQLITE3_INTEGER);
@@ -608,7 +616,15 @@ function getCatItems($id, $pageNum=1,
     $items = array();
     $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
     $conn = new SQLite3($db);
-    $qry = "SELECT * FROM Items WHERE Cat_ID = :catid ";
+    $qry = "SELECT *";
+    if ($admin_panel) {
+        $qry .= ", CASE
+        WHEN Publish_Timestamp>=strftime('%s','now')
+        THEN 1
+        ELSE 0
+        END AS Queued ";
+    }
+    $qry .= " FROM Items WHERE Cat_ID = :catid ";
     if (!$loggedIn || !$admin_panel) {
         $qry .= " AND Hidden=0 AND Publish_Timestamp<=strftime('%s','now')";
     }
@@ -789,7 +805,7 @@ function printPageItems($itemList=false, $cat=false) {
         } else {
             $content .= '<div id="item_'.$id.'" class="item '.$class.'">';
             if ($title) {
-                $content .= '<h3>'.$title.'</h3>';
+                $content .= '<h3 class="item-title">'.$title.'</h3>';
             }
             $content .= '<!-- No valid item format assigned. -->';
             if ($image) {
@@ -874,7 +890,7 @@ function printPage($page=false,$pageNum=1) {
         }
     }
     if ($page['Paginate']==1 && $page['Multi_Cat']==0 &&
-    ($page['Paginate_After']>$page['Total_Items'])) {
+    ($page['Paginate_After']<$page['Total_Items'])) {
         $paginator = printPaginator($page['Paginate_After'], $pageNum, $page['Total_Items'], $page['Link']);
     } else {
         $paginator = '';
@@ -919,6 +935,23 @@ function printPage($page=false,$pageNum=1) {
     echo $content;
     include_once 'components/footer.php';
 }
+
+function getMenu() {
+    global $db;
+    $conn = new SQLite3($db);
+    $menu = array();
+    $qry = "SELECT * Menu_Options";
+    if ($admin_panel && $loggedIn) {
+        $qry .= " WHERE Hidden=0";
+    }
+    $qry .= ";";
+    $result = $conn->prepare($qry)->execute();
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $menu[] = $row;
+    }
+    return $menu;
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1294,7 +1327,7 @@ if (isset($_POST['create_item'])) {
     } else {
         $pdtUnix = time();
     }
-    $qry = "INSERT INTO Items (Cat_ID,Title,";
+    $qry = "INSERT INTO Items (Cat_ID,Title,Type,";
     if ($type==='Image') {
         $qry .= "Img_Path,";
     } elseif ($type==='Embed') {
@@ -1303,17 +1336,19 @@ if (isset($_POST['create_item'])) {
     $qry .= "Img_Thumb_Path,Text,Publish_Timestamp,Hidden,Format)
     VALUES (:catid,:title,";
     if ($type==='Image') {
-        $qry .= ":img,";
+        $qry .= ":type,:img,";
     } elseif ($type==='Embed') {
-        $qry .= ":embed,";
+        $qry .= ":type,:embed,";
     }
     $qry .= ":imgthumb,:text,:ts,:hide,:format);";
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(':catid',$cPost['n_cat_id'], SQLITE3_INTEGER);
     $stmt->bindValue(':title',$cPost['title'], SQLITE3_TEXT);
     if ($type==='Image') {
+        $stmt->bindValue(':type', $type, SQLITE3_TEXT);
         $stmt->bindValue(':img',$imgPath, SQLITE3_TEXT);
     } elseif ($type==='Embed') {
+        $stmt->bindValue(':type', $type, SQLITE3_TEXT);
         $stmt->bindValue(':embed',$cPost['b_embed'], SQLITE3_TEXT);
     }
     $stmt->bindValue(':imgthumb',$imgThumbPath, SQLITE3_TEXT);
@@ -1398,9 +1433,9 @@ if (isset($_POST['edit_item'])) {
     $qry = "UPDATE Items 
             SET Cat_ID=:catid,Title=:title,";
     if ($type==='Image') {
-        $qry .="Img_Path=:img,";
+        $qry .="Type=:type,Img_Path=:img,";
     } elseif($type==='Embed') {
-        $qry .="Embed_HTML=:embed,";
+        $qry .="Type=:type,Embed_HTML=:embed,";
     }
     $qry .= "Img_Thumb_Path=:imgthumb,Text=:text,Publish_Timestamp=:ts,Format=:format,Hidden=:hide
             WHERE ID=:id;";
@@ -1408,8 +1443,10 @@ if (isset($_POST['edit_item'])) {
     $stmt->bindValue(':catid',$cPost['n_cat_id'], SQLITE3_INTEGER);
     $stmt->bindValue(':title',$cPost['title'], SQLITE3_TEXT);
     if ($type==='Image') {
+        $stmt->bindValue(':type', $type, SQLITE3_TEXT);
         $stmt->bindValue(':img',$imgPath, SQLITE3_TEXT);
     } elseif ($type==='Embed') {
+        $stmt->bindValue(':type', $type, SQLITE3_TEXT);
         $stmt->bindValue(':embed',$cPost['b_embed'], SQLITE3_TEXT);
     }
     $stmt->bindValue(':imgthumb',$imgThumbPath, SQLITE3_TEXT);

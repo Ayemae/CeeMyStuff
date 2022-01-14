@@ -93,7 +93,7 @@ $conn->exec('INSERT INTO Categories (ID, Page_ID, Page_Index_Order, Name, Text, 
 $conn->exec('CREATE TABLE IF NOT EXISTS Items (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     Cat_ID INTEGER,
-    Type TEXT DEFAULT "Code",
+    Type TEXT DEFAULT "Text",
     Title TEXT NOT NULL,
     Text TEXT,
     Img_Path TEXT,
@@ -153,9 +153,11 @@ $conn->exec('INSERT INTO Accounts (
 
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Menu_Options (
-    Page_ID INTEGER,
+    ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    Page_ID INTEGER UNIQUE,
     Index_Order INTEGER,
-    Outgoing_Link TEXT,
+    Link_Name TEXT,
+    Outgoing_Url TEXT,
     In_Dropdown INTEGER,
     Img_Path TEXT,
     Hidden INTEGER

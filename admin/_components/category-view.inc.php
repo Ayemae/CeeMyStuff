@@ -10,8 +10,14 @@
     <?php foreach ($items AS $item) : ?>
         <a href="<?show($route)?>/items.php?task=edit&id=<?show($item['ID']);?>">
         <li id="item_<?show($item['ID']);?>">
-            <img src="<?show(($item['Img_Thumb_Path'] ? $item['Img_Thumb_Path'] : $item['Img_Path'] ));?>" alt="<?show($item['Title']);?> Image"/> 
-                <?php if ($item['Hidden']) :?><i class="fi fi-rs-eye-crossed"></i>&nbsp;<?php endif;?>
+            <?php if ($item['Type']==='Image' && $item['Img_Path']) : ?>
+                <img src="<?show($set['dir'].($item['Img_Thumb_Path'] ? $item['Img_Thumb_Path'] : $item['Img_Path'] ));?>" alt="<?show($item['Title']);?> Image"/> 
+            <?php endif;?>
+                <?php if ($item['Hidden']) :?>
+                    <i class="fi fi-rs-eye-crossed"></i>&nbsp;
+                <?php elseif ($item['Queued']) :?>
+                    <i class="fi fi-rs-clock"></i>&nbsp;
+                <?php endif;?>
                 <?show($item['Title']);?>
         </li>
         </a>

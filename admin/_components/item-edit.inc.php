@@ -3,6 +3,7 @@
 <form method="post" enctype="multipart/form-data">
 <input type="hidden" name="n_item_id" value="<?show($item['ID'])?>">
 <input type="hidden" name="n_cat_id" value="<?show($item['Cat_ID'])?>">
+<input type="hidden" name="type" value="<?show($item['Type'])?>">
 <ul class="form-list">
     <li>
         <label for="title">Title:</label>
@@ -10,11 +11,11 @@
     </li>
 
 
-    <?php if ($type==="Image") :
+    <?php if ($item['Type']==="Image") :
         if ($item['Img_Path']): ?>
     <li>
-        <label>Image:</label>
-        <img src="<?show($set['dir'])?><?show($item['Img_Path'])?>" alt="<?show($item['Title'])?> Image">
+        <label>Image:</label><br/>
+        <img src="<?show($set['dir'].$item['Img_Path'])?>" alt="<?show($item['Title'])?> Image">
         <input type="hidden" id="img_stored" name="img_stored" value="<?show($item['Img_Path'])?>">
     </li>
     <?php endif;?>
@@ -23,7 +24,7 @@
         <input type="file" id="img_upload" name="img_upload">
     </li>
 
-    <?php elseif ($type==="Embed") :?>
+    <?php elseif ($item['Type']==="Embed") :?>
     <li>
         <label for="embed">Embed HTML/Script:</label><br/>
         <textarea id="embed" name="b_embed"><?show($item['Embed_HTML'])?></textarea>
@@ -50,7 +51,7 @@
     <?php endif;?>
 
     <li>
-    <?php if ($type === 'Image' && $catInfo['Auto_Thumbs']) :?>
+    <?php if ($item['Type'] === 'Image' && $catInfo['Auto_Thumbs']) :?>
         <i>A thumbnail image with a <?echo(!$catInfo['Thumb_Size_Axis'] ? 'width' : 'height');?> of <?show($catInfo['Thumb_Size'])?>px will be created for this item.<br/>
         <a href="">Click here to change this setting.</a></i>
         <input type="hidden" name="create_thumbnail" value="checked">
@@ -59,7 +60,7 @@
     <?php else : ?>
         <label for="thumb_upload"><?=($item['Img_Thumb_Path'] ? 'Re-upload' : 'Upload')?> Thumbnail:</label>
         <input type="file" id="thumb_upload" name="thumb_upload">
-        <?php if ($type === 'Image') :?>
+        <?php if ($item['Type'] === 'Image') :?>
         <p> - OR - </p>
         <label for="create-thumbnail"> Auto-Create Thumbnail:</label>
         <input type="hidden" name="create_thumbnail" value="">

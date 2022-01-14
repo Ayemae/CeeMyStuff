@@ -20,9 +20,9 @@
                 </div>
                 <div class="cat-options">
                     <label><i class="fi fi-rs-plus"></i> New Item:</label>
-                    <a class="opt settings" href="<?show($route)?>/items.php?task=create&type=text&catid=<?show($cat['ID']);?>">Text</a>
-                    <a class="opt settings" href="<?show($route)?>/items.php?task=create&type=image&catid=<?show($cat['ID']);?>">Image</a>
-                    <a class="opt settings" href="<?show($route)?>/items.php?task=create&type=embed&catid=<?show($cat['ID']);?>">Embed</a>
+                    <a class="opt settings" href="<?show($route)?>/items.php?task=create&type=text&catid=<?show($cat['ID']);?>"><i class="fi fi-rs-text"></i>&nbsp; Text</a>
+                    <a class="opt settings" href="<?show($route)?>/items.php?task=create&type=image&catid=<?show($cat['ID']);?>"><i class="fi fi-rs-picture"></i>&nbsp; Image</a>
+                    <a class="opt settings" href="<?show($route)?>/items.php?task=create&type=embed&catid=<?show($cat['ID']);?>"><i class="fi fi-rs-cursor-text-alt"></i>&nbsp; Embed</a>
                 </div>
             </div>
         </li>
