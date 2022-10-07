@@ -31,7 +31,6 @@ elseif ($loggedIn) :?>
     </form>
 
     <?php else :?>
-        <h2>Login</h2>
         <?php include '_components/login.inc.php';?>
         
 <?php endif; ?>

@@ -3,7 +3,7 @@ $admin_panel = true;
 include_once '../components/info-head.php';
 $page_title = 'Menu Settings';
 include '_components/admin-header.inc.php';
-//$menu = fetchMenu();
+$menu = getMenu();
 ?>
 
 <main>
@@ -13,21 +13,25 @@ include '_components/admin-header.inc.php';
 <form method="post">
     <ul class="form-list">
         <?php foreach ($menu AS $option) :?>
-        <li class="flex">
-            <input type="hidden" name="id[<?show($option['ID'])?>]" value="<?show($option['ID'])?>">
-            <input type="hidden" name="page_id[<?show($option['ID'])?>]" value="<?show($option['Page_ID'])?>">
-            <input type="hidden" name="index[<?show($option['ID'])?>]" value="<?show($option['Index_Order'])?>">
+        <li class="flex space-btwn">
+            <input type="hidden" name="page_id[<?show($option['Page_ID'])?>]" value="<?show($option['Page_ID'])?>">
+            <input type="hidden" name="index[<?show($option['Page_ID'])?>]" value="<?show($option['Index_Order'])?>">
             <div>
-                <?show($option['Page_ID'] ? $option['Page_Name'] : $option['Link_Name'])?>
+                <?show($option['Page_ID'] != NULL ? $option['Page_Name'] : $option['Link'])?>
                 <?show($option['Img_Path'] ? '<img src="'.$option['Img_Path'].'" alt="">' : null)?>
+                <? ?>
             </div>
             <div>
-                <input type="hidden" id="dropdown" name="n_dropdown[<?show($option['ID'])?>]" value="0">
-                <input type="checkbox" id="dropdown" name="n_dropdown[<?show($option['ID'])?>]" value="1" <?(!isset($option['In_Dropdown']) ? null : show((!$option['In_Dropdown'] ? null : 'checked')))?>>
+                <label>Show in Menu</label>
+                <input type="hidden" id="hidden" name="n_hidden[<?show($option['Page_ID'])?>]" value="1">
+                <input type="checkbox" id="hidden" name="n_hidden[<?show($option['Page_ID'])?>]" value="0" <? echo (isset($option['Hidden'])===false ? ($option['Hidden']==0 ? 'checked' : null) : null)?>>
             </div>
             <div>
-                <input type="hidden" id="hidden" name="n_hidden[<?show($option['ID'])?>]" value="0">
-                <input type="checkbox" id="hidden" name="n_hidden[<?show($option['ID'])?>]" value="1" <?(!isset($option['Hidden']) ? null : show((!$option['Hidden'] ? null : 'checked')))?>>
+                <?php if ($option['Page_ID']>0) :?>
+                    <label>In Dropdown?</label>
+                    <input type="hidden" id="dropdown" name="n_dropdown[<?show($option['Page_ID'])?>]" value="0">
+                    <input type="checkbox" id="dropdown" name="n_dropdown[<?show($option['Page_ID'])?>]" value="1" <?(!isset($option['In_Dropdown']) ? null : show((!$option['In_Dropdown'] ? null : 'checked')))?>>
+                <?php endif;?>
             </div>
         </li>
         <?php endforeach; ?>

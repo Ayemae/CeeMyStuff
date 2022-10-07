@@ -940,9 +940,10 @@ function getMenu() {
     global $db;
     $conn = new SQLite3($db);
     $menu = array();
-    $qry = "SELECT * Menu_Options";
-    if ($admin_panel && $loggedIn) {
-        $qry .= " WHERE Hidden=0";
+    $qry = "SELECT m.*, p.Name AS Page_Name, p.Link FROM Menu_Options AS m
+            LEFT JOIN Pages AS p ON p.ID=m.Page_ID";
+    if (!$admin_panel || !$loggedIn) {
+        $qry .= " WHERE m.Hidden=0";
     }
     $qry .= ";";
     $result = $conn->prepare($qry)->execute();
@@ -1327,11 +1328,11 @@ if (isset($_POST['create_item'])) {
     } else {
         $pdtUnix = time();
     }
-    $qry = "INSERT INTO Items (Cat_ID,Title,Type,";
+    $qry = "INSERT INTO Items (Cat_ID,Title,";
     if ($type==='Image') {
-        $qry .= "Img_Path,";
+        $qry .= "Type,Img_Path,";
     } elseif ($type==='Embed') {
-        $qry .= "Embed_HTML,";
+        $qry .= "Type,Embed_HTML,";
     }
     $qry .= "Img_Thumb_Path,Text,Publish_Timestamp,Hidden,Format)
     VALUES (:catid,:title,";
