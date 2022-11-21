@@ -10,32 +10,46 @@ $menu = getMenu();
 
 <h1>Site Menu Settings</h1>
 
-<form method="post">
-    <ul class="form-list">
+<noscript>Enabling Javascript is recommended for best performance.</noscript>
+
+<form id="menu-settings-form" method="post">
+    <div class="menu-settings-table">
+        <ul class="menu-settings-table-head">
+            <li>Order</li>
+            <li>Page Name</li>
+            <li>In Dropdown</li>
+            <li>Hidden</li>
+        </ul>
+    <ul class="menu-settings-item-list">
         <?php foreach ($menu AS $option) :?>
-        <li class="flex space-btwn">
-            <input type="hidden" name="page_id[<?show($option['Page_ID'])?>]" value="<?show($option['Page_ID'])?>">
-            <input type="hidden" name="index[<?show($option['Page_ID'])?>]" value="<?show($option['Index_Order'])?>">
+        <li class="menu-settings-item">
+            <input type="hidden" name="option[<?show($option['Page_ID'])?>][n_page_id]" value="<?show($option['Page_ID'])?>">
+            <div>
+                <i class="fi fi-rs-expand-arrows"></i>
+                <input type="number" class="menu-item-order" name="option[<?show($option['Page_ID'])?>][n_index]" value="<?show($option['Index_Order'])?>">
+            </div>
             <div>
                 <?show($option['Page_ID'] != NULL ? $option['Page_Name'] : $option['Link'])?>
                 <?show($option['Img_Path'] ? '<img src="'.$option['Img_Path'].'" alt="">' : null)?>
-                <? ?>
-            </div>
-            <div>
-                <label>Show in Menu</label>
-                <input type="hidden" id="hidden" name="n_hidden[<?show($option['Page_ID'])?>]" value="1">
-                <input type="checkbox" id="hidden" name="n_hidden[<?show($option['Page_ID'])?>]" value="0" <? echo (isset($option['Hidden'])===false ? ($option['Hidden']==0 ? 'checked' : null) : null)?>>
+                <input type="hidden" name="option[<?show($option['Page_ID'])?>][link]" value="<?show($option['Outgoing_Link'])?>">
+                <!-- link to edit? -->
             </div>
             <div>
                 <?php if ($option['Page_ID']>0) :?>
-                    <label>In Dropdown?</label>
-                    <input type="hidden" id="dropdown" name="n_dropdown[<?show($option['Page_ID'])?>]" value="0">
-                    <input type="checkbox" id="dropdown" name="n_dropdown[<?show($option['Page_ID'])?>]" value="1" <?(!isset($option['In_Dropdown']) ? null : show((!$option['In_Dropdown'] ? null : 'checked')))?>>
+                    <input type="hidden" name="option[<?show($option['Page_ID'])?>][n_dropdown]" value="0">
+                    <input type="checkbox" id="dropdown" name="option[<?show($option['Page_ID'])?>][n_dropdown]" value="1" <?(!isset($option['In_Dropdown']) ? null : show((!$option['In_Dropdown'] ? null : 'checked')))?>>
+                <?php else:?>
+                    <input type="checkbox" title="Home pages cannot be in a dropdown." disabled>
                 <?php endif;?>
+            </div>
+            <div>
+                <input type="hidden" name="option[<?show($option['Page_ID'])?>][n_hidden]" value="0">
+                <input type="checkbox" id="hidden" name="option[<?show($option['Page_ID'])?>][n_hidden]" value="1" <? echo (isset($option['Hidden'])===true ? ($option['Hidden']==1 ? 'checked' : null) : null)?>>
             </div>
         </li>
         <?php endforeach; ?>
     </ul>
+    </div>
 <button name="save_menu">Save</button>
 </form>
 

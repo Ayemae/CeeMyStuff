@@ -23,13 +23,7 @@ elseif ($loggedIn) :?>
     <script>
         window.location.replace("<?show($route)?>/pages.php");
     </script>
-<?php elseif (isset($_GET['pw-reset']) && $_GET['pw-reset']=1) : ?>
-    <form method="post">
-        <p>Click the button below to send an email with a link to reset your password.</p>
     
-        <button name="send_password_reset">Reset my password</button>
-    </form>
-
     <?php else :?>
         <?php include '_components/login.inc.php';?>
         

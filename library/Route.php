@@ -1,6 +1,6 @@
 <?php
 
-// courtesy of https://steampixel.de/simple-and-elegant-url-routing-with-php/
+// suggested by https://steampixel.de/simple-and-elegant-url-routing-with-php/
 
 class Route{
 

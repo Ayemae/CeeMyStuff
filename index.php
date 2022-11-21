@@ -9,7 +9,6 @@ if (strpos($request,'/')) {
 }
 $page = getPage(strtolower($request), 'link');
 
-
 // home
 Route::add('/',function(){
     global $set;global $db;

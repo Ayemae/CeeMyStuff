@@ -285,8 +285,15 @@ if (isset($_POST['send_password_reset'])) {
     global $db; global $route;
     $failed = false;
     $conn = new SQLite3($db);
-    $getQry = "SELECT Email, Email_Valid FROM Accounts WHERE Is_Admin = 1 LIMIT 1;";
-    $result = $conn->prepare($qry)->execute();
+    $email = filter_var($_POST['email'],FILTER_VALIDATE_EMAIL);
+    if (!$email) {
+        $msg.="Invalid email.";
+        return;
+    }
+    $getQry = "SELECT Email, Email_Valid FROM Accounts WHERE Email=:email LIMIT 1;";
+    $stmt = $conn->prepare($getQry);
+    $stmt->bindValue(':email', $email, SQLITE3_TEXT);
+    $result = $stmt->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             $email = $row['Email'];
             $valid = $row['Email_Valid'];
@@ -295,22 +302,25 @@ if (isset($_POST['send_password_reset'])) {
         $updtQry = "UPDATE Accounts SET 
                     Activation_Timestamp = :time, 
                     Activation_Key = :key
-                    WHERE Is_Admin = 1 LIMIT 1";
+                    WHERE Email = :email LIMIT 1";
         $stmt = $conn->prepare($updtQry);
-        $time = time();
-        $key = bin2hex(random_bytes(22));
+        $time = time(); 
+        $key = htmlspecialchars(bin2hex(random_bytes(22)));
         $stmt->bindValue(':time', $time, SQLITE3_INTEGER);
         $stmt->bindValue(':key', $key, SQLITE3_TEXT);
+        $stmt->bindValue(':email', $email, SQLITE3_TEXT);
         if (!$stmt->execute()) {
             $failed = true;
         }
         if ($failed === false) {
-            $body = "To reset your admin password, click the following link:<br/>";
-            $activateUrl = html_entity_decode($route."?key=$key");
+            $body = "To reset your password, click the following link:<br/>";
+            $activateUrl = html_entity_decode($route."/pw-reset.php?key=$key");
             $body .= '<a href="'.$activateUrl.'">'.$activateUrl.'</a>';
-                mail($email, 'CeeMyStuff Password Reset', $body, $emailHeaders);
-                $msg .= "<p>An email with the link to reset your password has been sent. If it hasn't shown up after a few minutes, 
-                check your spam folder.</p>";
+                if (mail($email, 'CeeMyStuff Password Reset', $body, $emailHeaders)) {
+                    $msg .= "<p>An email with the link to reset your password has been sent. If it hasn't shown up after a few minutes, 
+                    check your spam folder.</p>";
+                    return;
+                }
                 //FOR TESTING 
                 //echo $body.' <a href="'.$activateUrl.'">Link</a>';
         } else {
@@ -324,9 +334,12 @@ if (isset($_POST['send_password_reset'])) {
 function validatePWResetLink($key) {
     global $db;
     $expired = true;
+    $key = htmlspecialchars($key);
     $conn = new SQLite3($db);
-    $qry = "SELECT Activation_Key, Activation_Timestamp FROM Accounts WHERE Is_Admin = 1 LIMIT 1;";
-    $result = $conn->prepare($qry)->execute();
+    $qry = "SELECT Activation_Timestamp FROM Accounts WHERE Activation_Key = :actkey LIMIT 1;";
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(':actkey', $key, SQLITE3_INTEGER);
+    $result = $stmt->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         $storedKey = $row['Activation_Key'];
         $unix = $row['Activation_Timestamp'];
@@ -348,6 +361,7 @@ function validatePWResetLink($key) {
 if (isset($_POST['reset_password'])) {
     $msg= '';
     global $db;
+    $key = htmlspecialchars($_POST['key']);
     if ($_POST['password'] && $_POST['password2']) {
         $passw = $_POST['password'];
         $passw2 = $_POST['password2'];
@@ -355,10 +369,11 @@ if (isset($_POST['reset_password'])) {
             $password = hash("sha256", $passw);
         } else {
             $msg .= 'Your password and password confirmation do not match.<br/>';
+            return ;
         }
-        //TODO: stop password from being the same as user's email?
     } else {
         $msg .= 'Please fill out the following fields.';
+        return ;
     }
     if ($password) {
         $failed = false;
@@ -367,19 +382,20 @@ if (isset($_POST['reset_password'])) {
         $dateQry = "UPDATE Accounts SET 
                                 Password = :pw, 
                                 Activation_Key = NULL 
-                            WHERE Is_Admin = 1;";
+                            WHERE Activation_Key = :actkey;";
         $stmt = $conn->prepare($dateQry);
         $stmt->bindValue(':pw', $password, SQLITE3_TEXT);
+        $stmt->bindValue(':actkey', $key, SQLITE3_TEXT);
         if (!$stmt->execute()) {
             $msg = "A database error occurred. Try again.";
-            return false;
+            return ;
         } 
             } else {
                 $msg = "New password failed to record. Try again.";
-                return false;
+                return ;
             }
         if ($failed === false) {
-            $msg = 'Password has been reset!';
+            $msg = 'Password has been reset! <a href="'.$set['dir'].'/admin">Login here.</a>';
         } else {
             $msg = 'Credential submission failed. Please try again.';
         }
@@ -455,6 +471,7 @@ if (isset($_POST['login'])) {
         }
         $stmt->execute();
         
+        $msg .= '<br/><a href="'.$set['dir'].'/admin/pw-reset.php">Click here if you forgot your password.</a>';
         return false;
     }
 }
@@ -477,6 +494,8 @@ function logout() {
 
 function getPage($page, $key="id"){
     global $db;
+    global $admin_panel;
+    global $loggedIn;
     $conn = New SQLite3($db);
     if ($key === 'name') {
         $page = stripHTML($page);
@@ -574,6 +593,8 @@ function getCatList($pageID=false) {
 
 function getPageCats($pageID) {
     global $db;
+    global $admin_panel;
+    global $loggedIn;
     $catList = array();
     $pageID = filter_var($pageID, FILTER_SANITIZE_NUMBER_INT);
     $conn = new SQLite3($db);
@@ -770,7 +791,6 @@ function printPaginator($pgAfter, $pageNum, $itemTotal, $pageLink) {
     ob_start();
     include 'components/paginator.php';
     $output = ob_get_clean();
-    ob_end_clean();
     return $output;
     }
 }
@@ -801,7 +821,6 @@ function printPageItems($itemList=false, $cat=false) {
             ob_start();
             include 'formats/item/'.$item['Format'].'.php';
             $content .= ob_get_clean();
-            ob_end_clean();
         } else {
             $content .= '<div id="item_'.$id.'" class="item '.$class.'">';
             if ($title) {
@@ -847,7 +866,7 @@ function printPageCats($catList=false, $pageNum=1, $paginate=false, $pgAfter=15,
         $class = className($cat['Name']);
 
         $itemList = getCatItems($cat['ID'],$pageNum,
-                                $cat['OrderBy'],$cat['OrderDir'],
+                                $cat['Order_By'],$cat['Order_Dir'],
                                 $paginate,$pgAfter);
         if ($itemList) {
             $items_content = printPageItems($itemList, $cat);
@@ -862,7 +881,6 @@ function printPageCats($catList=false, $pageNum=1, $paginate=false, $pgAfter=15,
             ob_start();
             include 'formats/category/'.$cat['Format'].'.php';
             $content .= ob_get_clean();
-            ob_end_clean();
         } else {
             $content .= '<section id="cat_'.$cat['ID'].'" class="category '.$class.'">';
             $content .= '<!-- No valid category format assigned. -->';
@@ -875,9 +893,56 @@ function printPageCats($catList=false, $pageNum=1, $paginate=false, $pgAfter=15,
     return $content;
 }
 
+function getMenu() {
+    global $db;
+    global $admin_panel;
+    global $loggedIn;
+    $conn = new SQLite3($db);
+    $menu = array();
+    $qry = "SELECT m.*, p.Name AS Page_Name, p.Link FROM Menu_Options AS m
+            LEFT JOIN Pages AS p ON p.ID=m.Page_ID";
+    if (!$admin_panel || !$loggedIn) {
+        $qry .= " WHERE m.Hidden=0";
+    }
+    $qry .= " ORDER BY m.Index_Order;";
+    $result = $conn->prepare($qry)->execute();
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $menu[] = $row;
+    }
+    return $menu;
+}
+
+function serializeMenu() {
+    global $db;
+    global $set;
+    $conn = new SQLite3($db);
+    $menu = array();
+    $qry = "SELECT m.*, p.Name AS Page_Name, p.Link FROM Menu_Options AS m
+            LEFT JOIN Pages AS p ON p.ID=m.Page_ID 
+            WHERE m.Hidden=0 
+            ORDER BY m.Index_Order;";
+    $result = $conn->prepare($qry)->execute();
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        if ($set['menu_format'] === 'Images') {
+            $a = '<img src="'.$set['dir'].$row['Img_Path'].'" alt="'.$row['Page_Name'].'" title="'.$row['Page_Name'].'">';
+        } else {
+            $a = $row['Page_Name'];
+        }
+        if ($row['Outgoing_Link']) {
+            $href= $row['Outgoing_Link'];
+        } else {
+            $href= $set['dir'].'/'.$row['Link'];
+        }
+        $menuLink = '<a href="'.$href.'">'.$a.'</a>';
+        $menu[] = $menuLink;
+    }
+    return $menu;
+}
+
 function printPage($page=false,$pageNum=1) {
     global $db; global $set; 
     $conn = New SQLite3($db);
+    // if no 'page', go to the home page
     if (!$page) {
         $pgQry = "SELECT p.*, COUNT(i.ID) AS Total_Items
         FROM Pages AS p
@@ -910,18 +975,18 @@ function printPage($page=false,$pageNum=1) {
     $catList = getPageCats($page['ID']);
     $category_content = printPageCats($catList,$pageNum,$page['Paginate'],$page['Paginate_After'],$paginator);
     $content = '';
+    $menu = serializeMenu();
 
     $admin_panel = false;
     include 'components/info-head.php';
     echo '<title>'.$set['site_name'].': '.$page['Name'].'</title>';
-    echo '<meta name="description" content="'.$page['Text'].'">';
+    echo '<meta name="description" content="'.$page['Meta_Text'].'">';
     include_once 'components/header.php';
 
     if ($page['Format'] && file_exists('formats/page/'.$page['Format'].'.php')) {
         ob_start();
         include 'formats/page/'.$page['Format'].'.php';
         $content .= ob_get_clean();
-        ob_end_clean();
     } else {
         $content .= '<main id="page_'.$page['ID'].'" class="page '.$class.'">';
         $content .= '<h1 class="page-title">'.$page['Name'].'</h1>';
@@ -934,23 +999,6 @@ function printPage($page=false,$pageNum=1) {
 
     echo $content;
     include_once 'components/footer.php';
-}
-
-function getMenu() {
-    global $db;
-    $conn = new SQLite3($db);
-    $menu = array();
-    $qry = "SELECT m.*, p.Name AS Page_Name, p.Link FROM Menu_Options AS m
-            LEFT JOIN Pages AS p ON p.ID=m.Page_ID";
-    if (!$admin_panel || !$loggedIn) {
-        $qry .= " WHERE m.Hidden=0";
-    }
-    $qry .= ";";
-    $result = $conn->prepare($qry)->execute();
-    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-        $menu[] = $row;
-    }
-    return $menu;
 }
 
 
@@ -1474,6 +1522,43 @@ if (isset($_POST['delete_item'])) {
         $msg="Item deleted!";
     } else {
         $msg="Item failed to delete. Please try again.";
+    }
+}
+
+if (isset($_POST['save_menu'])) {
+    global $db;
+    $conn = new SQLite3($db);
+    $msg="";
+    usort($_POST["option"], function ($a, $b) {
+        return $a['n_index'] <=> $b['n_index'];
+    });
+    $indexOrder=0;
+    $error = false;
+    $qry = "UPDATE Menu_Options 
+        SET  Index_Order=:inorder, Outgoing_Link=:link, In_Dropdown=:indrop, Hidden=:hidden
+            WHERE Page_ID=:pageid";
+    foreach ($_POST["option"] AS &$opt) {
+        if ($error) {
+            $msg.=" There was an error saving your menu changes. Please try again.";
+            return;
+        }
+        $cPost = cleanServerPost($opt);
+        $indexOrder = ($indexOrder+1);
+        $cPost['n_index'] = $indexOrder;
+        $stmt = $conn->prepare($qry);
+        $stmt->bindValue(':inorder',$cPost['n_index'], SQLITE3_INTEGER);
+        $stmt->bindValue(':link',$cPost[':link'], SQLITE3_TEXT);
+        $stmt->bindValue(':indrop',$cPost['n_dropdown'], SQLITE3_INTEGER);
+        $stmt->bindValue(':hidden',$cPost['n_hidden'], SQLITE3_INTEGER);
+        $stmt->bindValue(':pageid',$cPost['n_page_id'], SQLITE3_INTEGER);
+        if (!$stmt->execute()) {
+            $error = true;
+        }
+    }
+    if (!$error) {
+        $msg.="Changes saved!";
+    } else {
+        $msg.=" There was an error saving your menu changes. Please try again.";
     }
 }
 
