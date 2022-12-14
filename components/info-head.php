@@ -11,4 +11,3 @@ if (!$loggedIn && $admin_panel && !$loginArea) {
 }
 $page_title=null;
 ?>
-

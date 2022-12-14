@@ -32,4 +32,4 @@ elseif ($loggedIn) :?>
 </main>
 
 <?php
-include '../components/footer.php';
+include '_components/footer.php';

@@ -1,0 +1,51 @@
+* {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        outline: 0;
+        font-size: 100%;
+        vertical-align: baseline;
+        background: transparent;
+    }
+a {
+    text-decoration: none;
+}
+
+/* //// Establish Defaults //// */
+
+html {
+    font-size: 18px;
+    font-family: 'Futura', 'Verdana', sans-serif;
+}
+
+h1,h2,h3,h4,h5,h6 {
+    margin: .25em;
+    font-weight: bold;
+}
+
+h1 {
+    font-size: 1.8em;
+}
+h2 {
+    font-size: 1.6em;
+}
+h3 {
+    font-size: 1.4em;
+}
+h5 {
+    font-size: 1.2em;
+}
+
+nav#site-menu ul {
+    list-style: none;
+    padding: unset;
+    display: flex;
+    flex-wrap: wrap;
+}
+nav#site-menu li {
+    padding: 3px 5px;
+}
+
+ul, ol {
+    padding-left: 8%;
+}

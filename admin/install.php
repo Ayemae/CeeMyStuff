@@ -21,26 +21,28 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Settings (
     Value TEXT,
     Type TEXT,
     Description TEXT,
-    Options TEXT
+    Options TEXT,
+    Advanced INTEGER DEFAULT 0 NOT NULL
 )');
 
-$conn->exec('INSERT INTO Settings (ID, Index_Order, Field, Key, Value, Type, Description, Options)
+$conn->exec('INSERT INTO Settings (Index_Order, Field, Key, Value, Type, Description, Options, Advanced)
     VALUES 
-    (1, 3, "Sub-directory", "dir", "", "text", "If this portfolio site is in a subdirectory, write which subdirectory in here.", null),
-    (2, 1, "Site Name", "site_name", "My Portfolio", "text", null, null),
-    (3, 2, "Owner Name", "owner_name", "My Name", "text", "Your name, or the name of the group this site belongs to.", null),
-    (4, 4, "Initial Copyright Year", "c_year", "", "number", null, null),
-    (5, 5, "Timezone", "timezone", "America/New_York", "timezone", null,null),
-    (6, 6, "Date Format", "date_format", "j F, Y g:i A", "text", "What format you want the date to be in. Look up PHP date formats for details.",null),
-    (7, 7, "Header Image", "header_img", null, "file", "If you want to use a header image, upload it here.",null),
-    (8, 8, "Favicon", "favicon", null, "file", "Upload your favicon, or browser icon, here. Must be 16x16 pixels.",null),
-    (9, 9, "Mobile Browser Icon", "mobile_icon", null, "file", "Upload your mobile browser icon here. Must be 180x180 pixels.",null),
-    (10, 10, "Site Menu Button Format", "menu_format", "Text", "select", "How your site menu buttons will display.", "Images, Text"),
-    (11, 11, "Social Media Button Format", "sm_format", "Icons", "select", "How your social media buttons will display.", "Icons, Text"),
-    (12, 12, "Enable Max Image Dimensions", "has_max_img_dimns","checked", "checkbox", "Enable a maximum height/width on the images you can upload.", null),
-    (13, 13, "Max Image Dimensions (in pixels)", "max_img_dimns", "2400","number", "Must be enabled to take effect.", null),
-    (14, 14, "Enable Max Upload Storage Size","has_max_upld_storage","checked", "checkbox", "Enable a maximum on how much storage a single image upload can take up.", null),
-    (15, 15, "Max Upload Storage Size (in Megabytes)","max_upld_storage","25", "number", "For reference, rougly 1000 megabytes are in a gigabyte. Must be enabled to take effect.", null)
+    (3, "Subdirectory", "dir", "", "text", "If this portfolio site is in a subdirectory, write which subdirectory in here.", null, 0),
+    (1, "Site Name", "site_name", "My Portfolio", "text", null, null, 0),
+    (2, "Owner Name", "owner_name", "My Name", "text", "Your name, or the name of the group this site belongs to.", null, 0),
+    (4, "Theme", "theme", "White-Bread", "function", "What theme you want to use for the aesthetic look of your site.",null, 0),
+    (5, "Initial Copyright Year", "c_year", "", "number", null, null, 0),
+    (6, "Timezone", "timezone", "America/New_York", "function", null,null, 0),
+    (7, "Date Format", "date_format", "j F, Y g:i A", "text", "What format you want the date to be in. Look up PHP date formats for details.",null,0),
+    (8, "Header Image", "header_img", null, "file", "If you want to use a header image, upload it here.",null,0),
+    (9, "Favicon", "favicon", null, "file", "Upload your favicon, or browser icon, here. Must be 16x16 pixels.",null,0),
+    (10, "Mobile Browser Icon", "mobile_icon", null, "file", "Upload your mobile browser icon here. Must be 180x180 pixels.",null,0),
+    (11, "Site Menu Button Format", "menu_format", "Text", "select", "How your site menu buttons will display.", "Images, Text",0),
+    (12, "Social Media Button Format", "sm_format", "Icons", "select", "How your social media buttons will display.", "Icons, Text",0),
+    (13, "Enable Max Image Dimensions", "has_max_img_dimns","checked", "checkbox", "Enable a maximum height/width on the images you can upload.", null,1),
+    (14, "Max Image Dimensions (in pixels)", "max_img_dimns", "2400","number", "Must be enabled to take effect.", null,1),
+    (15, "Enable Max Upload Storage Size","has_max_upld_storage","checked", "checkbox", "Enable a maximum on how much storage a single image upload can take up.", null,1),
+    (16, "Max Upload Storage Size (in Megabytes)","max_upld_storage","25", "number", "For reference, rougly 1000 megabytes are in a gigabyte. Must be enabled to take effect.", null,1)
     ;');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Pages (

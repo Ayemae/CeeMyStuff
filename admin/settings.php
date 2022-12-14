@@ -28,9 +28,19 @@ $settings = fetchSettings();
                 </select>
             <?php break;
 
-            case ('timezone') :
-                echo selectTimezone($stg['Value']); 
-                break;
+            case ('function') :
+                switch ($stg['Key']) :
+                    case ('timezone') :
+                        echo selectTimezone($stg['Value']); 
+                    break;
+                    case ('theme') :
+                        echo selectTheme($stg['Value']);
+                    break;
+                    default:
+                    null;
+                    break;
+                endswitch;
+            break;
 
              default : 
                 $checkbox = '';
@@ -55,4 +65,4 @@ $settings = fetchSettings();
 </main>
 
 <?php
-include '../components/footer.php';
+include '_components/footer.php';

@@ -11,7 +11,7 @@
         <li class="page-box">
             <label class="page-label" for="page_<?show($page['ID']);?>">
             <?=($page['ID'] === "0" ? '<i class="fi fi-rs-home"></i>&nbsp;' : null)?>
-            <?=($page['Hidden'] ? '<i class="fi fi-rs-eye-crossed"></i>&nbsp;' : null)?>
+            <?=(isset($page['Hidden']) && $page['Hidden'] ? '<i class="fi fi-rs-eye-crossed"></i>&nbsp;' : null)?>
                 <?show($page['Name']);?>
             </label>
             <input type="checkbox" id="page_<?show($page['ID']);?>" class="chktoggle invis">

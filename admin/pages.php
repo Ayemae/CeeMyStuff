@@ -41,4 +41,4 @@ if (isset($_GET['id'])) {
 </main>
 
 <?php
-include '../components/footer.php';
+include '_components/footer.php';

@@ -153,10 +153,35 @@ function formatSizeUnits($bytes)
     return $bytes;
 }
 
+function getThemeList() {
+    $themeList = array();
+    $dirContent = scandir('../themes');
+    foreach($dirContent AS &$folder) {
+        if (file_exists('../themes/'.$folder.'/theme.css')) {
+            $themeList[] = $folder;
+        }
+    }
+    return $themeList;
+}
+
+function selectTheme($selected = '') {
+    $themesArr = getThemeList();
+        $inputSelect= '<select name="theme">';
+        foreach ($themesArr AS &$theme) {
+            // note: 'key' is the numerical value of the timezone
+            $inputSelect .='<option value="'.$theme.'"';
+            $inputSelect .= ($theme == $selected ? ' selected' : '');
+            $inputSelect .= '>'.$theme.'</option>';
+        }  // endwhile;
+        $inputSelect.='</select>';
+    return $inputSelect;
+}
+
 function getFormatList($key='item') {
     global $root;
+    global $set;
     $formatList = array();
-    $dirContent = scandir('../formats/'.$key);
+    $dirContent = scandir('../themes/'.$set['theme'].'/formats/'.$key);
     // echo $root.'/formats/'.$key.'/*.php';
     // $formatList = glob($root.'/formats/'.$key.'/*.php', GLOB_ONLYDIR);
     foreach($dirContent AS &$file) {
@@ -941,6 +966,7 @@ function serializeMenu() {
 
 function printPage($page=false,$pageNum=1) {
     global $db; global $set; 
+    global $root;
     $conn = New SQLite3($db);
     // if no 'page', go to the home page
     if (!$page) {
@@ -976,29 +1002,54 @@ function printPage($page=false,$pageNum=1) {
     $category_content = printPageCats($catList,$pageNum,$page['Paginate'],$page['Paginate_After'],$paginator);
     $content = '';
     $menu = serializeMenu();
+    $themePath = $root.'/themes/'.$set['theme'];
 
     $admin_panel = false;
     include 'components/info-head.php';
-    echo '<title>'.$set['site_name'].': '.$page['Name'].'</title>';
-    echo '<meta name="description" content="'.$page['Meta_Text'].'">';
-    include_once 'components/header.php';
+    echo '<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="'.$set['dir'].'/assets/css/CMSreset.css">
+        <link rel="stylesheet" href="'.$set['dir'].'/themes/'.$set['theme'].'/theme.css">
+        <title>'.$set['site_name'].': '.$page['Name'].'</title>
+        <meta name="description" content="'.$page['Meta_Text'].'">
+    </head>
+    <body>';
 
-    if ($page['Format'] && file_exists('formats/page/'.$page['Format'].'.php')) {
+    // not likely to be used on the client side, but just in case...
+    if (isset($_SESSION['Msg'])) {
+        echo $_SESSION['Msg'];
+        unset($_SESSION['Msg']);
+    } if (isset($msg)) {
+        echo $msg;
+    }
+    // ***
+
+    $header = $themePath.'/header.php';
+    $footer = $themePath.'/footer.php';
+    $siteMenuAuto = $root.'/components/site-menu-auto.php';
+    $siteMenuManual = $root.'/components/site-menu-manual.php';
+
+    if ($page['Format'] && file_exists($themePath.'/formats/page/'.$page['Format'].'.php')) {
         ob_start();
-        include 'formats/page/'.$page['Format'].'.php';
+        include $themePath.'/formats/page/'.$page['Format'].'.php';
         $content .= ob_get_clean();
     } else {
         $content .= '<main id="page_'.$page['ID'].'" class="page '.$class.'">';
-        $content .= '<h1 class="page-title">'.$page['Name'].'</h1>';
+        if ($page['Name'] && $page['Show_Title'] > 0) {
+            $content .= '<h1 class="page-title">'.$page['Name'].'</h1>';
+        }
         $content .= '<!-- No valid page format assigned. -->';
-        
         $content .= $category_content;
-        
         $content .= '</main>';
     }
 
     echo $content;
-    include_once 'components/footer.php';
+    echo '</body>
+    </html>';
 }
 
 
@@ -1543,11 +1594,14 @@ if (isset($_POST['save_menu'])) {
             return;
         }
         $cPost = cleanServerPost($opt);
+        if (!isset($cPost['n_dropdown'])) {
+            $cPost['n_dropdown'] = 0;
+        }
         $indexOrder = ($indexOrder+1);
         $cPost['n_index'] = $indexOrder;
         $stmt = $conn->prepare($qry);
         $stmt->bindValue(':inorder',$cPost['n_index'], SQLITE3_INTEGER);
-        $stmt->bindValue(':link',$cPost[':link'], SQLITE3_TEXT);
+        $stmt->bindValue(':link',$cPost['link'], SQLITE3_TEXT);
         $stmt->bindValue(':indrop',$cPost['n_dropdown'], SQLITE3_INTEGER);
         $stmt->bindValue(':hidden',$cPost['n_hidden'], SQLITE3_INTEGER);
         $stmt->bindValue(':pageid',$cPost['n_page_id'], SQLITE3_INTEGER);

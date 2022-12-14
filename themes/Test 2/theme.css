@@ -1,0 +1,85 @@
+:root {
+    --font-1: 'Open Sans';
+    --font-2: 'Futura';
+	--alignment: center;
+	--link-color-1: #263396;
+	--link-color-1-hover: #896ba4;
+	--footer-height: 35px;
+}
+
+/* import theme-font.css for font types */
+@import url('theme-fonts.css');
+
+/* import theme-palette.css for color scheme */
+@import url('theme-palette.css');
+
+
+/* Baseline Defaults */
+* {box-sizing: border-box}
+html {
+	font-size: 18px;
+	height: 100%;
+}
+
+body {
+	font-family: var(--font-1), Arial, Helvetica, sans-serif;
+	text-align: var(--alignment);
+	min-height: 100%;
+	position: relative;
+	padding-bottom: var(--footer-height);
+}
+
+
+/* Headers */
+h1 {
+	font-family: var(--font-2), 'Arial Narrow Bold', sans-serif;
+	font-size: 1.8em;
+	font-weight: bold;
+}
+h2 {
+	font-family: var(--font-2), 'Arial Narrow Bold', sans-serif;
+	font-size: 1.6rem;
+	font-weight: bold;
+}
+h3 {
+	font-family: var(--font-2), 'Arial Narrow Bold', sans-serif;
+	font-size: 1.6rem;
+	font-weight: bold;
+	margin: 5px;
+}
+h4 {
+	font-size: 1.2rem;
+	font-weight: bold;
+}
+/* Common Element Defaults */
+a {
+	color: var(--link-color-2);
+}
+a:hover {
+	color: var(--link-color-2-hover);
+}
+img {
+	max-width: 100%;
+	height: auto;
+}
+
+/* ////////////////////////// */
+
+
+/* Main Site Components */
+header {
+	display: flex;
+	justify-content: center;
+}
+
+footer {
+	font-size: .8em;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--footer-height);
+	display: flex;
+    justify-content: center;
+    align-items: center;
+}

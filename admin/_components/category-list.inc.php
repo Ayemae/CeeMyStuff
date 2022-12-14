@@ -8,7 +8,7 @@
     <?php foreach ($catList AS $cat) : ?>
         <li class="cat-box">
             <label for="cat_<?show($cat['ID']);?>">
-                <?=($cat['Hidden'] ? '<i class="fi fi-rs-eye-crossed"></i>&nbsp;' : null)?>
+                <?=(isset($cat['Hidden']) && $cat['Hidden'] ? '<i class="fi fi-rs-eye-crossed"></i>&nbsp;' : null)?>
                 <?show($cat['Name']);?> | In '<?show($cat['Page_Name']);?>'
             </label>
             <input type="checkbox" id="cat_<?show($cat['ID']);?>" class="chktoggle invis">

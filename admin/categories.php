@@ -48,5 +48,5 @@ if (isset($_GET['pageid'])) {
 </main>
 
 <?php
-include '../components/footer.php';
+include '_components/footer.php';
 

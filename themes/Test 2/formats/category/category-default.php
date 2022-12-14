@@ -3,7 +3,9 @@
         <?show($image)?>
     </div>
     <?show($title)?>
-    <?show($text)?>
+    <div class="cat-text">
+        <?show($text)?>
+    </div>
     <div class="cat-items">
         <?show($items_content)?>
     </div>

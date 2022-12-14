@@ -8,7 +8,7 @@ $menu = getMenu();
 
 <main>
 
-<h1>Site Menu Settings</h1>
+<h1>Site Auto-Menu Settings</h1>
 
 <noscript>Enabling Javascript is recommended for best performance.</noscript>
 
@@ -56,4 +56,4 @@ $menu = getMenu();
 </main>
 
 <?php
-include '../components/footer.php';
+include '_components/footer.php';

@@ -20,7 +20,7 @@
     <li>
     <label for="header_img_upload">Header Image:</label>
         <input type="file" id="header_img_upload" name="header_img_upload">
-        <input type="hidden" name="header_img_stored" value="<?show($cat['Img_Path'])?>">
+        <input type="hidden" name="header_img_stored" value="<? isset($cat['Img_Path']) ? show($cat['Img_Path']) : null ?>">
         <br/>
         <label for="n_show_title">Show header image on the website:</label>
         <input type="hidden" name="n_show_header_img" value="0">

@@ -1,4 +1,3 @@
-
 <?php
 include 'components/info-head.php';
 // Include router class
