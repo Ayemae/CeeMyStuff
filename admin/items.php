@@ -27,17 +27,17 @@ if (isset($_GET['id'])) {
 } else {
     $itemID = false;
 }
+
+$catList = getCatList();
+$formatList = getFormatList();
 ?>
 
 <main>
     <?php if (isset($catID) && $task === 'create') :
-        $catList = getCatList(); 
-        $formatList = getFormatList();
         include_once '_components/item-create.inc.php';
     elseif (isset($catID) && $task === 'edit') :
         $item = getItem($itemID); 
         $catInfo = getCatInfo($item['Cat_ID']);
-        $formatList = getFormatList();
         include_once '_components/item-edit.inc.php';
     endif;?>
 

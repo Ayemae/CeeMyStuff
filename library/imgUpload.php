@@ -121,7 +121,7 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
             $valid = false;
             };
         }
-        if ($w && $h && $sizeError) {
+        if ($w && $h && $sizeError>'') {
             $sizeError .= ' and ';
             };
           if ($h) {
@@ -174,8 +174,8 @@ function mkThumb($dir, $destImage, $oriImage, $newW, $newH, $resizeRatio=false, 
     case 'png': $img = imagecreatefrompng($oriImage); break;
     case 'webp': $img = imagecreatefromwebp($oriImage); break;
     case '' : 
-    case null : $_SESSION['Msg'] = "Image is invalid. Cannot create thumbnail."; return;
-    default : $_SESSION['Msg'] = "Thumbnail creation does not support ".$fileType." images."; return;
+    case null : $_SESSION['Msg'] = "Image is invalid. Cannot create thumbnail. "; return;
+    default : $_SESSION['Msg'] = "Thumbnail creation does not support ".$fileType." images. "; return;
   }
   $destImage = preg_replace("/[^A-Za-z0-9. \-_]/", '', $destImage);
   $destImage = str_replace(" ","-",$destImage);
@@ -188,7 +188,7 @@ function mkThumb($dir, $destImage, $oriImage, $newW, $newH, $resizeRatio=false, 
     $oriW = $check[0];
     $oriH = $check[1];
     if (!$oriW || !$oriH) {
-      $_SESSION['Msg'] = "Image is invalid. Cannot create thumbnail.";
+      $_SESSION['Msg'] = "Image is invalid. Cannot create thumbnail. ";
       return;
     } elseif ($oriW < $newW || $oriH < $newH) {
       $_SESSION['Msg'] = "Uploaded image is smaller than the thumbnail size. Thumbnail could not be created.";

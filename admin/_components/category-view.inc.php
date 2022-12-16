@@ -1,7 +1,7 @@
 <a href="?task=list"><i class="fi fi-rs-angle-double-small-left"></i> back to Category List</a>
 
 <div class="space-btwn">
-    <h1>View Category Items</h1>
+    <h1>View Category Items : <?show($cat['Name']);?></h1>
     <a class="button" href="<?show($route)?>/items.php?task=create&catid=<?show($cat['ID']);?>"><i class="fi fi-rs-plus"></i> New Item</a>
 </div>
 

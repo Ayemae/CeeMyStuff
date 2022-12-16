@@ -43,4 +43,4 @@ include '_components/admin-header.inc.php';
 </main>
 
 <?php
-include '_components/footer.php';
+include '_components/admin-footer.php';

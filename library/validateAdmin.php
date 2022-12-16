@@ -14,7 +14,7 @@ function validateAdmin($id, $key) {
          $storedKey = $row['Curr_Sess_Key'];
      }
      $currKey = hash("SHA256", $_SERVER['HTTP_USER_AGENT'].$id);
-     if (!hash_equals($key, $currKey) || !hash_equals($storedKey, $currKey)) {
+     if ((!hash_equals((string)$key, (string)$currKey) || !hash_equals((string)$storedKey, (string)$currKey))) {
         session_unset();
         session_destroy();
         return false;

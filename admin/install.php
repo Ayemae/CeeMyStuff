@@ -67,14 +67,14 @@ $conn->exec('INSERT INTO Pages (ID, Name, Link, Meta_Text)
 $conn->exec('CREATE TABLE IF NOT EXISTS Categories (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     Name TEXT UNIQUE NOT NULL,
-    Page_ID INTEGER DEFAULT 0,
+    Page_ID INTEGER DEFAULT NULL,
     Page_Index_Order INTEGER,
     Text TEXT,
     Item_Type TEXT NOT NULL DEFAULT "Code",
     Header_Img_Path TEXT,
-    Show_Title INTEGER NOT NULL DEFAULT 1,
+    Show_Title INTEGER NOT NULL DEFAULT 0,
     Show_Header_Img INTEGER NOT NULL DEFAULT 1,
-    Show_Text INTEGER NOT NULL DEFAULT 1,
+    Show_Text INTEGER NOT NULL DEFAULT 2,
     Show_Item_Images INTEGER NOT NULL DEFAULT 1,
     Show_Item_Titles INTEGER NOT NULL DEFAULT 1,
     Show_Item_Text INTEGER NOT NULL DEFAULT 1,
@@ -154,19 +154,25 @@ $conn->exec('INSERT INTO Accounts (
     );
 
 
-$conn->exec('CREATE TABLE IF NOT EXISTS Menu_Options (
+$conn->exec('CREATE TABLE IF NOT EXISTS Auto_Site_Menu (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Page_ID INTEGER UNIQUE,
-    Index_Order INTEGER,
-    Link_Name TEXT,
-    Outgoing_Url TEXT,
-    In_Dropdown INTEGER,
-    Img_Path TEXT,
-    Hidden INTEGER
+    Page_ID INTEGER UNIQUE DEFAULT NULL,
+    Index_Order INTEGER DEFAULT 999,
+    Ext_Link_Name TEXT DEFAULT NULL,
+    Ext_Url TEXT DEFAULT NULL,
+    In_Dropdown INTEGER DEFAULT 0,
+    Img_Path TEXT DEFAULT NULL,
+    Hidden INTEGER DEFAULT 0
 )');
 
+$conn->exec('INSERT INTO Auto_Site_Menu (Page_ID, Index_Order)
+    VALUES (0,1);'
+    );
+
 $conn->exec('CREATE TABLE IF NOT EXISTS Social_Media (
-    Platform TEXT,
+    ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    Index_Order INTEGER NOT NULL DEFAULT 999,
+    Platform TEXT UNIQUE,
     Icon TEXT,
     URL TEXT,
     Hidden INTEGER
@@ -231,15 +237,14 @@ include '_components/admin-header.inc.php';
 <main>
 
 <?php if (empty($_GET)) :?>
-<h2>Welcome to CeeMyStuff!</h2>
+<header>
+    <h2>Welcome to CeeMyStuff!</h2>
+</header>
+
 <p>Let's add your user credentials.</p>
 
 <form method="post" action="?submitted=1">
     <ul>
-        <li>
-            <label for="name">Choose a Username:</label>
-            <input type="text" id="name" name="name" max-length="255"/>
-        </li>
         <li>
             <label for="email">Your Email (a confirmation email will be sent):</label>
             <input type="email" id="email" name="email" max-length="255"/>
@@ -252,6 +257,10 @@ include '_components/admin-header.inc.php';
             <label for="password2">Confirm Your Password:</label>
             <input type="password" id="password2" name="password2" max-length="255"/>
         </li>
+        <li>
+            <label for="name">Your Name:</label>
+            <input type="text" id="name" name="name" max-length="255"/>
+        </li>
     </ul>
 
     <button name="submit_credentials">Submit</button>
@@ -260,4 +269,4 @@ include '_components/admin-header.inc.php';
 </main>
 
 <?php
-include '../components/footer.php';
+include '../components/admin-footer.php';

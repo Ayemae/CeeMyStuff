@@ -14,7 +14,7 @@
         <br/>
         <label for="n_show_title">Show category name on the website:</label>
         <input type="hidden" name="n_show_title" value="0">
-        <input type="checkbox" name="n_show_title" id="n_show_title" value="1" <?=(isset($_POST['n_show_title']) && $_POST['n_show_title']<1 ? null : 'checked')?>>
+        <input type="checkbox" name="n_show_title" id="n_show_title" value="1" <?=(isset($cat['Show_Title']) && $cat['Show_Title']<1 ? null : 'checked')?>>
     </li>
 
     <li>
@@ -30,6 +30,20 @@
     <li>
         <label for="b_text">Text:</label><br/>
         <textarea name="b_text"><?show($cat['Text'])?></textarea>
+    </li>
+    <li>
+        <label for="n_page_id">In Page:</label>
+        <p>If you don't see the page you want, make sure that page has 'Multiple Content Categories' enabled in its settings.</p>
+        <select id="n_page_id" name="n_page_id">
+            <option>None</option>
+            <?php foreach($pgList AS $page) : 
+                if ($cat['Page_ID']===$page['ID'] || $page['Can_Add_Cat']) : ?>
+                <option value="<?show($page['ID']);?>" <?=($cat['Page_ID']===$page['ID'] ? 'selected' : null)?>>
+                    <?show($page['Name']);?>
+                </option>
+            <?php endif;
+        endforeach; ?>
+        </select>
     </li>
 </ul>
 <?php endif;?>
@@ -113,20 +127,6 @@
             <label for="hidden"> Hide this category:</label>
             <input type="hidden" id="hidden" name="n_hidden" value="0">
             <input type="checkbox" id="hidden" name="n_hidden" value="1" <?show(($cat['Hidden'] ? 'checked' : null ))?>>
-    </li>
-    <li>
-            <label for="n_page_id">Move Category to Page:</label>
-            <p>If you don't see the page you want to move to, make sure that page has 'Multiple Content Categories' enabled in its settings.</p>
-            <select id="n_page_id" name="n_page_id">
-                <option>None</option>
-                <?php foreach($pgList AS $page) : 
-                    if ($cat['Page_ID']===$page['ID'] || $page['Can_Add_Cat']) : ?>
-                    <option value="<?show($page['ID']);?>" <?=($cat['Page_ID']===$page['ID'] ? 'selected' : null)?>>
-                        <?show($page['Name']);?>
-                    </option>
-                <?php endif;
-            endforeach; ?>
-            </select>
     </li>
     <?php endif;?>
     </ul>

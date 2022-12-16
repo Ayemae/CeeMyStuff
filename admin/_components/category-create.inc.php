@@ -26,6 +26,21 @@
         <label for="text">Text:</label><br/>
         <textarea id="text" name="b_text"><?(!isset($_POST['b_text']) ? null : show($_POST['b_text']))?></textarea>
     </li>
+    <?php if ($pageID != 0 && !$pageList) :
+        $pgList = getPageList();?>
+        <li>
+            <label for="n_page_id">In Page:</label>
+            <p>If you don't see the page you want, make sure that page has 'Multiple Content Categories' enabled in its settings.</p>
+            <select id="n_page_id" name="n_page_id">
+                <option selected>None</option>
+                <?php foreach($pgList AS $page) : ?>
+                    <option value="<?show($page['ID']);?>" <?=($pageID===$page['ID'] ? 'selected' : null)?>>
+                        <?show($page['Name']);?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+    </li>
+    <?php endif;?>
 </ul>
 
     <h2>Category Display Settings</h2>
@@ -52,8 +67,8 @@
         <label for="show_text">Show Item Text:</label>
         <select id="show_text" name="n_show_text">
             <option value="0" <?show((isset($_POST['n_show_text']) && !$_POST['n_show_text'] ? 'selected' : null ))?>>No</option>
-            <option value="1" <?show((!isset($_POST['n_show_text']) ? 'selected' : ($_POST['n_show_text']==1 ? 'selected' : null )))?>>Show Truncated Text</option>
-            <option value="2" <?show((isset($_POST['n_show_text']) && $_POST['n_show_text']==2 ? 'selected' : null ))?>>Show Full Text</option>
+            <option value="1" <?show((isset($_POST['n_show_text']) && $_POST['n_show_text']==1 ? 'selected' : null ))?>>Show Truncated Text</option>
+            <option value="2" <?show((!isset($_POST['n_show_text']) ? 'selected' : ($_POST['n_show_text']==1 ? 'selected' : null )))?>>Show Full Text</option>
         </select>
     </li>
 
@@ -106,20 +121,6 @@
             <input type="hidden" id="hidden" name="n_hidden" value="0">
             <input type="checkbox" id="hidden" name="n_hidden" value="1" <?(!isset($_POST['n_hidden']) ? null : show((!$_POST['n_hidden'] ? null : 'checked')))?>>
     </li>
-    <?php if ($pageID != 0 && !$pageList) :
-        $pgList = getPageList();?>
-        <li>
-            <label for="n_page_id">Add Category to Page:</label>
-            <select id="n_page_id" name="n_page_id">
-                <option selected>None</option>
-                <?php foreach($pgList AS $page) : ?>
-                    <option value="<?show($page['ID']);?>" <?=($pageID===$page['ID'] ? 'selected' : null)?>>
-                        <?show($page['Name']);?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-    </li>
-    <?php endif;?>
     </ul>
 
   <button name="create_category"><i class="fi fi-rs-check"></i> Submit</button>

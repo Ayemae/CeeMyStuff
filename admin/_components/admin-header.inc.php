@@ -14,7 +14,7 @@
 <header>
     <?php if ($admin_panel) : ?>
         <div class="space-btwn">
-            <h2>Admin Panel</h2>
+            <h2>CeeMyStuff Admin Panel</h2>
             <?php if ($loggedIn) :?>
             <form method="post">
                 <button class="logout-btn" name="logout"><i class="fi fi-rs-power"></i> Logout</button>
@@ -22,17 +22,17 @@
             <?php  endif; ?>
         </div>
         <?php if ($_SESSION && $_SESSION['Key']) :?>
-        <?php include '_components/menu.inc.php';
+        <?php include '_components/admin-menu.inc.php';
         endif;
     endif; ?>
 </header>
 
 <?php 
 if (isset($_SESSION['Msg'])) {
-    echo $_SESSION['Msg'];
+    echo '<article class="msg-alert">'.$_SESSION['Msg'].'</article>';
     unset($_SESSION['Msg']);
 }
 if (isset($msg)) {
-    echo $msg;
+    echo '<article class="msg-alert">'.$msg.'</article>';
 }?>
     

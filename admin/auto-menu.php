@@ -16,7 +16,7 @@ $menu = getMenu();
     <div class="menu-settings-table">
         <ul class="menu-settings-table-head">
             <li>Order</li>
-            <li>Page Name</li>
+            <li>Name</li>
             <li>In Dropdown</li>
             <li>Hidden</li>
         </ul>
@@ -29,7 +29,7 @@ $menu = getMenu();
                 <input type="number" class="menu-item-order" name="option[<?show($option['Page_ID'])?>][n_index]" value="<?show($option['Index_Order'])?>">
             </div>
             <div>
-                <?show($option['Page_ID'] != NULL ? $option['Page_Name'] : $option['Link'])?>
+                <?show($option['External_Link'] < 1 ? $option['Page_Name'] : $option['Ext_Link_Name'])?>
                 <?show($option['Img_Path'] ? '<img src="'.$option['Img_Path'].'" alt="">' : null)?>
                 <input type="hidden" name="option[<?show($option['Page_ID'])?>][link]" value="<?show($option['Outgoing_Link'])?>">
                 <!-- link to edit? -->

@@ -21,19 +21,19 @@
     </li>
 
     <li>
-        <label for="meta">Description:</label><br/>
-        <textarea id="meta" name="meta_text" max-length="255"><?(!isset($_POST['meta_text']) ? null : show($_POST['meta_text']))?></textarea>
+        <label for="meta">Meta Description:</label><br/>
+        <input type="text" id="meta" name="meta_text" max-length="255" value="<?(!isset($_POST['meta_text']) ? null : show($_POST['meta_text']))?>" style="width: 80%">
     </li>
 
     <li>
-        <label for="n_multi_cat">Allow Sub-Categories:</label>
+        <label for="n_multi_cat">Enable Multiple Content Categories:</label>
         <input type="hidden" name="n_multi_cat" value="0">
         <input type="checkbox" name="n_multi_cat" id="n_multi_cat" class="chktoggle" value="1" <?=(!isset($_POST['n_multi_cat']) && $_POST['n_multi_cat']>0 ? 'checked' : null)?>>
         <input type="hidden" name="n_paginate" value="0">
         <input type="hidden" name="n_paginate_after" value="20">
         <ul class="chktoggle-hide form-list">
             <li>
-                <label for="n_paginate">Allow Pagination:</label>
+                <label for="n_paginate">Allow Pagination (single-category pages only):</label>
                 <input type="checkbox" name="n_paginate" id="n_paginate" class="chktoggle" value="1" <?=(!isset($_POST['n_paginate']) && $_POST['n_paginate']>0 ? 'checked' : null)?>>
                 <div class="chktoggle-show">
                     <label for="n_paginate_after">Items Per Page:</label>

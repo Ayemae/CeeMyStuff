@@ -924,15 +924,22 @@ function getMenu() {
     global $loggedIn;
     $conn = new SQLite3($db);
     $menu = array();
-    $qry = "SELECT m.*, p.Name AS Page_Name, p.Link FROM Menu_Options AS m
+    $qry = "SELECT m.*, p.Name AS Page_Name, p.Link FROM Auto_Site_Menu AS m
             LEFT JOIN Pages AS p ON p.ID=m.Page_ID";
     if (!$admin_panel || !$loggedIn) {
         $qry .= " WHERE m.Hidden=0";
     }
     $qry .= " ORDER BY m.Index_Order;";
     $result = $conn->prepare($qry)->execute();
+    $indexOrder=1;
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $row['Index_Order'] = $indexOrder;
+        $row['External_Link'] = 0;
+        if ($row['Ext_Url']>'' || $row['Ext_Link_Name']>'') {
+            $row['External_Link'] = 1;
+        }
         $menu[] = $row;
+        $indexOrder++;
     }
     return $menu;
 }
@@ -942,7 +949,7 @@ function serializeMenu() {
     global $set;
     $conn = new SQLite3($db);
     $menu = array();
-    $qry = "SELECT m.*, p.Name AS Page_Name, p.Link FROM Menu_Options AS m
+    $qry = "SELECT m.*, p.Name AS Page_Name, p.Link FROM Auto_Site_Menu AS m
             LEFT JOIN Pages AS p ON p.ID=m.Page_ID 
             WHERE m.Hidden=0 
             ORDER BY m.Index_Order;";
@@ -953,8 +960,8 @@ function serializeMenu() {
         } else {
             $a = $row['Page_Name'];
         }
-        if ($row['Outgoing_Link']) {
-            $href= $row['Outgoing_Link'];
+        if ($row['Ext_Url']) {
+            $href= $row['Ext_Url'];
         } else {
             $href= $set['dir'].'/'.$row['Link'];
         }
@@ -1001,7 +1008,7 @@ function printPage($page=false,$pageNum=1) {
     $catList = getPageCats($page['ID']);
     $category_content = printPageCats($catList,$pageNum,$page['Paginate'],$page['Paginate_After'],$paginator);
     $content = '';
-    $menu = serializeMenu();
+    $menuList1 = serializeMenu();
     $themePath = $root.'/themes/'.$set['theme'];
 
     $admin_panel = false;
@@ -1021,17 +1028,17 @@ function printPage($page=false,$pageNum=1) {
 
     // not likely to be used on the client side, but just in case...
     if (isset($_SESSION['Msg'])) {
-        echo $_SESSION['Msg'];
+        echo '<article class="msg-alert">'.$_SESSION['Msg'].'</article>';
         unset($_SESSION['Msg']);
     } if (isset($msg)) {
-        echo $msg;
+        echo '<article class="msg-alert">'.$msg.'</article>';
     }
     // ***
 
     $header = $themePath.'/header.php';
     $footer = $themePath.'/footer.php';
-    $siteMenuAuto = $root.'/components/site-menu-auto.php';
-    $siteMenuManual = $root.'/components/site-menu-manual.php';
+    $menu = $themePath.'/menu.php';
+    $menuAuto = $root.'/components/site-menu-auto.php';
 
     if ($page['Format'] && file_exists($themePath.'/formats/page/'.$page['Format'].'.php')) {
         ob_start();
@@ -1129,6 +1136,7 @@ if (isset($_POST['create_page'])) {
     global $set;
     $conn = new SQLite3($db);
     $cPost = cleanServerPost($_POST);
+    $msg = "";
     $link = strtolower(preg_replace("/[^A-Za-z0-9-]/",'',str_replace(' ','-',$cPost['name'])));
     require_once 'imgUpload.php';
     $dir = '/assets/uploads/cat-headers/';
@@ -1158,13 +1166,25 @@ if (isset($_POST['create_page'])) {
     $stmt->bindValue(':hide',$cPost['n_hidden'], SQLITE3_INTEGER);
     if ($stmt->execute()) {
         $pageID = $conn->lastInsertRowID();
-        $catQry = 'INSERT INTO Categories (Name,Page_ID,Page_Index_Order) 
-            VALUES (?,?,1);';
+        $catQry = 'INSERT INTO Categories (Name,Page_ID,Page_Index_Order,Show_Title) 
+            VALUES (?,?,1,?);';
         $catName= $cPost['name'].' Content';
         $catStmt = $conn->prepare($catQry);
         $catStmt->bindValue(1,$catName, SQLITE3_TEXT);
         $catStmt->bindValue(2,$pageID, SQLITE3_INTEGER);
-        $catStmt->execute();
+        $catStmt->bindValue(3,$cPost['n_multi_cat'], SQLITE3_INTEGER);
+        if ($catStmt->execute()) {
+            $catID = $conn->lastInsertRowID();
+            $msg .= "<br/><a href='".$set['dir']."/admin/categories.php?task=edit&catid=".$catID."'>Go here to edit its content settings</a>, 
+            or <a href='".$set['dir']."/admin/categories.php?task=view&catid=".$catID."'>here to add an item to this page's content</a>.";
+        } else {
+            $msg .= "<br/>There was an error creating a new content category for this page. <a href='".$set['dir']."/admin/categories.php?task=create'>Click here to create one manually.</a>";
+        }
+        $menuQry = 'INSERT INTO Auto_Site_Menu (Page_ID) 
+            VALUES (?);';
+        $menuStmt = $conn->prepare($menuQry);
+        $menuStmt->bindValue(1,$pageID, SQLITE3_INTEGER);
+        $menuStmt->execute();
 
         // TODO: save menu img path to menu table
         if ($_FILES['menu_img_upload']['name']) {
@@ -1175,9 +1195,9 @@ if (isset($_POST['create_page'])) {
         } else {
             $menuImgPath = null;
         }
-        $msg="New page created!";
+        $msg ="New page created!".$msg;
     } else {
-        $msg="Page creation failed. Please try again.";
+        $msg .="Page creation failed. Please try again.";
     }
 }
 
@@ -1259,6 +1279,10 @@ if (isset($_POST['delete_page'])) {
         $stmt->bindValue(1,$pageID, SQLITE3_INTEGER);
         if ($stmt->execute()) {
             $msg="Page deleted!";
+            $menuQry = 'DELETE FROM Auto_Site_Menu WHERE Page_ID=?;';
+            $menuStmt = $conn->prepare($menuQry);
+            $menuStmt->bindValue(1,$pageID, SQLITE3_INTEGER);
+            $menuStmt->execute();
         } else {
             $msg="Page failed to delete. Please try again.";
         }
@@ -1364,7 +1388,7 @@ if (isset($_POST['delete_category'])) {
     global $db;
     $conn = new SQLite3($db);
     $catID = filter_var($_POST['n_cat_id'], FILTER_SANITIZE_NUMBER_INT);
-    if ($pageID==0) {
+    if ($pageID===0) {
         $msg="You cannot delete a non-category.";
         return;
     }
@@ -1395,7 +1419,7 @@ if (isset($_POST['create_item'])) {
     $dir = '/assets/uploads/items/';
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
     if (!$set['has_max_upld_storage']) {$set['max_upld_storage'] = false;}
-    if ($type==='Image' && $_FILES['img_upload']['name']) {
+    if ($type==='Image' && $_FILES['img_upload']['name']>'') {
         require_once 'imgUpload.php';
         //sanitize img name
         $_FILES['img_upload']['name'] = stripHTML($_FILES['img_upload']['name']);
@@ -1585,8 +1609,8 @@ if (isset($_POST['save_menu'])) {
     });
     $indexOrder=0;
     $error = false;
-    $qry = "UPDATE Menu_Options 
-        SET  Index_Order=:inorder, Outgoing_Link=:link, In_Dropdown=:indrop, Hidden=:hidden
+    $qry = "UPDATE Auto_Site_Menu 
+        SET  Index_Order=:inorder, Ext_Url=:link, In_Dropdown=:indrop, Hidden=:hidden
             WHERE Page_ID=:pageid";
     foreach ($_POST["option"] AS &$opt) {
         if ($error) {

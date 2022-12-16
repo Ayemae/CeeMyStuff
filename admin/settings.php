@@ -8,7 +8,7 @@ $settings = fetchSettings();
 
 <main>
 
-<h1>Site Settings</h1>
+<h1><i class="fi fi-rs-settings"></i> Site Settings</h1>
 
 <form method="post">
 <ul class="form-list">
@@ -65,4 +65,4 @@ $settings = fetchSettings();
 </main>
 
 <?php
-include '_components/footer.php';
+include '_components/admin-footer.php';

@@ -5,6 +5,17 @@ $smDefaults = <<<XML
 <platforms>
   <platform>
     <name>
+      Bandcamp
+    </name>
+    <imgpath>
+      /assets/icons/bandcamp.svg
+    </imgpath>
+    <url>
+      https://YOUR_HANDLE.bandcamp.com/
+    </url>
+  </platform>
+  <platform>
+    <name>
       Instagram
     </name>
     <imgpath>
@@ -27,6 +38,17 @@ $smDefaults = <<<XML
   </platform>
   <platform>
     <name>
+      Ko-Fi
+    </name>
+    <imgpath>
+      /assets/icons/ko-fi.svg
+    </imgpath>
+    <url>
+      https://ko-fi.com/YOUR_HANDLE
+    </url>
+  </platform>
+  <platform>
+    <name>
       LinkedIn
     </name>
     <imgpath>
@@ -45,6 +67,28 @@ $smDefaults = <<<XML
     </imgpath>
     <url>
       https://www.patreon.com/YOUR_HANDLE
+    </url>
+  </platform>
+  <platform>
+    <name>
+      Spotify
+    </name>
+    <imgpath>
+      /assets/icons/spotify.svg
+    </imgpath>
+    <url>
+      https://open.spotify.com/user/YOUR_ID_NUMBER
+    </url>
+  </platform>
+  <platform>
+    <name>
+      SoundCloud
+    </name>
+    <imgpath>
+      /assets/icons/soundcloud.svg
+    </imgpath>
+    <url>
+      https://soundcloud.com/YOUR_HANDLE
     </url>
   </platform>
   <platform>

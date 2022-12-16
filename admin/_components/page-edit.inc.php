@@ -38,7 +38,7 @@
         <input type="hidden" name="n_paginate_after" value="20">
         <ul class="chktoggle-hide form-list">
             <li>
-                <label for="n_paginate">Allow Pagination:</label>
+                <label for="n_paginate">Allow Pagination (single-category pages only):</label>
                 <input type="checkbox" name="n_paginate" id="n_paginate" class="chktoggle" value="1" <?=($page['Paginate'] ? 'checked' : null)?>>
                 <div class="chktoggle-show">
                     <label for="n_paginate_after">Items Per Page:</label>
