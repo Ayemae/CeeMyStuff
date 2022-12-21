@@ -29,11 +29,13 @@ if (isset($_GET['pageid'])) {
         include '_components/category-view.inc.php';
         break;
     case 'create' :
-        $formatList = getFormatList('category');
+        $catFormats = getFormatList('category');
+        $itemFormats = getFormatList('item');
         include '_components/category-create.inc.php';
         break;
     case 'edit' :
-        $formatList = getFormatList('category');
+        $catFormats = getFormatList('category');
+        $itemFormats = getFormatList('item');
         $cat = getCatInfo($catID);
         $pgList = getPageList();
         include '_components/category-edit.inc.php';

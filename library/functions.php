@@ -1,5 +1,5 @@
 <?php
-$showErrors = 0;
+$showErrors = 1;
 if ($showErrors) {
     ini_set('display_errors', '1');
     ini_set('display_startup_errors', '1');
@@ -48,8 +48,13 @@ if (!isset($set['date_format']) || !$set['date_format']) {
 $root = $_SERVER['DOCUMENT_ROOT'].$set['dir'];
 $baseURL = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$set['dir'];
 $route = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].dirname($_SERVER['PHP_SELF']);
+$themePath = $root.'/themes/'.$set['theme'];
+date_default_timezone_set($set['timezone']);
 
 function show($input=false) {
+    if (is_array($input)) {
+        $input= implode(', ', $input);
+    }
     if ($input || $input === 0 || $input === "0") {
         echo $input;
     } else {
@@ -177,17 +182,27 @@ function selectTheme($selected = '') {
     return $inputSelect;
 }
 
-function getFormatList($key='item') {
-    global $root;
+function getFormatList($key='item', $getDefaults=true) {
     global $set;
     $formatList = array();
-    $dirContent = scandir('../themes/'.$set['theme'].'/formats/'.$key);
-    // echo $root.'/formats/'.$key.'/*.php';
-    // $formatList = glob($root.'/formats/'.$key.'/*.php', GLOB_ONLYDIR);
-    foreach($dirContent AS &$file) {
+    if ($getDefaults===true) {
+        $assetsDir = scandir('../assets/formats/'.$key);
+        foreach($assetsDir AS &$file) {
+            $path = '/assets/formats/'.$key.'/'.$file;
+            if (substr($file, -4)==='.php') {
+                $name = str_replace('.php','',$file);
+                $format = array("Name"=>$name, "Path"=>$path);
+                $formatList[] = $format;
+            }
+        }
+    }
+    $themeDir = scandir('../themes/'.$set['theme'].'/formats/'.$key);
+    foreach($themeDir AS &$file) {
+        $path = '/themes/'.$set['theme'].'/formats/'.$key.'/'.$file;
         if (substr($file, -4)==='.php') {
-            $file = str_replace('.php','',$file);
-            $formatList[] = $file;
+            $name = str_replace('.php','',$file);
+            $format = array("Name"=>$name, "Path"=>$path);
+            $formatList[] = $format;
         }
     }
     return $formatList;
@@ -734,10 +749,10 @@ function getItem($id) {
     $result = $stmt->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         $row['Text'] = htmlspecialchars_decode($row['Text']);
-        $dt = new DateTime('@'.$row['Publish_Timestamp']);
-        $dt->setTimeZone(new DateTimeZone($set['timezone']));
-        $row['Publish_Timestamp'] = $dt->format('Y-m-d\TH:i');
-        $row['Date'] = $dt->format($set['date_format']);
+        $date = new DateTime('@'.$row['Publish_Timestamp']);
+        $date->setTimeZone(new DateTimeZone($set['timezone']));
+        $row['Publish_Timestamp'] = $date->format('Y-m-d\TH:i');
+        $row['Date'] = $date->format($set['date_format']);
         return $row;
     } 
 }
@@ -781,6 +796,7 @@ function showImage($setShowImg, $img=false, $thumb=false, $title=false) {
     if (is_array($setShowImg)) {
         $setShowImg = $setShowImg['Show_Item_Images'];
     }
+    $dataAttr= 'data-thumbnail="'.$set['dir'].$thumb.'"';
     switch ($setShowImg) {
         case 0:
             $img='';
@@ -788,10 +804,15 @@ function showImage($setShowImg, $img=false, $thumb=false, $title=false) {
         case 1:
             if ($thumb) {
                 $img = $thumb;
+                $dataAttr= 'data-full-image="'.$set['dir'].$img.'"';
             }
+        break;
+        default:
+            /* nuthin'. */
+        break;
     }
     if ($img) {
-        $img = '<img class="item-image" src="'.$set['dir'].$img.'" alt="'.$title.' Image">';
+        $img = '<img class="item-image" src="'.$set['dir'].$img.'" alt="'.$title.' Image" '.$dataAttr.'>';
     }
     return $img;
 }
@@ -822,7 +843,7 @@ function printPaginator($pgAfter, $pageNum, $itemTotal, $pageLink) {
 
 function printPageItems($itemList=false, $cat=false) {
     if (!$itemList || !is_array($itemList)) {
-        return '<!-- There are no items in this category. -->';
+        return '<!-- No items were found in this category. -->';
     }
     if (!$cat) {
         $cat;
@@ -830,7 +851,7 @@ function printPageItems($itemList=false, $cat=false) {
         $cat['Show_Item_Text'] = 1;
         $cat['Show_Item_Images'] = 1;
     }
-    global $set;
+    global $set; global $root; global $themePath;
     $content = '';
     foreach($itemList AS $item){
         $id = $item['ID'];
@@ -842,9 +863,10 @@ function printPageItems($itemList=false, $cat=false) {
         $srcImgFull = $set['dir'].$item['Img_Path'];
         $srcImgThumb = $set['dir'].$item['Img_Thumb_Path'];
         $class = className($item['Title']);
-        if ($item['Format'] && file_exists('formats/item/'.$item['Format'].'.php')) {
+        $formatFile = $root.$item['Format'];
+        if ($item['Format'] && file_exists($formatFile)) {
             ob_start();
-            include 'formats/item/'.$item['Format'].'.php';
+            include($formatFile);
             $content .= ob_get_clean();
         } else {
             $content .= '<div id="item_'.$id.'" class="item '.$class.'">';
@@ -873,7 +895,7 @@ function printPageCats($catList=false, $pageNum=1, $paginate=false, $pgAfter=15,
     } else if (!is_array($catList)) {
         $catList = array($catList);
     }
-    global $set;
+    global $set; global $root; global $themePath;
     $content = '';
     foreach($catList AS $cat) {
         $id = $cat['ID'];
@@ -893,6 +915,8 @@ function printPageCats($catList=false, $pageNum=1, $paginate=false, $pgAfter=15,
         $itemList = getCatItems($cat['ID'],$pageNum,
                                 $cat['Order_By'],$cat['Order_Dir'],
                                 $paginate,$pgAfter);
+                                
+        $items_content = '<!-- No items found. -->';
         if ($itemList) {
             $items_content = printPageItems($itemList, $cat);
         } else {
@@ -902,9 +926,11 @@ function printPageCats($catList=false, $pageNum=1, $paginate=false, $pgAfter=15,
             }
         }
 
-        if ($cat['Format'] && file_exists('formats/category/'.$cat['Format'].'.php')) {
+        $formatFile = $root.$cat['Format'];
+
+        if ($cat['Format'] && file_exists($formatFile)) {
             ob_start();
-            include 'formats/category/'.$cat['Format'].'.php';
+            include($formatFile);
             $content .= ob_get_clean();
         } else {
             $content .= '<section id="cat_'.$cat['ID'].'" class="category '.$class.'">';
@@ -971,9 +997,9 @@ function serializeMenu() {
     return $menu;
 }
 
-function printPage($page=false,$pageNum=1) {
+function printPage($page=false,$num=1,$singleItem=false) {
     global $db; global $set; 
-    global $root;
+    global $root; global $themePath;
     $conn = New SQLite3($db);
     // if no 'page', go to the home page
     if (!$page) {
@@ -989,7 +1015,7 @@ function printPage($page=false,$pageNum=1) {
     }
     if ($page['Paginate']==1 && $page['Multi_Cat']==0 &&
     ($page['Paginate_After']<$page['Total_Items'])) {
-        $paginator = printPaginator($page['Paginate_After'], $pageNum, $page['Total_Items'], $page['Link']);
+        $paginator = printPaginator($page['Paginate_After'], $num, $page['Total_Items'], $page['Link']);
     } else {
         $paginator = '';
     }
@@ -1005,11 +1031,18 @@ function printPage($page=false,$pageNum=1) {
     } else {
         $image='';
     }
-    $catList = getPageCats($page['ID']);
-    $category_content = printPageCats($catList,$pageNum,$page['Paginate'],$page['Paginate_After'],$paginator);
+    if ($singleItem !== true) {
+        $catList = getPageCats($page['ID']);
+        $category_content = printPageCats($catList,$num,$page['Paginate'],$page['Paginate_After'],$paginator);
+        $name = $page['Name'];
+        $metaText = $page['Meta_Text'];
+    } else {
+        $item = getItem($num);
+        $name = $item['Title']; 
+        $metaText = truncateTxt($item['Text'], 300);
+    }
     $content = '';
     $menuList1 = serializeMenu();
-    $themePath = $root.'/themes/'.$set['theme'];
 
     $admin_panel = false;
     include 'components/info-head.php';
@@ -1021,8 +1054,8 @@ function printPage($page=false,$pageNum=1) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="'.$set['dir'].'/assets/css/CMSreset.css">
         <link rel="stylesheet" href="'.$set['dir'].'/themes/'.$set['theme'].'/theme.css">
-        <title>'.$set['site_name'].': '.$page['Name'].'</title>
-        <meta name="description" content="'.$page['Meta_Text'].'">
+        <title>'.$set['site_name'].': '.$name.'</title>
+        <meta name="description" content="'.$metaText.'">
     </head>
     <body>';
 
@@ -1039,10 +1072,11 @@ function printPage($page=false,$pageNum=1) {
     $footer = $themePath.'/footer.php';
     $menu = $themePath.'/menu.php';
     $menuAuto = $root.'/components/site-menu-auto.php';
+    $formatFile = $root.$page['Format'];
 
-    if ($page['Format'] && file_exists($themePath.'/formats/page/'.$page['Format'].'.php')) {
+    if ($page['Format'] && file_exists($formatFile)) {
         ob_start();
-        include $themePath.'/formats/page/'.$page['Format'].'.php';
+        include($formatFile);
         $content .= ob_get_clean();
     } else {
         $content .= '<main id="page_'.$page['ID'].'" class="page '.$class.'">';
@@ -1307,8 +1341,10 @@ if (isset($_POST['create_category'])) {
         $_FILES['header_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['img_upload']['name']));
         $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
     }
-    $qry = 'INSERT INTO Categories (Name,Page_ID,Text,Header_Img_Path,Show_Title,Show_Header_Img,Show_Item_Images,Show_Item_Titles,Show_Item_Text,Order_By,Auto_Thumbs,Thumb_Size,Thumb_Size_Axis,Format,Hidden) 
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);';
+    $qry = 'INSERT INTO Categories (Name,Page_ID,Text,Header_Img_Path,Show_Title,Show_Header_Img,
+    Show_Item_Images,Show_Item_Titles,Show_Item_Text,Order_By,Auto_Thumbs,Thumb_Size,Thumb_Size_Axis,
+    Format,Default_Item_Format,Hidden) 
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);';
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(1,$cPost['name'], SQLITE3_TEXT);
     $stmt->bindValue(2,$cPost['n_page_id'], SQLITE3_INTEGER);
@@ -1324,7 +1360,8 @@ if (isset($_POST['create_category'])) {
     $stmt->bindValue(12,$cPost['n_thumb_size'], SQLITE3_INTEGER);
     $stmt->bindValue(13,$cPost['n_thumb_axis'], SQLITE3_INTEGER);
     $stmt->bindValue(14,$cPost['format'], SQLITE3_TEXT);
-    $stmt->bindValue(15,$cPost['n_hidden'], SQLITE3_INTEGER);
+    $stmt->bindValue(15,$cPost['item_format'], SQLITE3_TEXT);
+    $stmt->bindValue(16,$cPost['n_hidden'], SQLITE3_INTEGER);
     if ($stmt->execute()) {
         $msg="New category created!";
     } else {
@@ -1358,7 +1395,7 @@ if (isset($_POST['edit_category'])) {
         Name=?,Text=?,
         Header_Img_Path=?,Show_Title=?,Show_Header_Img=?,Show_Item_Images=?,
         Show_Item_Titles=?,Show_Item_Text=?,Order_By=?,Auto_Thumbs=?,
-        Thumb_Size=?,Thumb_Size_Axis=?,Format=?,Hidden=?,Page_ID=?
+        Thumb_Size=?,Thumb_Size_Axis=?,Format=?,Default_Item_Format=?,Hidden=?,Page_ID=?
     WHERE ID=?;';
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(1,$cPost['name'], SQLITE3_TEXT);
@@ -1374,9 +1411,10 @@ if (isset($_POST['edit_category'])) {
     $stmt->bindValue(11,$cPost['n_thumb_size'], SQLITE3_INTEGER);
     $stmt->bindValue(12,$cPost['n_thumb_axis'], SQLITE3_INTEGER);
     $stmt->bindValue(13,$cPost['format'], SQLITE3_TEXT);
-    $stmt->bindValue(14,$cPost['n_hidden'], SQLITE3_INTEGER);
-    $stmt->bindValue(15,$cPost['n_page_id'], SQLITE3_INTEGER);
-    $stmt->bindValue(16,$cPost['n_cat_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(14,$cPost['item_format'], SQLITE3_TEXT);
+    $stmt->bindValue(15,$cPost['n_hidden'], SQLITE3_INTEGER);
+    $stmt->bindValue(16,$cPost['n_page_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(17,$cPost['n_cat_id'], SQLITE3_INTEGER);
     if ($stmt->execute()) {
         $msg="Category setting changes saved!";
     } else {
@@ -1521,8 +1559,8 @@ if (isset($_POST['edit_item'])) {
             $imgPath = null;
         }
     }
-    if ($_FILES['thumb_upload']['name'] || $cPost['create_thumbnail']) {
-        if ($_FILES['thumb_upload']['name']) {
+    if ((isset($_FILES['thumb_upload']) && $_FILES['thumb_upload']['name']) || $cPost['create_thumbnail']) {
+        if (isset($_FILES['thumb_upload']) && $_FILES['thumb_upload']['name']) {
             $imgThumbPath = uploadImage ($dir, $_FILES['thumb_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, $imgName.'_thumb', $set['max_upld_storage'],$cPost['thumb_stored']);
             if (!$imgThumbPath) {
                 $msg .= 'Thumbnail image upload failed. Please try again.';

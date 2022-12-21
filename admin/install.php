@@ -84,13 +84,14 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Categories (
     Thumb_Size INTEGER NOT NULL DEFAULT 125,
     Thumb_Size_Axis INTEGER NOT NULL DEFAULT 0,
     Format TEXT,
+    Default_Item_Format TEXT,
     Hidden INTEGER NOT NULL DEFAULT 0
 )');
 
-$conn->exec('INSERT INTO Categories (ID, Page_ID, Page_Index_Order, Name, Text, Hidden)
+$conn->exec('INSERT INTO Categories (ID, Page_ID, Page_Index_Order, Name, Text, Format, Default_Item_Format)
     VALUES 
     (0, null, 0, "Orphaned Items", "Items that are not sorted into any category.", 1),
-    (1, 0, 1, "Home Content", "See my stuff!", 0);');
+    (1, 0, 1, "Home Content", "See my stuff!", "category-default", "item-default");');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Items (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,

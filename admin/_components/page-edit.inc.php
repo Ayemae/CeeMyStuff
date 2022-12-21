@@ -26,8 +26,8 @@
     </li>
 
     <li>
-        <label for="meta">Description:</label><br/>
-        <textarea id="meta" name="meta_text" max-length="255"><?show($page['Meta_Text'])?></textarea>
+        <label for="meta">Meta Description:</label><br/>
+        <input type="text" id="meta" name="meta_text" max-length="255" value="<?show($page['Meta_Text'])?>" style="width: 80%">
     </li>
 
     <li>
@@ -53,8 +53,8 @@
         <label for="format">Display Format:</label>
         <select name="format" id="format">
             <?php foreach ($formatList AS $format) :?>
-            <option value="<?show($format)?>" <?=($page['Format']===$format ? 'selected' : null)?>>
-                <?show($format)?>
+            <option value="<?show($format['Path'])?>" <?=($page['Format']===$format['Path'] ? 'selected' : null)?>>
+                <?show($format['Name'])?>
             </option>
             <?php endforeach;?>
         </select>
@@ -64,7 +64,7 @@
     <li>
         <label for="header_img_upload">Menu Link Image (Optional):</label>
         <input type="file" id="menu_img_upload" name="menu_img_upload" value="<?(!isset($_POST['menu_img_upload']) ? null : show($_POST['menu_img_upload']))?>">
-        <input type="hidden" name="stored_menu_img" value="<?show($page['Menu_Link_Img']);?>">
+        <input type="hidden" name="stored_menu_img" value="<?show(isset($page['Menu_Link_Img']) ? $page['Menu_Link_Img'] : null);?>">
     </li>
 
     <li>

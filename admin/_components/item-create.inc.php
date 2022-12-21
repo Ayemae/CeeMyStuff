@@ -71,8 +71,8 @@
         <label for="format">Display Format:</label>
         <select name="format" id="format">
             <?php foreach ($formatList AS $format) :?>
-            <option value="<?show($format)?>">
-                <?show($format)?>
+                <option value="<?show($format['Path'])?>" <?=($catInfo['Default_Item_Format']===$format['Path'] ? 'selected' : null)?>>
+                <?show($format['Name'])?>
             </option>
             <?php endforeach;?>
         </select>

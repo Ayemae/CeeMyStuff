@@ -45,4 +45,4 @@ $formatList = getFormatList();
 </main>
 
 <?php
-include '_components/footer.php';
+include '_components/admin-footer.php';

@@ -109,13 +109,26 @@
         </div>
     </li>
 
-    <?php if ($formatList) :?>
+    <?php if ($catFormats) :?>
     <li>
         <label for="format">Display Format:</label>
         <select name="format" id="format">
-            <?php foreach ($formatList AS $format) :?>
-            <option value="<?show($format)?>" <?=($cat['Format']===$format ? 'selected' : null)?>>
-                <?show($format)?>
+            <?php foreach ($catFormats AS $cFormat) :?>
+            <option value="<?show($cFormat['Path'])?>" <?=($cat['Format']===$cFormat['Path'] ? 'selected' : null)?>>
+                <?show($cFormat['Name'])?>
+            </option>
+            <?php endforeach;?>
+        </select>
+    </li>
+    <?php endif;?>
+
+    <?php if ($itemFormats) :?>
+    <li>
+        <label for="item-format">Default Item Display Format:</label>
+        <select name="item_format" id="item-format">
+            <?php foreach ($itemFormats AS $iFormat) :?>
+            <option value="<?show($iFormat['Path'])?>" <?=($cat['Default_Item_Format']===$iFormat['Path'] ? 'selected' : null)?>>
+                <?show($iFormat['Name'])?>
             </option>
             <?php endforeach;?>
         </select>

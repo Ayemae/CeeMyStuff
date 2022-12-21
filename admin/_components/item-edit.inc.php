@@ -53,7 +53,7 @@
     <li>
     <?php if ($item['Type'] === 'Image' && $catInfo['Auto_Thumbs']) :?>
         <i>A thumbnail image with a <?echo(!$catInfo['Thumb_Size_Axis'] ? 'width' : 'height');?> of <?show($catInfo['Thumb_Size'])?>px will be created for this item.<br/>
-        <a href="">Click here to change this setting.</a></i>
+        <a href="<?show($route)?>/categories.php?task=edit&catid=<?show($catInfo['ID'])?>">Click here to change this setting.</a></i>
         <input type="hidden" name="create_thumbnail" value="checked">
         <input type="hidden" name="n_thumb_size" value="<?show($catInfo['Thumb_Size'])?>">
         <input type="hidden" name="n_thumb_size_axis" value="<?show($catInfo['Thumb_Size_Axis'])?>">
@@ -87,11 +87,14 @@
         <label for="format">Display Format:</label>
         <select name="format" id="format">
             <?php foreach ($formatList AS $format) :?>
-            <option value="<?show($format)?>" <?show($item['Format']===$format ? 'selected' : null)?>>
-                <?show($format)?>
+            <option value="<?show($format['Path'])?>" <?show($item['Format']===$format['Path'] ? 'selected' : null)?>>
+                <?show($format['Name'])?>
             </option>
             <?php endforeach;?>
         </select>
+        <?php if ($catInfo['Default_Item_Format']) :?>
+            <p><i>Note: The default item display format for this item's parent category is set as '<?show($catInfo['Default_Item_Format'])?>'.</i></p>
+        <?php endif; ?>
     </li>
     <?php endif;?>
     

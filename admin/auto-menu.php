@@ -25,7 +25,7 @@ $menu = getMenu();
         <li class="menu-settings-item">
             <input type="hidden" name="option[<?show($option['Page_ID'])?>][n_page_id]" value="<?show($option['Page_ID'])?>">
             <div>
-                <i class="fi fi-rs-expand-arrows"></i>
+                <!--<i class="fi fi-rs-expand-arrows"></i>-->
                 <input type="number" class="menu-item-order" name="option[<?show($option['Page_ID'])?>][n_index]" value="<?show($option['Index_Order'])?>">
             </div>
             <div>

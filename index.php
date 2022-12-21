@@ -27,5 +27,12 @@ Route::add('/'.$page['Link'].'/page/([0-9]*)',function($pageNum){
     printPage($page, $pageNum);
 },'get');
 
+// single item displays
+Route::add('/item/([0-9]*)',function($id){
+    global $set;global $db;global $page;
+    $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
+    printPage($page, $pageNum);
+},'get');
+
 
 Route::run($set['dir']);
