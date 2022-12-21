@@ -31,7 +31,7 @@ $menu = getMenu();
             <div>
                 <?show($option['External_Link'] < 1 ? $option['Page_Name'] : $option['Ext_Link_Name'])?>
                 <?show($option['Img_Path'] ? '<img src="'.$option['Img_Path'].'" alt="">' : null)?>
-                <input type="hidden" name="option[<?show($option['Page_ID'])?>][link]" value="<?show($option['Outgoing_Link'])?>">
+                <input type="hidden" name="option[<?show($option['Page_ID'])?>][link]" value="<?show($option['Ext_Link'])?>">
                 <!-- link to edit? -->
             </div>
             <div>
@@ -56,4 +56,4 @@ $menu = getMenu();
 </main>
 
 <?php
-include '_components/footer.php';
+include '_components/admin-footer.php';
