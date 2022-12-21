@@ -28,13 +28,13 @@
     <li>
         <label for="n_multi_cat">Enable Multiple Content Categories:</label>
         <input type="hidden" name="n_multi_cat" value="0">
-        <input type="checkbox" name="n_multi_cat" id="n_multi_cat" class="chktoggle" value="1" <?=(!isset($_POST['n_multi_cat']) && $_POST['n_multi_cat']>0 ? 'checked' : null)?>>
+        <input type="checkbox" name="n_multi_cat" id="n_multi_cat" class="chktoggle" value="1" <?=(isset($_POST['n_multi_cat']) && $_POST['n_multi_cat']>0 ? 'checked' : null)?>>
         <input type="hidden" name="n_paginate" value="0">
         <input type="hidden" name="n_paginate_after" value="20">
         <ul class="chktoggle-hide form-list">
             <li>
                 <label for="n_paginate">Allow Pagination (single-category pages only):</label>
-                <input type="checkbox" name="n_paginate" id="n_paginate" class="chktoggle" value="1" <?=(!isset($_POST['n_paginate']) && $_POST['n_paginate']>0 ? 'checked' : null)?>>
+                <input type="checkbox" name="n_paginate" id="n_paginate" class="chktoggle" value="1" <?=(isset($_POST['n_paginate']) && $_POST['n_paginate']>0 ? 'checked' : null)?>>
                 <div class="chktoggle-show">
                     <label for="n_paginate_after">Items Per Page:</label>
                     <input type="number" name="n_paginate_after" id="n_paginate_after" value="<?=(isset($_POST['n_paginate_after']) ? $_POST['n_paginate_after'] : 20)?>" style="width:50px">

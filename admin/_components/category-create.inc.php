@@ -86,7 +86,7 @@
         <label for="create-thumbs">Auto-Create Thumbnails for Image Items:</label>
         <input type="hidden" name="n_create_thumbs" value="0">
         <input type="checkbox" id="create-thumbs" name="n_create_thumbs" value="1" 
-        <?show((!isset($_POST['n_create_thumbs']) ? ($page['auto_thumbs'] ? 'checked' : null) : ($_POST['n_create_thumbs']==1 ? 'checked' : null )))?>>
+        <?show((isset($_POST['n_create_thumbs']) && $_POST['n_create_thumbs']==1 ) ? 'checked' : null )?>>
             <ul class="form-list">
                 <li>
                     <label for="thumb_size">Choose default thumbnail size:</label>
