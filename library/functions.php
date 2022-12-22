@@ -652,7 +652,7 @@ function getPageSects($pageID) {
             $qry .= ' WHERE Hidden=0';
         }
         $qry .=') AS i ON s.ID=i.Sect_ID
-        WHERE s.Page_ID = 0
+        WHERE s.Page_ID = :id
         GROUP BY s.ID
         ORDER BY s.Page_Index_Order;';
     $stmt = $conn->prepare($qry);
