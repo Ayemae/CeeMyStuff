@@ -1,17 +1,13 @@
-:root {
-    --font-1: 'Open Sans';
-    --font-2: 'Futura';
-	--alignment: center;
-	--link-color-1: #263396;
-	--link-color-1-hover: #896ba4;
-	--footer-height: 35px;
-}
-
 /* import theme-font.css for font types */
 @import url('theme-fonts.css');
 
 /* import theme-palette.css for color scheme */
 @import url('theme-palette.css');
+
+:root {
+	--alignment: center;
+	--footer-height: 35px;
+}
 
 
 /* Baseline Defaults */
@@ -71,6 +67,12 @@ header {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
+}
+
+main {
+	margin: 0 auto;
+	width: 96vw;
+	max-width: 1000px;
 }
 
 nav#site-menu ul {

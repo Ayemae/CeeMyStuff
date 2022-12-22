@@ -29,10 +29,10 @@
 
 <?php 
 if (isset($_SESSION['Msg'])) {
-    echo '<article class="msg-alert">'.$_SESSION['Msg'].'</article>';
+    echo '<article class="msg-alert"><p>'.$_SESSION['Msg'].'</p></article>';
     unset($_SESSION['Msg']);
 }
 if (isset($msg)) {
-    echo '<article class="msg-alert">'.$msg.'</article>';
+    echo '<article class="msg-alert"><p>'.$msg.'</p></article>';
 }?>
     

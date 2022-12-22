@@ -1,6 +1,6 @@
 
 <form method="post" enctype="multipart/form-data" action="?task=list">
-<h1>Create New Category</h1>
+<h1>Create New Section</h1>
 
 <input type="hidden" name="n_page_id" value="<?show($pageID);?>">
 <ul class="form-list">
@@ -8,7 +8,7 @@
         <label for="name">Name:</label>
         <input type="text" name="name" id="name" max-length="255" value="<?(!isset($_POST['name']) ? null : show($_POST['name']))?>">
         <br/>
-        <label for="n_show_title">Show category name on the website:</label>
+        <label for="n_show_title">Show section name on the website:</label>
         <input type="hidden" name="n_show_title" value="0">
         <input type="checkbox" name="n_show_title" id="n_show_title" value="1" <?=(isset($_POST['n_show_title']) && $_POST['n_show_title']<1 ? null : 'checked')?>>
     </li>
@@ -26,24 +26,22 @@
         <label for="text">Text:</label><br/>
         <textarea id="text" name="b_text"><?(!isset($_POST['b_text']) ? null : show($_POST['b_text']))?></textarea>
     </li>
-    <?php if ($pageID != 0 && !$pageList) :
-        $pgList = getPageList();?>
         <li>
             <label for="n_page_id">In Page:</label>
-            <p>If you don't see the page you want, make sure that page has 'Multiple Content Categories' enabled in its settings.</p>
+            <p>If you don't see the page you want, make sure that page has 'Multiple Content Sections' enabled in its settings.</p>
             <select id="n_page_id" name="n_page_id">
-                <option selected>None</option>
-                <?php foreach($pgList AS $page) : ?>
+                <option value="">None</option>
+                <?php foreach($pgList AS $page) : 
+                if (isset($sectID) && ($sectID===$page['ID'] || $page['Can_Add_Sect'])) :?>
                     <option value="<?show($page['ID']);?>" <?=($pageID===$page['ID'] ? 'selected' : null)?>>
                         <?show($page['Name']);?>
                     </option>
-                <?php endforeach; ?>
+                <?php endif; endforeach; unset($page); ?>
             </select>
     </li>
-    <?php endif;?>
 </ul>
 
-    <h2>Category Display Settings</h2>
+    <h2>Section Display Settings</h2>
     <ul class="form-list">
 
     <li>
@@ -91,7 +89,7 @@
                 <li>
                     <label for="thumb_size">Choose default thumbnail size:</label>
                     <input type="number" id="thumb_size" name="n_thumb_size" 
-                    value="<?show((!isset($_POST['n_thumb_size']) ? ($page['thumb_size'] ? $page['thumb_size'] : 125) : $_POST['n_thumb_size']))?>">
+                    value="<?show((!isset($_POST['n_thumb_size']) ? 125 : $_POST['n_thumb_size']))?>">
                 </li>
                 <li>
                     <label for="thumb_axis">Axis of thumbnail size:</label>
@@ -103,13 +101,13 @@
             </ul>
     </li>
 
-    <?php if ($catFormats) :?>
+    <?php if ($sectFormats) :?>
     <li>
         <label for="format">Display Format:</label>
         <select name="format" id="format">
-            <?php foreach ($catFormats AS $cFormat) :?>
-            <option value="<?show($cFormat['Path'])?>">
-                <?show($cFormat['Name'])?>
+            <?php foreach ($sectFormats AS $sFormat) :?>
+            <option value="<?show($sFormat['Path'])?>">
+                <?show($sFormat['Name'])?>
             </option>
             <?php endforeach;?>
         </select>
@@ -130,11 +128,11 @@
     <?php endif;?>
 
     <li>
-            <label for="hidden"> Hide this category:</label>
+            <label for="hidden"> Hide this section:</label>
             <input type="hidden" id="hidden" name="n_hidden" value="0">
             <input type="checkbox" id="hidden" name="n_hidden" value="1" <?(!isset($_POST['n_hidden']) ? null : show((!$_POST['n_hidden'] ? null : 'checked')))?>>
     </li>
     </ul>
 
-  <button name="create_category"><i class="fi fi-rs-check"></i> Submit</button>
+  <button name="create_section"><i class="fi fi-rs-check"></i> Submit</button>
 </form>

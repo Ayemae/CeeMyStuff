@@ -22,27 +22,27 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Settings (
     Type TEXT,
     Description TEXT,
     Options TEXT,
-    Advanced INTEGER DEFAULT 0 NOT NULL
+    Heading TEXT DEFAULT "Info"
 )');
 
-$conn->exec('INSERT INTO Settings (Index_Order, Field, Key, Value, Type, Description, Options, Advanced)
+$conn->exec('INSERT INTO Settings (Index_Order, Field, Key, Value, Type, Description, Options, Heading)
     VALUES 
-    (3, "Subdirectory", "dir", "", "text", "If this portfolio site is in a subdirectory, write which subdirectory in here.", null, 0),
-    (1, "Site Name", "site_name", "My Portfolio", "text", null, null, 0),
-    (2, "Owner Name", "owner_name", "My Name", "text", "Your name, or the name of the group this site belongs to.", null, 0),
-    (4, "Theme", "theme", "White-Bread", "function", "What theme you want to use for the aesthetic look of your site.",null, 0),
-    (5, "Initial Copyright Year", "c_year", "", "number", null, null, 0),
-    (6, "Timezone", "timezone", "America/New_York", "function", null,null, 0),
-    (7, "Date Format", "date_format", "j F, Y g:i A", "text", "What format you want the date to be in. Look up PHP date formats for details.",null,0),
-    (8, "Header Image", "header_img", null, "file", "If you want to use a header image, upload it here.",null,0),
-    (9, "Favicon", "favicon", null, "file", "Upload your favicon, or browser icon, here. Must be 16x16 pixels.",null,0),
-    (10, "Mobile Browser Icon", "mobile_icon", null, "file", "Upload your mobile browser icon here. Must be 180x180 pixels.",null,0),
-    (11, "Site Menu Button Format", "menu_format", "Text", "select", "How your site menu buttons will display.", "Images, Text",0),
-    (12, "Social Media Button Format", "sm_format", "Icons", "select", "How your social media buttons will display.", "Icons, Text",0),
-    (13, "Enable Max Image Dimensions", "has_max_img_dimns","checked", "checkbox", "Enable a maximum height/width on the images you can upload.", null,1),
-    (14, "Max Image Dimensions (in pixels)", "max_img_dimns", "2400","number", "Must be enabled to take effect.", null,1),
-    (15, "Enable Max Upload Storage Size","has_max_upld_storage","checked", "checkbox", "Enable a maximum on how much storage a single image upload can take up.", null,1),
-    (16, "Max Upload Storage Size (in Megabytes)","max_upld_storage","25", "number", "For reference, rougly 1000 megabytes are in a gigabyte. Must be enabled to take effect.", null,1)
+    (3, "Subdirectory", "dir", "", "text", "If this portfolio site is in a subdirectory, write which subdirectory in here.", null, "Info"),
+    (1, "Site Name", "site_name", "My Portfolio", "text", null, null, "Info"),
+    (2, "Owner Name", "owner_name", "My Name", "text", "Your name, or the name of the group this site belongs to.", null, "Info"),
+    (4, "Theme", "theme", "White-Bread", "function", "What theme you want to use for the aesthetic look of your site.",null, "Display"),
+    (5, "Initial Copyright Year", "c_year", "", "number", null, null, "Info"),
+    (6, "Timezone", "timezone", "America/New_York", "function", null,null, "Info"),
+    (7, "Date Format", "date_format", "j F, Y g:i A", "text", "What format you want the date to be in. Look up PHP date formats for details.",null,"Display"),
+    (8, "Header Image", "header_img", null, "file", "If you want to use a header image, upload it here.",null,"Display"),
+    (9, "Favicon", "favicon", null, "file", "Upload your favicon, or browser icon, here. Must be 16x16 pixels.",null,"Display"),
+    (10, "Mobile Browser Icon", "mobile_icon", null, "file", "Upload your mobile browser icon here. Must be 180x180 pixels.",null,"Display"),
+    (11, "Site Menu Button Format", "menu_format", "Text", "select", "How your site menu buttons will display.", "Images, Text","Display"),
+    (12, "Social Media Button Format", "sm_format", "Icons", "select", "How your social media buttons will display.", "Icons, Text","Display"),
+    (13, "Enable Max Image Dimensions", "has_max_img_dimns","checked", "checkbox", "Enable a maximum height/width on the images you can upload.", null,"Advanced"),
+    (14, "Max Image Dimensions (in pixels)", "max_img_dimns", "2400","number", "Must be enabled to take effect.", null,"Advanced"),
+    (15, "Enable Max Upload Storage Size","has_max_upld_storage","checked", "checkbox", "Enable a maximum on how much storage a single image upload can take up.", null,"Advanced"),
+    (16, "Max Upload Storage Size (in Megabytes)","max_upld_storage","25", "number", "For reference, rougly 1000 megabytes are in a gigabyte. Must be enabled to take effect.", null,"Advanced")
     ;');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Pages (
@@ -53,7 +53,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Pages (
     Header_Img_Path TEXT DEFAULT null,
     Show_Title INTEGER NOT NULL DEFAULT 1,
     Show_Header_Img INTEGER NOT NULL DEFAULT 1,
-    Multi_Cat INTEGER NOT NULL DEFAULT 0,
+    Multi_Sect INTEGER NOT NULL DEFAULT 0,
     Paginate INTEGER NOT NULL DEFAULT 0,
     Paginate_After INTEGER NOT NULL DEFAULT 15,
     Format TEXT,
@@ -64,7 +64,7 @@ $conn->exec('INSERT INTO Pages (ID, Name, Link, Meta_Text)
     VALUES 
     (0, "Home", "/", "Portfolio homepage.");');
 
-$conn->exec('CREATE TABLE IF NOT EXISTS Categories (
+$conn->exec('CREATE TABLE IF NOT EXISTS Sections (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     Name TEXT UNIQUE NOT NULL,
     Page_ID INTEGER DEFAULT NULL,
@@ -88,15 +88,15 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Categories (
     Hidden INTEGER NOT NULL DEFAULT 0
 )');
 
-$conn->exec('INSERT INTO Categories (ID, Page_ID, Page_Index_Order, Name, Text, Format, Default_Item_Format)
+$conn->exec('INSERT INTO Sections (ID, Page_ID, Page_Index_Order, Name, Text, Format, Default_Item_Format)
     VALUES 
-    (0, null, 0, "Orphaned Items", "Items that are not sorted into any category.", 1),
-    (1, 0, 1, "Home Content", "See my stuff!", "category-default", "item-default");');
+    (0, null, 0, "Orphaned Items", "Items that are not sorted into any section.", null, null),
+    (1, 0, 1, "Home Content", "See my stuff!", "/assets/universal-formats/section/section-general.php", "/assets/universal-formats/item/item-general.php");');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Items (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Cat_ID INTEGER,
-    Type TEXT DEFAULT "Text",
+    Sect_ID INTEGER,
+    Type TEXT DEFAULT NULL,
     Title TEXT NOT NULL,
     Text TEXT,
     Img_Path TEXT,
@@ -104,8 +104,8 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Items (
     File_Path TEXT,
     Embed_HTML TEXT,
     Publish_Timestamp INTEGER,
-    Cat_Index_Order INTEGER,
-    Format TEXT,
+    Sect_Index_Order INTEGER,
+    Format TEXT DEFAULT NULL,
     Hidden INTEGER NOT NULL DEFAULT 0
 )');
 

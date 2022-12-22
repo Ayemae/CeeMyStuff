@@ -3,12 +3,12 @@ $admin_panel = true;
 include_once '../components/info-head.php';
 $page_title = 'Admin Panel';
 include '_components/admin-header.inc.php';
-if (isset($_GET['catid'])) {
-    $catID = filter_var($_GET['catid'], FILTER_SANITIZE_NUMBER_INT);
-    $catInfo = getCatInfo($catID);
+if (isset($_GET['sectid'])) {
+    $sectID = filter_var($_GET['sectid'], FILTER_SANITIZE_NUMBER_INT);
+    $sectInfo = getSectInfo($sectID);
 } else {
-    $catID="0";
-    $catInfo = false;
+    $sectID=0;
+    $sectInfo = false;
 }
 if (isset($_GET['task'])) {
     $task = htmlspecialchars($_GET['task']);
@@ -28,16 +28,17 @@ if (isset($_GET['id'])) {
     $itemID = false;
 }
 
-$catList = getCatList();
+$sectList = getSectList();
 $formatList = getFormatList();
 ?>
 
 <main>
-    <?php if (isset($catID) && $task === 'create') :
+    <?php if (isset($sectID) && $task === 'create') :
+        $sectInfo = getSectInfo($sectID);
         include_once '_components/item-create.inc.php';
-    elseif (isset($catID) && $task === 'edit') :
+    elseif (isset($sectID) && $task === 'edit') :
         $item = getItem($itemID); 
-        $catInfo = getCatInfo($item['Cat_ID']);
+        $sectInfo = getSectInfo($item['Sect_ID']);
         include_once '_components/item-edit.inc.php';
     endif;?>
 

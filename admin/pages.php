@@ -19,7 +19,6 @@ if (isset($_GET['id'])) {
 
 <?php switch ($task) :
     case 'view' :
-        //$items = getCatItems($catID);
         include '_components/page-view.inc.php';
         break;
     case 'create' :

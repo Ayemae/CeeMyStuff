@@ -5,8 +5,8 @@
         <?show($image)?>
     </div>
     <?show($title)?>
-    <div class="page-cats">
-        <?show($category_content)?>
+    <div class="page-sects">
+        <?show($section_content)?>
     </div>
     <?show($paginator)?>
 </main>

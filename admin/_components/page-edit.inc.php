@@ -31,14 +31,14 @@
     </li>
 
     <li>
-        <label for="n_multi_cat">Enable Multiple Content Categories:</label>
-        <input type="hidden" name="n_multi_cat" value="0">
-        <input type="checkbox" name="n_multi_cat" id="n_multi_cat" class="chktoggle" value="1" <?=($page['Multi_Cat'] ? 'checked' : null)?>>
+        <label for="n_multi_sect">Enable Multiple Content Sections:</label>
+        <input type="hidden" name="n_multi_sect" value="0">
+        <input type="checkbox" name="n_multi_sect" id="n_multi_sect" class="chktoggle" value="1" <?=($page['Multi_Sect'] ? 'checked' : null)?>>
         <input type="hidden" name="n_paginate" value="0">
         <input type="hidden" name="n_paginate_after" value="20">
         <ul class="chktoggle-hide form-list">
             <li>
-                <label for="n_paginate">Allow Pagination (single-category pages only):</label>
+                <label for="n_paginate">Allow Pagination (single-section pages only):</label>
                 <input type="checkbox" name="n_paginate" id="n_paginate" class="chktoggle" value="1" <?=($page['Paginate'] ? 'checked' : null)?>>
                 <div class="chktoggle-show">
                     <label for="n_paginate_after">Items Per Page:</label>

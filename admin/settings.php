@@ -28,7 +28,7 @@ $settings = fetchSettings();
                 </select>
             <?php break;
 
-            case ('function') :
+            case 'function' :
                 switch ($stg['Key']) :
                     case ('timezone') :
                         echo selectTimezone($stg['Value']); 
@@ -50,6 +50,8 @@ $settings = fetchSettings();
                     }
                     $stg['Value'] = 'checked'; ?>
                     <input type="hidden" name="<?show($stg['Key']);?>" value="">
+                <?php elseif ($stg['Type']=== 'file') : ?>
+                    <input type="hidden" name="<?show($stg['Key']);?>_stored" value="<?show($stg['Value']);?>">
                 <?php endif; ?>
                 <input type="<?show($stg['Type']);?>" id="<?show($stg['Key']);?>" name="<?show($stg['Key']);?>" value="<?show($stg['Value'])?>" <?show($checkbox);?>>
             <?php break;

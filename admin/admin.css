@@ -165,9 +165,17 @@ h1 i.fi {
 .chktoggle:checked ~ .chktoggle-hide {
     display: none !important;
 }
+.chktoggle-label {
+    display: block;
+    width: 100%;
+    cursor: pointer;
+}.chktoggle-label:hover,
+.chktoggle:checked ~ .chktoggle-label {
+    color: #4444ff;
+}
 
 ul.page-list,
-ul.category-list {
+ul.section-list {
     padding: 0;
     margin: 0;
 }
@@ -213,7 +221,7 @@ a.opt {
     transition-duration: .25s;
     /* flex:1;
     width:100%; */
-} .cat-options a.opt {
+} .sect-options a.opt {
     background-color: #657de8;
 }
 a.opt.settings {
@@ -223,22 +231,22 @@ a.opt.settings {
     align-self: flex-start;
 }
 a.opt.new-item,
-.cat-options a.opt.new-item {
+.sect-options a.opt.new-item {
     display: block;
     padding: 0px 8px;
     background-color: #45a39a;
 }
 
 .page-label:hover,
-.cat-label:hover {
+.sect-label:hover {
     transition-duration: .25s;
 }.page-label:hover {
     background-color: #ffc9ef;
-}.cat-label:hover {
-    background-color: #c2c7ff;
+}.chktoggle:checked ~ .page-label:hover{
+    background-color: var(--col-2);
 }
 
-.cat-box {
+.sect-box {
     display: flex;
     flex-direction: column;
     color: var(--col-6);
@@ -250,28 +258,33 @@ a.opt.new-item,
     border-bottom: 3px solid #5756de;
 }
 
-.cat-box>.btns-box {
+.sect-box>.btns-box {
     border-width: 0px 3px 2px 3px;
     border-style: solid;
     border-color: #b1b8ff;
 }
 
-.cat-label {
+.sect-label {
     background-color: #b1b8ff;
     padding: 5px 10px;
-}.page-box li.cat-label {
+}.page-box li.sect-label {
     padding: 1px 8px;
     border-radius: 3px;
-}.no-cat-label {
+}.no-sect-label {
     background-color: #cdcdcd;
     padding: 5px 10px;
 }
+.sect-label:hover {
+    background-color: #c2c7ff;
+}.chktoggle:checked ~ .sect-label:hover {
+    background-color: #b1b8ff;
+}
 
-.page-box .cat-box {
+.page-box .sect-box {
     margin: 4px 0 4px 5%;
 }
 
-.cat-options {
+.sect-options {
     display: flex;
     flex-direction: row;
     gap: 8px;
@@ -283,7 +296,7 @@ a.opt.new-item,
 ul.index-list,
 ul.form-list,
 ul.page-list,
-ul.category-list,
+ul.section-list,
 ul.menu-settings-item-list {
     list-style: none;
 }
