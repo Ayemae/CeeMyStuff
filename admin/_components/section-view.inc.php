@@ -90,7 +90,10 @@
 
 <script src="_js/enumerate.js"></script>
 <script>
-enumerate('enumerate');
+    
+// May not need this after all.
+//enumerate('enumerate');
+
 function setOrderParams() {
     var order = document.getElementById('order').value;
     var orderDir = document.getElementById('order-dir').value;
