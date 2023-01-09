@@ -10,11 +10,11 @@ $settings = fetchSettings();
 
 <h1><i class="fi fi-rs-settings"></i> Site Settings</h1>
 
-<form method="post">
+<form id='settings-form' method="post" enctype="multipart/form-data">
 <ul class="form-list">
     <?php foreach ($settings AS $stg) :?>
         <li>
-            <label for="<?show($stg['Field']);?>"><?show($stg['Field']);?>:</label>
+            <label for="<?show($stg['Field']);?>"><b><?show($stg['Field']);?>:</b></label>
             
             <p><?show($stg['Description'])?></p>
 
@@ -42,17 +42,27 @@ $settings = fetchSettings();
                 endswitch;
             break;
 
+
+            case 'img-file' : ?>
+                <input type="file" id="<?show($stg['Key']);?>" name="<?show($stg['Key']);?>" value="">
+                <br/>Current:
+                <?php if ($stg['Value']>'') :?>
+                <br/><img src="<?show($set['dir'].$stg['Value']);?>" alt="Header image" style="height:auto;width:auto;max-width:600px;max-height:300px;">
+            <? else : ?>
+                <i>None</i>
+            <? endif;
+            break;
+
+
              default : 
                 $checkbox = '';
                 if ($stg['Type']=== 'checkbox') :
                     if ($stg['Value'] === 'checked') {
                         $checkbox = 'checked=checked';
                     }
-                    $stg['Value'] = 'checked'; ?>
+                    $stg['Value'] = 'checked'; 
+                endif;?>
                     <input type="hidden" name="<?show($stg['Key']);?>" value="">
-                <?php elseif ($stg['Type']=== 'file') : ?>
-                    <input type="hidden" name="<?show($stg['Key']);?>_stored" value="<?show($stg['Value']);?>">
-                <?php endif; ?>
                 <input type="<?show($stg['Type']);?>" id="<?show($stg['Key']);?>" name="<?show($stg['Key']);?>" value="<?show($stg['Value'])?>" <?show($checkbox);?>>
             <?php break;
 

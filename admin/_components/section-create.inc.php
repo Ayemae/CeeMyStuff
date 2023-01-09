@@ -41,64 +41,30 @@
     </li>
 </ul>
 
-    <h2>Section Display Settings</h2>
-    <ul class="form-list">
+    <label for="section-display-sets">
+        <h2><i class="fi fi-rs-plus"></i> Section Display Settings</h2>
+    </label>
+    <input type="checkbox" class="chktoggle invis" id="section-display-sets">
+    <ul class="form-list chktoggle-show">
 
     <li>
-        <label for="show_images">Show Item Images:</label>
-        <select id="show_images" name="n_show_images">
-            <option value="0" <?show((isset($_POST['n_show_images']) && !$_POST['n_show_images'] ? 'selected' : null ))?>>No</option>
-            <option value="1" <?show((!isset($_POST['n_show_images']) ? 'selected' : ($_POST['n_show_images']==1 ? 'selected' : null )))?>>Show Thumbnails</option>
-            <option value="2" <?show((isset($_POST['n_show_images']) && $_POST['n_show_images']==2 ? 'selected' : null ))?>>Show Full-Sized Images</option>
-        </select>
-    </li>
-
-    <li>
-        <label for="show_titles">Show Item Titles:</label>
-        <select id="show_titles" name="n_show_titles">
-            <option value="0" <?show((isset($_POST['n_show_titles']) && !$_POST['n_show_titles'] ? 'selected' : null ))?>>No</option>
-            <option value="1" <?show((!isset($_POST['n_show_titles']) ? 'selected' : ($_POST['n_show_titles']==1 ? 'selected' : null )))?>>Yes</option>
-        </select>
-    </li>
-
-    <li>
-        <label for="show_text">Show Item Text:</label>
-        <select id="show_text" name="n_show_text">
-            <option value="0" <?show((isset($_POST['n_show_text']) && !$_POST['n_show_text'] ? 'selected' : null ))?>>No</option>
-            <option value="1" <?show((isset($_POST['n_show_text']) && $_POST['n_show_text']==1 ? 'selected' : null ))?>>Show Truncated Text</option>
-            <option value="2" <?show((!isset($_POST['n_show_text']) ? 'selected' : ($_POST['n_show_text']==1 ? 'selected' : null )))?>>Show Full Text</option>
-        </select>
-    </li>
-
-    <li>
-        <label for="order_by">Order Items By:</label>
-        <select id="order_by" name="order_by">
-            <option value="Date" <?(!isset($_POST['order_by']) ? null : show((!$_POST['order_by'] == 'Date' ? 'selected' : null )))?>>Date</option>
-            <option value="Title" <?(!isset($_POST['order_by']) ? null : show(($_POST['order_by']== 'Title' ? 'selected' : null )))?>>Title</option>
-            <option value="Random" <?(!isset($_POST['order_by']) ? null : show(($_POST['order_by']== 'Random' ? 'selected' : null )))?>>Random</option>
-            <!-- <option value="custom" <?(!isset($_POST['order_by']) ? null : show(($_POST['order_by']== 'custom' ? 'selected' : null )))?>>Custom</option> -->
-        </select>
-    </li>
-
-    <li>
-        <label for="create-thumbs">Auto-Create Thumbnails for Image Items:</label>
-        <input type="hidden" name="n_create_thumbs" value="0">
-        <input type="checkbox" id="create-thumbs" name="n_create_thumbs" value="1" 
-        <?show((isset($_POST['n_create_thumbs']) && $_POST['n_create_thumbs']==1 ) ? 'checked' : null )?>>
-            <ul class="form-list">
-                <li>
-                    <label for="thumb_size">Choose default thumbnail size:</label>
-                    <input type="number" id="thumb_size" name="n_thumb_size" 
-                    value="<?show((!isset($_POST['n_thumb_size']) ? 125 : $_POST['n_thumb_size']))?>">
-                </li>
-                <li>
-                    <label for="thumb_axis">Axis of thumbnail size:</label>
-                    <select id="thumb_axis" name="n_thumb_axis">
-                        <option value="0" <?show((!isset($_POST['n_thumb_size']) ? ($page["thumb_size_axis"] == 'width' ? 'selected' : null) : null));?>>Width</option>
-                        <option value="1" <?show((!isset($_POST['n_thumb_size']) ? ($page["thumb_size_axis"] == 'height' ? 'selected' : null) : null));?>>Height</option>
-                    </select>
-                </li>
-            </ul>
+        <div>
+            <label for="order_by">Order Items By:</label>
+            <select id="order_by" name="order_by">
+                <option value="Date" <?(!isset($_POST['order_by']) ? null : show((!$_POST['order_by'] == 'Date' ? 'selected' : null )))?>>Date</option>
+                <option value="Title" <?(!isset($_POST['order_by']) ? null : show(($_POST['order_by']== 'Title' ? 'selected' : null )))?>>Title</option>
+                <option value="Custom" <?(!isset($_POST['order_by']) ? null : show(($_POST['order_by']== 'Custom' ? 'selected' : null )))?>>Custom</option>
+                <option value="ID" <?(!isset($_POST['order_by']) ? null : show(($_POST['order_by']== 'ID' ? 'selected' : null )))?>>When Added</option>
+                <option value="Random" <?(!isset($_POST['order_by']) ? null : show(($_POST['order_by']== 'Random' ? 'selected' : null )))?>>Random</option>
+            </select>
+        </div>
+        <div>
+            <label for="order-dir">Order Direction:</label>
+            <select id="order-dir" name="n_order_dir">
+                <option value="0">Ascending</option>
+                <option value="1" <?=(isset($_POST['order_dir']) && $_POST['order_dir'] != 0 ? 'selected' : null )?>>Descending</option>
+            </select>
+        </div>
     </li>
 
     <?php if ($sectFormats) :?>
@@ -126,6 +92,54 @@
         </select>
     </li>
     <?php endif;?>
+
+    <li>
+        <label for="show_titles">Show Item Titles:</label>
+        <select id="show_titles" name="n_show_titles">
+            <option value="0" <?show((isset($_POST['n_show_titles']) && !$_POST['n_show_titles'] ? 'selected' : null ))?>>No</option>
+            <option value="1" <?show((!isset($_POST['n_show_titles']) ? 'selected' : ($_POST['n_show_titles']==1 ? 'selected' : null )))?>>Yes</option>
+        </select>
+    </li>
+
+    <li>
+        <label for="show_text">Show Item Text:</label>
+        <select id="show_text" name="n_show_text">
+            <option value="0" <?show((isset($_POST['n_show_text']) && !$_POST['n_show_text'] ? 'selected' : null ))?>>No</option>
+            <option value="1" <?show((isset($_POST['n_show_text']) && $_POST['n_show_text']==1 ? 'selected' : null ))?>>Show Truncated Text</option>
+            <option value="2" <?show((!isset($_POST['n_show_text']) ? 'selected' : ($_POST['n_show_text']==1 ? 'selected' : null )))?>>Show Full Text</option>
+        </select>
+    </li>
+
+    <li>
+        <label for="show_images">Show Item Images:</label>
+        <select id="show_images" name="n_show_images">
+            <option value="0" <?show((isset($_POST['n_show_images']) && !$_POST['n_show_images'] ? 'selected' : null ))?>>No</option>
+            <option value="1" <?show((!isset($_POST['n_show_images']) ? 'selected' : ($_POST['n_show_images']==1 ? 'selected' : null )))?>>Show Thumbnails</option>
+            <option value="2" <?show((isset($_POST['n_show_images']) && $_POST['n_show_images']==2 ? 'selected' : null ))?>>Show Full-Sized Images</option>
+        </select>
+    </li>
+
+    <li>
+        <label for="create-thumbs">Auto-Create Thumbnails for Image Items:</label>
+        <input type="hidden" name="n_create_thumbs" value="0">
+        <input type="checkbox" id="create-thumbs" name="n_create_thumbs" value="1" 
+        <?show((isset($_POST['n_create_thumbs']) && $_POST['n_create_thumbs']==1 ) ? 'checked' : null )?>>
+            <ul class="form-list">
+                <li>
+                    <label for="thumb_size">Choose default thumbnail size:</label>
+                    <input type="number" id="thumb_size" name="n_thumb_size" 
+                    value="<?show((!isset($_POST['n_thumb_size']) ? 125 : $_POST['n_thumb_size']))?>">
+                </li>
+                <li>
+                    <label for="thumb_axis">Axis of thumbnail size:</label>
+                    <select id="thumb_axis" name="n_thumb_axis">
+                        <option value="0" <?show((!isset($_POST['n_thumb_size']) ? ($page["thumb_size_axis"] == 'width' ? 'selected' : null) : null));?>>Width</option>
+                        <option value="1" <?show((!isset($_POST['n_thumb_size']) ? ($page["thumb_size_axis"] == 'height' ? 'selected' : null) : null));?>>Height</option>
+                    </select>
+                </li>
+            </ul>
+    </li>
+
 
     <li>
             <label for="hidden"> Hide this section:</label>

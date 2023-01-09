@@ -1,4 +1,5 @@
-<form method="post" enctype="multipart/form-data" action="?task=list">
+<form method="post" enctype="multipart/form-data" >
+    <!-- action="?task=list" -->
     <div class="space-btwn">
         <h1>Edit Section Settings : <?show($sect['Name'])?></h1>
         <button name="delete_section" id="delete-section" class="small red"><i class="fi fi-rs-trash"></i> Delete Section</button>
@@ -9,12 +10,12 @@
 <?php if ($sect['ID']>0) :?>
 <ul class="form-list">
     <li>
-        <label for="name">Name:</label>
+        <label for="name">Title:</label>
         <input type="text" name="name" id="name" max-length="255" value="<?show($sect['Name'])?>">
         <br/>
-        <label for="n_show_title">Show section name on the website:</label>
+        <label for="n-show-title">Show section title on the website:</label>
         <input type="hidden" name="n_show_title" value="0">
-        <input type="checkbox" name="n_show_title" id="n_show_title" value="1" <?=(isset($sect['Show_Title']) && $sect['Show_Title']<1 ? null : 'checked')?>>
+        <input type="checkbox" name="n_show_title" id="n-show-title" value="1" <?=(isset($sect['Show_Title']) && $sect['Show_Title']<1 ? null : 'checked')?>>
     </li>
 
     <li>
@@ -35,7 +36,7 @@
         <label for="n_page_id">In Page:</label>
         <p>If you don't see the page you want, make sure that page has 'Multiple Content Sections' enabled in its settings.</p>
         <select id="n_page_id" name="n_page_id">
-            <option value="">None</option>
+            <option value="0">None</option>
             <?php foreach($pgList AS $page) : 
                 if ($sect['Page_ID']===$page['ID'] || $page['Can_Add_Sect']) : ?>
                 <option value="<?show($page['ID']);?>" <?=($sect['Page_ID']===$page['ID'] ? 'selected' : null)?>>
@@ -48,23 +49,65 @@
 </ul>
 <?php endif;?>
 
-    <h2>Section Page Display Settings</h2>
-    <ul class="form-list">
-    <?php if ($sect['ID']>0) :?>
+    <label for="section-display-sets">
+        <h2><i class="fi fi-rs-plus"></i> Section Display Settings</h2>
+    </label>
+    <input type="checkbox" class="chktoggle invis" id="section-display-sets">
+    <ul class="form-list chktoggle-show">
+
     <li>
-        <label for="show_images">Show Item Images:</label>
-        <select id="show_images" name="n_show_images">
-            <option value="0" <?show((!$sect['Show_Item_Images'] ? 'selected' : null ))?>>No</option>
-            <option value="1" <?show(($sect['Show_Item_Images'] ==1 ? 'selected' : null ))?>>Show Thumbnails</option>
-            <option value="2" <?show(($sect['Show_Item_Images'] ==2 ? 'selected' : null ))?>>Show Full-Sized Images</option>
-        </select>
+        <div>
+            <label for="order_by">Order Items By:</label>
+            <select id="order_by" name="order_by">
+                <option value="Date" <?show(($sect['Order_By'] == 'Date' ? 'selected' : null ))?>>Date</option>
+                <option value="Title" <?show(($sect['Order_By']== 'Title' ? 'selected' : null ))?>>Title</option>
+                <option value="Custom" <?show(($sect['Order_By']== 'Custom' ? 'selected' : null ))?>>Custom</option>
+                <option value="ID" <?show(($sect['Order_By'] == 'ID' ? 'selected' : null ))?>>When Added</option>
+                <option value="Random" <?show(($sect['Order_By']== 'Random' ? 'selected' : null ))?>>Random</option>
+            </select>
+        </div>
+        <div>
+            <label for="order_dir">Order Direction:</label>
+            <select id="order_dir" name="n_order_dir">
+                <option value="0" <?=($sect['Order_Dir'] != 1 ? 'selected' : null )?>>Ascending</option>
+                <option value="1" <?=($sect['Order_Dir'] == 1 ? 'selected' : null )?>>Descending</option>
+            </select>
+        </div>
     </li>
+
+    <?php if ($sect['ID']>0) :?>
+
+        <?php if ($sectFormats) :?>
+        <li>
+            <label for="format">Display Format:</label>
+            <select name="format" id="format">
+                <?php foreach ($sectFormats AS $sFormat) :?>
+                <option value="<?show($sFormat['Path'])?>" <?=($sect['Format']===$sFormat['Path'] ? 'selected' : null)?>>
+                    <?show($sFormat['Name'])?>
+                </option>
+                <?php endforeach;?>
+            </select>
+        </li>
+        <?php endif;?>
+
+        <?php if ($itemFormats) :?>
+        <li>
+            <label for="item-format">Default Item Display Format:</label>
+            <select name="item_format" id="item-format">
+                <?php foreach ($itemFormats AS $iFormat) :?>
+                <option value="<?show($iFormat['Path'])?>" <?=($sect['Default_Item_Format']===$iFormat['Path'] ? 'selected' : null)?>>
+                    <?show($iFormat['Name'])?>
+                </option>
+                <?php endforeach;?>
+            </select>
+        </li>
+        <?php endif;?>
 
     <li>
         <label for="show_titles">Show Item Titles:</label>
         <select id="show_titles" name="n_show_titles">
             <option value="0" <?show((!$sect['Show_Item_Titles'] ? 'selected' : null ))?>>No</option>
-            <option value="2"  <?show(($sect['Show_Item_Titles'] ? 'selected' : null ))?>>Yes</option>
+            <option value="1"  <?show(($sect['Show_Item_Titles'] ? 'selected' : null ))?>>Yes</option>
         </select>
     </li>
 
@@ -78,12 +121,11 @@
     </li>
 
     <li>
-        <label for="order_by">Order Items By:</label>
-        <select id="order_by" name="order_by">
-            <option value="Date" <?show((!$sect['Order_By'] == 'date' ? 'selected' : null ))?>>Date</option>
-            <option value="Title" <?show(($sect['Order_By']== 'title' ? 'selected' : null ))?>>Title</option>
-            <option value="Random" <?show(($sect['Order_By']== 'random' ? 'selected' : null ))?>>Random</option>
-            <!-- <option value="custom" <?show(($sect['Order_By']== 'custom' ? 'selected' : null ))?>>Custom</option> -->
+        <label for="show_images">Show Item Images:</label>
+        <select id="show_images" name="n_show_images">
+            <option value="0" <?show((!$sect['Show_Item_Images'] ? 'selected' : null ))?>>No</option>
+            <option value="1" <?show(($sect['Show_Item_Images'] ==1 ? 'selected' : null ))?>>Show Thumbnails</option>
+            <option value="2" <?show(($sect['Show_Item_Images'] ==2 ? 'selected' : null ))?>>Show Full-Sized Images</option>
         </select>
     </li>
     <?php endif;?>
@@ -108,32 +150,6 @@
             </ul>
         </div>
     </li>
-
-    <?php if ($sectFormats) :?>
-    <li>
-        <label for="format">Display Format:</label>
-        <select name="format" id="format">
-            <?php foreach ($sectFormats AS $sFormat) :?>
-            <option value="<?show($sFormat['Path'])?>" <?=($sect['Format']===$sFormat['Path'] ? 'selected' : null)?>>
-                <?show($sFormat['Name'])?>
-            </option>
-            <?php endforeach;?>
-        </select>
-    </li>
-    <?php endif;?>
-
-    <?php if ($itemFormats) :?>
-    <li>
-        <label for="item-format">Default Item Display Format:</label>
-        <select name="item_format" id="item-format">
-            <?php foreach ($itemFormats AS $iFormat) :?>
-            <option value="<?show($iFormat['Path'])?>" <?=($sect['Default_Item_Format']===$iFormat['Path'] ? 'selected' : null)?>>
-                <?show($iFormat['Name'])?>
-            </option>
-            <?php endforeach;?>
-        </select>
-    </li>
-    <?php endif;?>
 
     <?php if ($sect['ID']>0) :?>
     <li>

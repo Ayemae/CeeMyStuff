@@ -24,8 +24,22 @@ if (isset($_GET['pageid'])) {
 
 <?php switch ($task) :
     case 'view' :
-        $items = getSectItems($sectID);
+        $customOrder = false;
         $sect = getSectInfo($sectID);
+        if (isset($_GET['order'])) {
+            $orderBy = $_GET['order'];
+        } elseif ($sect['Order_By']) {
+            $orderBy = $sect['Order_By'];
+        } else {
+            $orderBy = false;
+        }if (isset($_GET['orderdir'])) {
+            $orderDir = $_GET['orderdir'];
+        } elseif ($sect['Order_Dir']) {
+            $orderDir = $sect['Order_Dir'];
+        } else {
+            $orderDir = false;
+        }
+        $items = getSectItems($sectID,0,$orderBy,$orderDir);
         include '_components/section-view.inc.php';
         break;
     case 'create' :
@@ -37,7 +51,7 @@ if (isset($_GET['pageid'])) {
         $sectFormats = getFormatList('section');
         $itemFormats = getFormatList();
         $sect = getSectInfo($sectID);
-        $pgList = getPageList();
+        $pgList = getPageList($sect['Page_ID']);
         include '_components/section-edit.inc.php';
         break;
     case 'list' :

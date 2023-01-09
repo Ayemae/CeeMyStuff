@@ -52,7 +52,11 @@ hr {
     border-color: var(--col-6);
     width: 100%;
     padding: 0;
-    margin: 0 auto;
+    margin: 8px auto;
+}
+
+ul {
+    flex-direction: column;
 }
 
 .msg-alert {
@@ -67,7 +71,9 @@ hr {
 }
 
 button,
+.button,
 a.button {
+    display: inline-block;
     color: #fff;
     background-color: var(--col-4);
     font-size: 1.1rem;
@@ -252,7 +258,6 @@ a.opt.new-item,
     color: var(--col-6);
     background-color: #e5ebff;
     line-height: 2em;
-    margin: 4px 0;
     border-radius: 3px;
     transition-duration: .25s;
     border-bottom: 3px solid #5756de;
@@ -301,6 +306,12 @@ ul.menu-settings-item-list {
     list-style: none;
 }
 
+ul.section-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
 ul.form-list li {
     padding: 5px;
 }
@@ -316,14 +327,16 @@ ul.index-list li img {
 
 ul.index-list li,
 ul.form-list li,
-ul.menu-settings-item-list {
+ul.menu-settings-item-list,
+ul.index-item-list {
     background: var(--highlight1);
     background: linear-gradient(90deg, rgba(118, 215, 231, 1) 15%, rgba(118, 215, 231, .25) 100%)
 }
 ul.index-list li:nth-child(even),
 ul.index-list a:nth-child(even) li,
 ul.form-list li:nth-child(even),
-ul.menu-settings-item-list li:nth-child(even) {
+ul.menu-settings-item-list li:nth-child(even),
+ul.index-item-list li:nth-child(even) {
     background: var(--highlight2);
     background: linear-gradient(90deg, rgba(167, 253, 219, 1) 15%, rgba(167, 253, 219, .25) 100%);
 }
@@ -348,7 +361,8 @@ ul.form-list p {
     margin: auto;
 }
 
-ul.menu-settings-table-head {
+ul.menu-settings-table-head,
+ul.index-table-head {
     list-style: none;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;
@@ -357,12 +371,14 @@ ul.menu-settings-table-head {
     margin: 0;
 }
 
-ul.menu-settings-item-list {
+ul.menu-settings-item-list,
+ul.index-item-list {
     padding: 0;
     margin: 0;
 }
 
-ul.menu-settings-item-list li {
+ul.menu-settings-item-list li,
+ul.index-item-list li {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;
     padding: 8px;

@@ -1,5 +1,5 @@
 <?php
-$showErrors = 0;
+$showErrors = 1;
 if ($showErrors) {
     ini_set('display_errors', '1');
     ini_set('display_startup_errors', '1');
@@ -78,6 +78,11 @@ function truncateTxt($txt,$at=140,$trail="...") {
     return $txt;
 }
 
+function cleanFileName($name) {
+    $name = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', stripHTML($name)));
+    return $name;
+  }
+
 function paginateStrt ($pageNum, $itemsPerPage) {
     $lsStrtMultiple = $pageNum - 1;
     $lsStrt = $lsStrtMultiple * $itemsPerPage;
@@ -125,11 +130,6 @@ function cleanServerPost($post){
             return $post;
         }
     }
-}
-
-function cleanFileName($name) {
-        $name = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', stripHTML($name)));
-        return $name;
 }
 
 // Snippet from PHP Share: http://www.phpshare.org
@@ -586,12 +586,16 @@ if (isset($_POST['logout'])) {
     kickOut();
 };
 
-function getPageList() {
+function getPageList($sectPageID=false) {
     global $db;
     global $admin_panel;
     global $loggedIn;
+    if ($sectPageID) {
+        $sectPageID = filter_var($sectPageID, FILTER_SANITIZE_NUMBER_INT);
+    }
     $conn = new SQLite3($db);
     $pageList = array();
+    // TODO: Fix this, 'Can_Add_Sect' does not work
     $qry = 'SELECT p.ID, p.Name, p.Multi_Sect, s.Sect_Num,
     (CASE
     WHEN (p.Multi_Sect=0 AND s.Sect_Num >= 1)
@@ -709,6 +713,9 @@ function getSectItems($id, $pageNum=1,
         case 'Random':
             $qry .= 'RANDOM() ';
             break;
+        case 'ID':
+            $qry .= 'ID';
+        break;
         case 'Date':
         default:
             $qry .= 'Publish_Timestamp';
@@ -758,10 +765,16 @@ function getItem($id) {
     $result = $stmt->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         $row['Text'] = htmlspecialchars_decode($row['Text']);
+        // handle date w/timezone
         $date = new DateTime('@'.$row['Publish_Timestamp']);
         $date->setTimeZone(new DateTimeZone($set['timezone']));
         $row['Publish_Timestamp'] = $date->format('Y-m-d\TH:i');
         $row['Date'] = $date->format($set['date_format']);
+        ///
+        if ($row['File_Path']) {
+            $row['File_Pres'] = substr($row['File_Path'], 1, 3);
+            $row['File_Path'] = substr($row['File_Path'],5);
+        }
         return $row;
     } 
 }
@@ -826,6 +839,30 @@ function showImage($setShowImg, $img=false, $thumb=false, $title=false) {
     return $img;
 }
 
+function showFile($filePath, $pres, $linkTxt=false) {
+    global $set;
+    if ($filePath) {
+        if (!$linkTxt) {
+            $linkTxt = 'Click here';
+        }
+        switch ($pres) {
+            case 'lnk':
+                $file = '<a href="'.$set['dir'].$filePath.'">'.$linkTxt.'</a>';
+            break;
+            case 'dld':
+                $file = '<a href="'.$set['dir'].$filePath.'" download>'.$linkTxt.'</a>';
+            break;
+            case 'txt':
+            default:
+                $file = $set['dir'].$filePath;
+            break;
+        }
+        return $file;
+    } else {
+        return null;
+    }
+}
+
 function className($str) {
     return strtolower(preg_replace("/[^A-Za-z-]/",'',str_replace(' ','-',$str)));
 }
@@ -867,6 +904,7 @@ function printPageItems($itemList=false, $sect=false) {
         $title = showTitle($sect['Show_Item_Titles'], $item['Title']);
         $text = showText($sect['Show_Item_Text'], $item['Text']);
         $image = showImage($sect['Show_Item_Images'], $item['Img_Path'], $item['Img_Thumb_Path'], $item['Title']);
+        $file = showFile($sect['Show_Item_Files'], $item['File_Path'], $sect['Link_Text']);
         $date = $item['Date'];
         $embed = $item['Embed_HTML'];
         $srcImgFull = $set['dir'].$item['Img_Path'];
@@ -1165,18 +1203,41 @@ return $inputSelect;
 if (isset($_POST['save_settings'])) {
     global $db;
     $conn = new SQLite3($db);
+    $msg= "";
     $_POST = array_map('stripHTML', $_POST);
-    if (!empty($_FILES)) {
-        require_once 'imgUpload.php';
+    if (sizeof($_FILES) > 0) {
+        require_once 'upload.php';
+        $dir = '/assets/uploads/settings/';
+        // header
+        if (isset($_FILES['header_img']) && $_FILES['header_img']['name']>'') {
+            $_POST['header_img'] = uploadImage ($dir, $_FILES['header_img'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
+        } else {
+            $_POST['header_img'] = null;
         }
-    foreach ($_POST AS $key=>$val) {
-        $qry = "UPDATE Settings SET Value = :val WHERE Key = :key;";
-        $stmt = $conn->prepare($qry);
-        $stmt->bindValue(':val',$val,SQLITE3_TEXT);
-        $stmt->bindValue(':key',$key,SQLITE3_TEXT);
-        $stmt->execute();
+        // mobile icon
+        if (isset($_FILES['mobile_icon']) && $_FILES['mobile_icon']['name']>'') {
+            $_POST['mobile_icon'] = uploadImage ($dir, $_FILES['mobile_icon'], 180, 180, false, false, false, $set['max_upld_storage']);
+        } else {
+            $_POST['mobile_icon'] = null;
+        }
+        // favicon
+        if (isset($_FILES['favicon']) && $_FILES['favicon']['name']>'') {
+            $dir = '';
+            $_POST['favicon'] = uploadImage ($dir, $_FILES['favicon'], 16, 16, false, false, 'favicon', $set['max_upld_storage'],false,'gif,ico');
+        } else {
+            $_POST['favicon'] = null;
+        }
     }
-    $msg= "Saved!";
+    foreach ($_POST AS $key=>$val) {
+        if ($val != null) {
+            $qry = "UPDATE Settings SET Value = :val WHERE Key = :key;";
+            $stmt = $conn->prepare($qry);
+            $stmt->bindValue(':val',$val,SQLITE3_TEXT);
+            $stmt->bindValue(':key',$key,SQLITE3_TEXT);
+            $stmt->execute();
+        }
+    }
+    $msg .= "Saved!";
 }
 
 
@@ -1187,12 +1248,11 @@ if (isset($_POST['create_page'])) {
     $cPost = cleanServerPost($_POST);
     $msg = "";
     $link = strtolower(preg_replace("/[^A-Za-z0-9-]/",'',str_replace(' ','-',$cPost['name'])));
-    require_once 'imgUpload.php';
+    require_once 'upload.php';
     $dir = '/assets/uploads/sect-headers/';
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
     if (!$set['has_max_upld_storage']) {$set['max_upld_storage'] = false;}
     if ($_FILES['header_img_upload']['name']>'') {
-        $_FILES['header_img_upload']['name'] = cleanFileName($_FILES['header_img_upload']['name']);
         $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
     } else {
         $imgPath = null;
@@ -1254,12 +1314,11 @@ if (isset($_POST['edit_page'])) {
     $conn = new SQLite3($db);
     $cPost = cleanServerPost($_POST);
     $link = strtolower(preg_replace("/[^A-Za-z0-9-]/",'',str_replace(' ','-',$cPost['name'])));
-    require_once 'imgUpload.php';
+    require_once 'upload.php';
     $dir = '/assets/uploads/sect-headers/';
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
     if (!$set['has_max_upld_storage']) {$set['max_upld_storage'] = false;}
     if ($_FILES['header_img_upload']['name']) {
-        $_FILES['header_img_upload']['name'] = cleanFileName($_FILES['header_img_upload']['name']);
         $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
     } else {
         if ($cPost['stored_header_img']) {
@@ -1345,39 +1404,40 @@ if (isset($_POST['create_section'])) {
     if ($cPost['n_page_id'] <= '') {
         $cPost['n_page_id'] = null;
     }
-    if (!empty($_FILES)) {
-        require_once 'imgUpload.php';
+    if (isset($_FILES['header_img_upload']) && $_FILES['header_img_upload']['name']>'') {
+        require_once 'upload.php';
         $dir = '/assets/uploads/sect-headers/';
         if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
         if (!$set['has_max_upld_storage']) {$set['max_upld_storage'] = false;}
         if ($_FILES['header_img_upload']['name']) {
-            $_FILES['header_img_upload']['name'] = cleanFileName($_FILES['header_img_upload']['name']);
             $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
         }
     } else {
         $imgPath = null;
     }
     $qry = 'INSERT INTO Sections (Name,Page_ID,Text,Header_Img_Path,Show_Title,Show_Header_Img,
-    Show_Item_Images,Show_Item_Titles,Show_Item_Text,Order_By,Auto_Thumbs,Thumb_Size,Thumb_Size_Axis,
-    Format,Default_Item_Format,Hidden) 
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);';
+    Show_Item_Images,Show_Item_Titles,Show_Item_Text,Order_By,Order_Dir,Auto_Thumbs,Thumb_Size,
+    Thumb_Size_Axis,Format,Default_Item_Format,Hidden) 
+    VALUES (:name, :pageid, :text, :imgpath, :showtitle, :showimg, :showitemimgs, :showitemtitles, 
+    :showitemtext, :orderby, :orderdir, :autothumbs, :thumbsize, :thumbsizea, :format, :itemformat, :hidden);';
     $stmt = $conn->prepare($qry);
-    $stmt->bindValue(1,$cPost['name'], SQLITE3_TEXT);
-    $stmt->bindValue(2,$cPost['n_page_id'], SQLITE3_INTEGER);
-    $stmt->bindValue(3,$cPost['b_text'], SQLITE3_TEXT);
-    $stmt->bindValue(4,$imgPath, SQLITE3_TEXT);
-    $stmt->bindValue(5,$cPost['n_show_title'], SQLITE3_INTEGER);
-    $stmt->bindValue(6,$cPost['n_show_header_img'], SQLITE3_INTEGER);
-    $stmt->bindValue(7,$cPost['n_show_images'], SQLITE3_INTEGER);
-    $stmt->bindValue(8,$cPost['n_show_titles'], SQLITE3_INTEGER);
-    $stmt->bindValue(9,$cPost['n_show_text'], SQLITE3_INTEGER);
-    $stmt->bindValue(10,$cPost['order_by'], SQLITE3_TEXT);
-    $stmt->bindValue(11,$cPost['n_create_thumbs'], SQLITE3_INTEGER);
-    $stmt->bindValue(12,$cPost['n_thumb_size'], SQLITE3_INTEGER);
-    $stmt->bindValue(13,$cPost['n_thumb_axis'], SQLITE3_INTEGER);
-    $stmt->bindValue(14,$cPost['format'], SQLITE3_TEXT);
-    $stmt->bindValue(15,$cPost['item_format'], SQLITE3_TEXT);
-    $stmt->bindValue(16,$cPost['n_hidden'], SQLITE3_INTEGER);
+    $stmt->bindValue(':name',$cPost['name'], SQLITE3_TEXT);
+    $stmt->bindValue(':pageid',$cPost['n_page_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(':text',$cPost['b_text'], SQLITE3_TEXT);
+    $stmt->bindValue(':imgpath',$imgPath, SQLITE3_TEXT);
+    $stmt->bindValue(':showtitle',$cPost['n_show_title'], SQLITE3_INTEGER);
+    $stmt->bindValue(':showimg',$cPost['n_show_header_img'], SQLITE3_INTEGER);
+    $stmt->bindValue(':showitemimgs',$cPost['n_show_images'], SQLITE3_INTEGER);
+    $stmt->bindValue(':showitemtitles',$cPost['n_show_titles'], SQLITE3_INTEGER);
+    $stmt->bindValue(':showitemtext',$cPost['n_show_text'], SQLITE3_INTEGER);
+    $stmt->bindValue(':orderby',$cPost['order_by'], SQLITE3_TEXT);
+    $stmt->bindValue(':orderdir',$cPost['n_order_dir'], SQLITE3_INTEGER);
+    $stmt->bindValue(':autothumbs',$cPost['n_create_thumbs'], SQLITE3_INTEGER);
+    $stmt->bindValue(':thumbsize',$cPost['n_thumb_size'], SQLITE3_INTEGER);
+    $stmt->bindValue(':thumbsizea',$cPost['n_thumb_axis'], SQLITE3_INTEGER);
+    $stmt->bindValue(':format',$cPost['format'], SQLITE3_TEXT);
+    $stmt->bindValue(':itemformat',$cPost['item_format'], SQLITE3_TEXT);
+    $stmt->bindValue(':hidden',$cPost['n_hidden'], SQLITE3_INTEGER);
     if ($stmt->execute()) {
         $msg="New section created!";
     } else {
@@ -1393,13 +1453,12 @@ if (isset($_POST['edit_section'])) {
     if ($cPost['n_page_id'] <= '') {
         $cPost['n_page_id'] = null;
     }
-    if (!empty($_FILES)) {
+    if (isset($_FILES['header_img_upload']) && $_FILES['header_img_upload']['name']>'') {
         $dir = '/assets/uploads/sect-headers/';
         if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
         if (!$set['has_max_upld_storage']) {$set['max_upld_storage'] = false;}
-        if ($_FILES['header_img_upload']['name']) {
-            require_once 'imgUpload.php';
-            $_FILES['header_img_upload']['name'] = cleanFileName($_FILES['header_img_upload']['name']);
+        if ($_FILES['header_img_upload']['name']>'') {
+            require_once 'upload.php';
             if (!$cPost['header_img_stored']) {
                 $cPost['header_img_stored'] = false;
             }
@@ -1412,11 +1471,12 @@ if (isset($_POST['edit_section'])) {
     } else {
         $imgPath = null;
     }
+    // I tried changing the '?'s to ':whatever's and it didn't work? :(
     $qry = 'UPDATE Sections SET 
-        Name=?,Text=?,
-        Header_Img_Path=?,Show_Title=?,Show_Header_Img=?,Show_Item_Images=?,
-        Show_Item_Titles=?,Show_Item_Text=?,Order_By=?,Auto_Thumbs=?,
-        Thumb_Size=?,Thumb_Size_Axis=?,Format=?,Default_Item_Format=?,Hidden=?,Page_ID=?
+        Name=?, Text=?,
+        Header_Img_Path=?, Show_Title=?, Show_Header_Img=?, Show_Item_Images=?, 
+        Show_Item_Titles=?, Show_Item_Text=?, Order_By=?, Order_Dir=?, Auto_Thumbs=?, 
+        Thumb_Size=?, Thumb_Size_Axis=?, Format=?, Default_Item_Format=?, Hidden=?, Page_ID=?
     WHERE ID=?;';
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(1,$cPost['name'], SQLITE3_TEXT);
@@ -1427,19 +1487,25 @@ if (isset($_POST['edit_section'])) {
     $stmt->bindValue(6,$cPost['n_show_images'], SQLITE3_INTEGER);
     $stmt->bindValue(7,$cPost['n_show_titles'], SQLITE3_INTEGER);
     $stmt->bindValue(8,$cPost['n_show_text'], SQLITE3_INTEGER);
+    // TODO: Add the following
+    //$stmt->bindValue(':showitemfiles',$cPost['n_show_files'], SQLITE3_INTEGER);
     $stmt->bindValue(9,$cPost['order_by'], SQLITE3_TEXT);
-    $stmt->bindValue(10,$cPost['n_create_thumbs'], SQLITE3_INTEGER);
-    $stmt->bindValue(11,$cPost['n_thumb_size'], SQLITE3_INTEGER);
-    $stmt->bindValue(12,$cPost['n_thumb_axis'], SQLITE3_INTEGER);
-    $stmt->bindValue(13,$cPost['format'], SQLITE3_TEXT);
-    $stmt->bindValue(14,$cPost['item_format'], SQLITE3_TEXT);
-    $stmt->bindValue(15,$cPost['n_hidden'], SQLITE3_INTEGER);
-    $stmt->bindValue(16,$cPost['n_page_id'], SQLITE3_INTEGER);
-    $stmt->bindValue(17,$cPost['n_sect_id'], SQLITE3_INTEGER);
-    if ($stmt->execute()) {
-        $msg="Section setting changes saved!";
-    } else {
+    $stmt->bindValue(10,$cPost['n_order_dir'], SQLITE3_INTEGER);
+    $stmt->bindValue(11,$cPost['n_create_thumbs'], SQLITE3_INTEGER);
+    $stmt->bindValue(12,$cPost['n_thumb_size'], SQLITE3_INTEGER);
+    $stmt->bindValue(13,$cPost['n_thumb_axis'], SQLITE3_INTEGER);
+    $stmt->bindValue(14,$cPost['format'], SQLITE3_TEXT);
+    $stmt->bindValue(15,$cPost['item_format'], SQLITE3_TEXT);
+    $stmt->bindValue(16,$cPost['n_hidden'], SQLITE3_INTEGER);
+    $stmt->bindValue(17,$cPost['n_page_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(18,$cPost['n_sect_id'], SQLITE3_INTEGER);
+    if (!$stmt->execute()) {
         $msg="Changes failed to save. Please try again.";
+    } else {
+        $msg="Section setting changes saved!";
+        if ($conn->changes()<1) {
+            $msg="Nothing changed!";
+        }
     }
 }
 
@@ -1447,7 +1513,7 @@ if (isset($_POST['delete_section'])) {
     global $db;
     $conn = new SQLite3($db);
     $sectID = filter_var($_POST['n_sect_id'], FILTER_SANITIZE_NUMBER_INT);
-    if ($pageID===0) {
+    if ($sectID===0) {
         $msg="You cannot delete a non-section.";
         return;
     }
@@ -1469,19 +1535,28 @@ if (isset($_POST['delete_section'])) {
 }
 
 
+
 if (isset($_POST['create_item'])) {
     global $db;
     global $set;
     $conn = new SQLite3($db);
     $cPost = cleanServerPost($_POST);
-    $type = $cPost['type'];
-    $dir = '/assets/uploads/items/';
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
     if (!$set['has_max_upld_storage']) {$set['max_upld_storage'] = false;}
-    if (isset($_FILES['img_upload']) && $_FILES['img_upload']['name']>'') {
-        require_once 'imgUpload.php';
-        $_FILES['img_upload']['name'] = cleanFileName($_FILES['img_upload']['name']);
-        $imgName = str_replace(pathinfo($_FILES['img_upload']['name'],PATHINFO_EXTENSION),"",$_FILES['img_upload']['name']);
+    // if there are uploads...
+    if (
+        (isset($_FILES['img_upload']) && $_FILES['img_upload']['name']>'') || 
+        (isset($cPost['create_thumbnail']) && $_FILES['create_thumbnail']['name']>'') ||
+        (isset($cPost['file_upload']) && $_FILES['file_upload']['name']>'')
+        ) {
+        require_once 'upload.php';
+        $dir = '/assets/uploads/items/section-'.$cPost['n_sect_id'].'/';
+        }
+    if (
+        (isset($_FILES['img_upload']) && $_FILES['img_upload']['name']>'') || 
+        (isset($cPost['create_thumbnail']) && $_FILES['create_thumbnail']['name']>'')
+        ) {
+        $imgName = str_replace(pathinfo($_FILES['img_upload']['name'],PATHINFO_EXTENSION),"",$_FILES['img_upload']['name']).'-'.time();
         $imgPath = uploadImage ($dir, $_FILES['img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
         if (!$imgPath) {
             $msg = 'Image upload failed. Please try again.';
@@ -1502,6 +1577,16 @@ if (isset($_POST['create_item'])) {
         } else {
             $imgThumbPath = null;
         }
+    } // end of image uploads
+    if (isset($cPost['file_upload']) && $_FILES['file_upload']['name']>'') {
+        $filePath = uploadFile($dir, $_FILES['file_upload'], false, $set['max_upld_storage']);
+        if (!$filePath) {
+            $msg = 'File upload failed. Please try again.';
+        } else {
+            $filePath= '['.substr($cPost['file_pres'], 0, 3).']'.$filePath;
+        }
+    } else {
+        $filePath = null;
     }
     if ($cPost['publish_datetime']) {
         $pdtUnix = strtotime($cPost['publish_datetime']);
@@ -1514,12 +1599,13 @@ if (isset($_POST['create_item'])) {
     if ($cPost['format'] <= '') {
         $cPost['format'] = null;
     }
-    $qry = "INSERT INTO Items (Sect_ID,Title,Img_Path,Embed_HTML,Img_Thumb_Path,Text,Publish_Timestamp,Hidden,Format)
-    VALUES (:sectid,:title,:img,:embed,:imgthumb,:text,:ts,:hide,:format);";
+    $qry = "INSERT INTO Items (Sect_ID,Title,Img_Path,File_Path,Embed_HTML,Img_Thumb_Path,Text,Publish_Timestamp,Hidden,Format)
+    VALUES (:sectid,:title,:img,:file,:embed,:imgthumb,:text,:ts,:hide,:format);";
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(':sectid',$cPost['n_sect_id'], SQLITE3_INTEGER);
     $stmt->bindValue(':title',$cPost['title'], SQLITE3_TEXT);
     $stmt->bindValue(':img',$imgPath, SQLITE3_TEXT);
+    $stmt->bindValue(':file',$filePath, SQLITE3_TEXT);
     $stmt->bindValue(':embed',$cPost['b_embed'], SQLITE3_TEXT);
     $stmt->bindValue(':imgthumb',$imgThumbPath, SQLITE3_TEXT);
     $stmt->bindValue(':text',$cPost['b_text'], SQLITE3_TEXT);
@@ -1538,16 +1624,14 @@ if (isset($_POST['edit_item'])) {
     global $set;
     $conn = new SQLite3($db);
     $cPost = cleanServerPost($_POST);
-    $type = $cPost['type'];
-    $dir = '/assets/uploads/items/';
     $msg ="";
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
     if (!$set['has_max_upld_storage']) {$set['max_upld_storage'] = false;}
-    require_once 'imgUpload.php';
-    $imgName = str_replace($dir, "", str_replace('.'.pathinfo($cPost['img_stored'],PATHINFO_EXTENSION),"",$cPost['img_stored']));
+    require_once 'upload.php';
+    $dir = '/assets/uploads/items/section-'.$cPost['n_sect_id'].'/';
+    $imgName = str_replace($dir, "", str_replace('.'.pathinfo($cPost['img_stored'],PATHINFO_EXTENSION),"",$cPost['img_stored'])).'-'.time();
     if (isset($_FILES['img_upload']) && $_FILES['img_upload']['name']>'') {
-        $_FILES['img_upload']['name'] = cleanFileName($_FILES['img_upload']['name']);
-        $imgName = str_replace(pathinfo($_FILES['img_upload']['name'],PATHINFO_EXTENSION),"",$_FILES['img_upload']['name']);
+        $imgName = str_replace(pathinfo($_FILES['img_upload']['name'],PATHINFO_EXTENSION),"",$_FILES['img_upload']['name']).'-'.time();
         if (!$cPost['img_stored']) {
             $cPost['img_stored'] = false;
         } else {
@@ -1555,7 +1639,7 @@ if (isset($_POST['edit_item'])) {
         }
         $imgPath = uploadImage ($dir, $_FILES['img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage'], $cPost['img_stored']);
         if (!$imgPath) {
-            $msg .= 'Image upload failed. Please try again.';
+            $msg .= 'Image upload failed. Please try again. ';
             return;
         }
     } else {
@@ -1569,7 +1653,7 @@ if (isset($_POST['edit_item'])) {
         if (isset($_FILES['thumb_upload']) && $_FILES['thumb_upload']['name']) {
             $imgThumbPath = uploadImage ($dir, $_FILES['thumb_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, $imgName.'_thumb', $set['max_upld_storage'],$cPost['thumb_stored']);
             if (!$imgThumbPath) {
-                $msg .= 'Thumbnail image upload failed. Please try again.';
+                $msg .= 'Thumbnail image upload failed. Please try again. ';
                 return;
             }
         } else {
@@ -1593,6 +1677,28 @@ if (isset($_POST['edit_item'])) {
             $imgThumbPath = null;
         }
     }
+    if (isset($_FILES['file_upload']) && $_FILES['file_upload']['name']>'') {
+        $imgName = str_replace(pathinfo($_FILES['file_upload']['name'],PATHINFO_EXTENSION),"",$_FILES['file_upload']['name']).'-'.time();
+        if (!$cPost['file_stored']) {
+            $cPost['file_stored'] = false;
+        } else {
+            $cPost['file_stored'] = stripHTML($cPost['file_stored']);
+        }
+        $filePath = uploadFile ($dir, $_FILES['file_upload'], false, $set['max_upld_storage'], $cPost['file_stored']);
+        if (!$filePath) {
+            $msg .= 'Image upload failed. Please try again. ';
+            return;
+        }
+    } else {
+        if ($cPost['file_stored']) {
+            $filePath =  $cPost['file_stored'];
+        } else {
+            $filePath = null;
+        }
+    }
+    if ($filePath) {
+        $filePath= '['.substr($cPost['file_pres'], 0, 3).']'.$filePath;
+    }
     if ($cPost['publish_datetime']) {
         $pdtUnix = strtotime($cPost['publish_datetime']);
     } else {
@@ -1605,17 +1711,18 @@ if (isset($_POST['edit_item'])) {
         $cPost['format'] = null;
     }
     $qry = "UPDATE Items 
-            SET Sect_ID=:sectid,Title=:title,Img_Path=:img,Embed_HTML=:embed,
-            Img_Thumb_Path=:imgthumb,Text=:text,Publish_Timestamp=:ts,Format=:format,Hidden=:hide
+            SET Sect_ID=:sectid,Title=:title,Publish_Timestamp=:ts,Text=:text,Img_Path=:img,File_Path=:file,
+            Embed_HTML=:embed,Img_Thumb_Path=:imgthumb,Format=:format,Hidden=:hide
             WHERE ID=:id;";
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(':sectid',$cPost['n_sect_id'], SQLITE3_INTEGER);
     $stmt->bindValue(':title',$cPost['title'], SQLITE3_TEXT);
+    $stmt->bindValue(':ts',$pdtUnix, SQLITE3_INTEGER);
+    $stmt->bindValue(':text',$cPost['b_text'], SQLITE3_TEXT);
     $stmt->bindValue(':img',$imgPath, SQLITE3_TEXT);
+    $stmt->bindValue(':file',$filePath, SQLITE3_TEXT);
     $stmt->bindValue(':embed',$cPost['b_embed'], SQLITE3_TEXT);
     $stmt->bindValue(':imgthumb',$imgThumbPath, SQLITE3_TEXT);
-    $stmt->bindValue(':text',$cPost['b_text'], SQLITE3_TEXT);
-    $stmt->bindValue(':ts',$pdtUnix, SQLITE3_INTEGER);
     $stmt->bindValue(':hide',$cPost['n_hidden'], SQLITE3_INTEGER);
     $stmt->bindValue(':format',$cPost['format'], SQLITE3_TEXT);
     $stmt->bindValue(':id',$cPost['n_item_id'], SQLITE3_INTEGER);
@@ -1637,6 +1744,38 @@ if (isset($_POST['delete_item'])) {
         $msg="Item deleted!";
     } else {
         $msg="Item failed to delete. Please try again.";
+    }
+}
+
+
+if (isset($_POST['save_item_order'])) {
+    global $db;
+    $conn = new SQLite3($db);
+    $msg="";
+    usort($_POST["item"], function ($a, $b) {
+        return $a['n_index_order'] <=> $b['n_index_order'];
+    });
+    $indexOrder=0;
+    $error = false;
+    $qry = "UPDATE Items SET Sect_Index_Order=:num WHERE ID=:itemid";
+    foreach ($_POST["item"] AS &$item) {
+        if ($error) {
+            $msg.=" There was an error saving your item order changes. Please try again.";
+            return;
+        }
+        $cPost = cleanServerPost($item);
+        $indexOrder = ($indexOrder+1);
+        $stmt = $conn->prepare($qry);
+        $stmt->bindValue(':num',$indexOrder, SQLITE3_INTEGER);
+        $stmt->bindValue(':itemid',$cPost['n_item_id'], SQLITE3_INTEGER);
+        if (!$stmt->execute()) {
+            $error = true;
+        }
+    }
+    if (!$error) {
+        $msg.="Changes saved!";
+    } else {
+        $msg.=" There was an error saving your item order changes. Please try again.";
     }
 }
 
@@ -1662,9 +1801,8 @@ if (isset($_POST['save_menu'])) {
             $cPost['n_dropdown'] = 0;
         }
         $indexOrder = ($indexOrder+1);
-        $cPost['n_index'] = $indexOrder;
         $stmt = $conn->prepare($qry);
-        $stmt->bindValue(':inorder',$cPost['n_index'], SQLITE3_INTEGER);
+        $stmt->bindValue(':inorder',$indexOrder, SQLITE3_INTEGER);
         $stmt->bindValue(':link',$cPost['link'], SQLITE3_TEXT);
         $stmt->bindValue(':indrop',$cPost['n_dropdown'], SQLITE3_INTEGER);
         $stmt->bindValue(':hidden',$cPost['n_hidden'], SQLITE3_INTEGER);

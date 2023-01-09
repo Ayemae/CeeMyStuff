@@ -1,11 +1,12 @@
 <?php
 
-$allowedFT = array('jpg','jpeg','png','gif','webp','svg');
+$validImgFT = array('jpg','jpeg','png','gif','webp');
+
 
 function is_image($file) {
-  global $allowedFT;
+  global $validImgFT;
   $whitelist = array();
-  foreach ($allowedFT AS &$ft) {
+  foreach ($validImgFT AS &$ft) {
     if ($ft === 'svg') {
         $ft = $ft.'+xml';}
           $whitelist[] = 'image/'.$ft;
@@ -49,11 +50,88 @@ function isAniGif($filename) {
   return $count > 1;
 }
 
-function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $hIsSoft=false, $setName=false, $storageLimit=false, $storedName=false) {
+//////// STANDARD FILE UPLOAD /////////
+function uploadFile ($targetDir, $file, $setName=false, $storageLimit=false, $storedName=false, $validFTs=false) {
   global $root;
-  global $allowedFT;
-    $dir = $root.$target_dir;
-    $msg = "<div class='error'><h2>Invalid Image Upload</h2>";
+  if (is_string($validFTs)) {
+    $validFTs = explode(',', $filetypes);
+  }
+    $dir = $root.$targetDir;
+    $fileUpldMsg = "<div class='error'><h2>Invalid File Upload</h2>";
+    //Check if targetDir's directory already exists.
+    if(!is_dir($dir)){
+        //Create directory if does not exist. 'True' makes this recursive.
+        mkdir($dir, 0755, true);
+    };
+
+    $fileType = strtolower(pathinfo(basename($file["name"]),PATHINFO_EXTENSION));
+    if ($setName) {
+      $filename = cleanFileName($setName);
+    } else {
+      $filename = str_replace(".".$fileType, "", cleanFileName(basename($file["name"])));
+    }
+    $targetFile = $dir.$filename.".".$fileType;
+    $valid = true;
+ 
+    // Allow certain file formats
+    if($validFTs && !in_array($fileType, $validFTs)) {
+      $msg .= "'".$fileType."' files are not accepted.<br/> The filetype must be one of the following: ".implode(', ', $validFTs).'. ';
+      $valid = false;
+    };
+    if ($storageLimit) {
+      // convert megabytes in $storageLimit to bytes
+      $storageLimit = ($storageLimit*1000000);
+      if ($file["size"] > $storageLimit) {
+        $msg .= "Your file is too large (over ".formatSizeUnits($storageLimit)."MB). Save it at a smaller size or lower quality, and try again.<br/>";
+        $valid = false;
+      }
+    };
+    $storedName = trim($storedName);
+    // if there is no $setName for this file, or the image being uploaded does not have the same name as the stored version
+    if (!$setName) {
+      if ($storedName && ($targetDir.basename($file["name"]) != $storedName)) {
+      // Check if filename already exists within folder
+        if ($targetDir.basename($file["name"]) != $storedName) {
+          if (file_exists($dir.basename($file["name"]))) {
+            $msg .= "<br/>Sorry, a file with this name already exists.<br/>";
+            $valid = false;
+          }
+        }
+      }
+    };
+    // Check if $valid is false
+    if (!$valid) {
+      $_SESSION['Msg'] = $fileUpldMsg;
+    // if everything is ok, try to upload file
+    } else {
+      if (move_uploaded_file($file["tmp_name"], $targetFile)) {
+            if (file_exists($dir.basename($targetFile))) {
+              return $targetDir.basename($targetFile);
+            } else {
+              $msg .= "There was an error uploading your file.";
+              $_SESSION['Msg'] = $fileUpldMsg;
+              return false;
+            }
+      } else {
+        $fileUpldMsg .= "There was an error uploading your file.";
+        $_SESSION['Msg'] = $fileUpldMsg;
+        return false;
+      }
+    }
+  };
+
+
+//////// IMAGE UPLOAD ////////
+function uploadImage ($targetDir, $file, $w=false, $h=false, $wIsSoft=false, $hIsSoft=false, $setName=false, $storageLimit=false, $storedName=false, $filetypes=false) {
+  global $root;
+  global $validImgFT;
+  if ($filetypes) {
+    $allowedTypes = explode(',', $filetypes);
+  } else {
+    $allowedTypes = $validImgFT;
+  }
+    $dir = $root.$targetDir;
+    $imgErrorMsg = "<div class='error'><h2>Invalid Image Upload</h2>";
     //Check if the directory already exists.
     if(!is_dir($dir)){
         //Create directory if does not exist. 'True' makes this recursive.
@@ -62,11 +140,11 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
 
     $imageFileType = strtolower(pathinfo(basename($file["name"]),PATHINFO_EXTENSION));
     if ($setName) {
-      $filename = $setName;
+      $filename = cleanFileName($setName);
     } else {
-      $filename = str_replace(".".$imageFileType, "", basename($file["name"]));
+      $filename = str_replace(".".$imageFileType, "", cleanFileName(basename($file["name"])));
     }
-    $target_file = $dir.$filename.".".$imageFileType;
+    $targetFile = $dir.$filename.".".$imageFileType;
     $valid = true;
     
     $check = getimagesize($file["tmp_name"]);
@@ -77,32 +155,32 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
     if($check && is_image($file)) {
     $valid = true;
     } else {
-      $msg .= "File is not an image.<br/>";
+      $imgErrorMsg .= "File is not an image.<br/>";
     $valid = false;
     return false;
   };
  
     // Allow certain file formats
-    if(!in_array($imageFileType, $allowedFT)) {
-      $msg .= "'".$imageFileType."' files are not accepted.<br/>";
+    if(!in_array($imageFileType, $allowedTypes)) {
+      $imgErrorMsg .= "'".$imageFileType."' files are not accepted.<br/> The filetype must be one of the following: ".implode(', ', $allowedTypes).'. ';
       $valid = false;
     };
     if ($storageLimit) {
       // convert megabytes in $storageLimit to bytes
       $storageLimit = ($storageLimit*1000000);
       if ($file["size"] > $storageLimit) {
-        $msg .= "Your file is too large (over ".formatSizeUnits($storageLimit)."). Save it at a smaller size or lower quality, and try again.<br/>";
+        $imgErrorMsg .= "Your file is too large (over ".formatSizeUnits($storageLimit)."). Save it at a smaller size or lower quality, and try again.<br/>";
         $valid = false;
       }
     };
     $storedName = trim($storedName);
     // if there is no $setName for this file, or the image being uploaded does not have the same name as the stored version
     if (!$setName) {
-      if ($storedName && ($target_dir.basename($file["name"]) != $storedName)) {
+      if ($storedName && ($targetDir.basename($file["name"]) != $storedName)) {
       // Check if filename already exists within folder
-        if ($target_dir.basename($file["name"]) != $storedName) {
+        if ($targetDir.basename($file["name"]) != $storedName) {
           if (file_exists($dir.basename($file["name"]))) {
-            $msg .= "<br/>Sorry, a file with this name already exists.<br/>";
+            $imgErrorMsg .= "<br/>Sorry, a file with this name already exists.<br/>";
             $valid = false;
           }
         }
@@ -121,40 +199,43 @@ function uploadImage ($target_dir, $file, $w=false, $h=false, $wIsSoft=false, $h
             $valid = false;
             };
         }
-        if ($w && $h && $sizeError>'') {
-            $sizeError .= ' and ';
-            };
           if ($h) {
             if ($h && !$hIsSoft && $height != $h) {
+              if ($sizeError>'') {
+                $sizeError .= ' and ';
+                };
               $sizeError .= $h.' pixels in height';
               $valid = false;
             } else if ($h && $hIsSoft && $height > $h) {
+              if ($sizeError>'') {
+                $sizeError .= ' and ';
+                };
               $sizeError .= 'less than '.$h.' pixels in height';
               $valid = false;
             };
           }
         if ($sizeError && !$valid) {
             $sizeError= "Image must be ".$sizeError.".<br/>";
-            $msg .= $sizeError;
+            $imgErrorMsg .= $sizeError;
         };
     }
   }
     // Check if $valid is false
     if (!$valid) {
-      $_SESSION['Msg'] = $msg;
+      $_SESSION['Msg'] = $imgErrorMsg;
     // if everything is ok, try to upload file
     } else {
-      if (move_uploaded_file($file["tmp_name"], $target_file)) {
-            if (file_exists($dir.basename($target_file))) {
-              return $target_dir.basename($target_file);
+      if (move_uploaded_file($file["tmp_name"], $targetFile)) {
+            if (file_exists($dir.basename($targetFile))) {
+              return $targetDir.basename($targetFile);
             } else {
-              $msg .= "There was an error uploading your image.";
-              $_SESSION['Msg'] = $msg;
+              $imgErrorMsg .= "There was an error uploading your image.";
+              $_SESSION['Msg'] = $imgErrorMsg;
               return false;
             }
       } else {
-        $msg .= "There was an error uploading your image.";
-        $_SESSION['Msg'] = $msg;
+        $imgErrorMsg .= "There was an error uploading your image.";
+        $_SESSION['Msg'] = $imgErrorMsg;
         return false;
       }
     }
