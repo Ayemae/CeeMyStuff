@@ -11,10 +11,10 @@ include '_components/admin-header.inc.php';
 <?php 
 if (isset($_GET['key'])) : 
     $validation = validateEmail($_GET['key']);
-    if (!$validation || is_string($validation)) : 
-        echo '<h2>Account validation failed.</h2><p>'.$validation.'</p>';
-    else : ?>
-        <h2>Account verified. Login below!</h2>
+    if (!$validation || is_string($validation)) : ?>
+         <h2>Email validation failed.</h2><p><?=$validation?></p>;
+   <? else : ?>
+        <h2>Email verified. Login below!</h2>
     <?php 
     include '_components/login.inc.php';
     endif;

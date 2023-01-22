@@ -10,7 +10,7 @@
         <br/>
         <label for="n_show_title">Show section name on the website:</label>
         <input type="hidden" name="n_show_title" value="0">
-        <input type="checkbox" name="n_show_title" id="n_show_title" value="1" <?=(isset($_POST['n_show_title']) && $_POST['n_show_title']<1 ? null : 'checked')?>>
+        <input type="checkbox" name="n_show_title" id="n_show_title" value="1" <?=(isset($_POST['n_show_title']) ? formCmp($_POST['n_show_title'],1) : null )?>>
     </li>
 
     <li>
@@ -51,18 +51,18 @@
         <div>
             <label for="order_by">Order Items By:</label>
             <select id="order_by" name="order_by">
-                <option value="Date" <?(!isset($_POST['order_by']) ? null : show((!$_POST['order_by'] == 'Date' ? 'selected' : null )))?>>Date</option>
-                <option value="Title" <?(!isset($_POST['order_by']) ? null : show(($_POST['order_by']== 'Title' ? 'selected' : null )))?>>Title</option>
-                <option value="Custom" <?(!isset($_POST['order_by']) ? null : show(($_POST['order_by']== 'Custom' ? 'selected' : null )))?>>Custom</option>
-                <option value="ID" <?(!isset($_POST['order_by']) ? null : show(($_POST['order_by']== 'ID' ? 'selected' : null )))?>>When Added</option>
-                <option value="Random" <?(!isset($_POST['order_by']) ? null : show(($_POST['order_by']== 'Random' ? 'selected' : null )))?>>Random</option>
+                <option value="Date" <?(!isset($_POST['order_by']) ? null : formCmp($_POST['order_by'],'Date','s'))?>>Date</option>
+                <option value="Title" <?(!isset($_POST['order_by']) ? null : formCmp($_POST['order_by'],'Title','s'))?>>Title</option>
+                <option value="Custom" <?(!isset($_POST['order_by']) ? null : formCmp($_POST['order_by'],'Custom','s'))?>>Custom</option>
+                <option value="ID" <?(!isset($_POST['order_by']) ? null : formCmp($_POST['order_by'],'ID','s'))?>>When Added</option>
+                <option value="Random" <?(!isset($_POST['order_by']) ? null : formCmp($_POST['order_by'],'Random','s'))?>>Random</option>
             </select>
         </div>
         <div>
             <label for="order-dir">Order Direction:</label>
             <select id="order-dir" name="n_order_dir">
                 <option value="0">Ascending</option>
-                <option value="1" <?=(isset($_POST['order_dir']) && $_POST['order_dir'] != 0 ? 'selected' : null )?>>Descending</option>
+                <option value="1" <?=(isset($_POST['order_dir']) ? formCmp($_POST['order_dir'],'1','s') : null )?>>Descending</option>
             </select>
         </div>
     </li>
@@ -104,9 +104,9 @@
     <li>
         <label for="show_text">Show Item Text:</label>
         <select id="show_text" name="n_show_text">
-            <option value="0" <?show((isset($_POST['n_show_text']) && !$_POST['n_show_text'] ? 'selected' : null ))?>>No</option>
-            <option value="1" <?show((isset($_POST['n_show_text']) && $_POST['n_show_text']==1 ? 'selected' : null ))?>>Show Truncated Text</option>
-            <option value="2" <?show((!isset($_POST['n_show_text']) ? 'selected' : ($_POST['n_show_text']==1 ? 'selected' : null )))?>>Show Full Text</option>
+            <option value="0" <?(isset($_POST['n_show_text']) ? formCmp($_POST['n_show_text'],0,'s') : null )?>>No</option>
+            <option value="1" <?(isset($_POST['n_show_text']) ? formCmp($_POST['n_show_text'],1,'s') : null )?>>Show Truncated Text</option>
+            <option value="2" <?(!isset($_POST['n_show_text']) ? 'selected' : formCmp($_POST['n_show_text'],2,'s'))?>>Show Full Text</option>
         </select>
     </li>
 

@@ -78,7 +78,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Sections (
     Show_Item_Titles INTEGER NOT NULL DEFAULT 1,
     Show_Item_Text INTEGER NOT NULL DEFAULT 1,
     Show_Item_Files INTEGER NOT NULL DEFAULT 1,
-    Click_Ref TEXT DEFAULT "Whole",
+    Item_Click_Area TEXT DEFAULT "Whole",
     On_Click_Subject INTEGER DEFAULT 1,
     On_Click_Action INTEGER DEFAULT 1,
     Link_Text TEXT DEFAULT "Click here",
@@ -117,7 +117,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Accounts (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     Username TEXT COLLATE NOCASE,
     Email TEXT COLLATE NOCASE,
-    Email_Valid INTEGER,
+    Email_Valid INTEGER DEFAULT 0,
     Password TEXT,
     Is_Admin INTEGER,
     Activation_Timestamp INTEGER,
@@ -260,10 +260,6 @@ include '_components/admin-header.inc.php';
         <li>
             <label for="password2">Confirm Your Password:</label>
             <input type="password" id="password2" name="password2" max-length="255"/>
-        </li>
-        <li>
-            <label for="name">Your Name:</label>
-            <input type="text" id="name" name="name" max-length="255"/>
         </li>
     </ul>
 

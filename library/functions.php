@@ -51,14 +51,18 @@ $route = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].dirname($_SERVER
 $themePath = $root.'/themes/'.$set['theme'];
 date_default_timezone_set($set['timezone']);
 
-function show($input=false) {
+function show($input=false, $altInput=false) {
     if (is_array($input)) {
         $input= implode(', ', $input);
+    } if (is_array($altInput)) {
+        $altInput= implode(', ', $altInput);
     }
     if ($input || $input === 0 || $input === "0") {
         echo $input;
+    } elseif ($altInput || $altInput === 0 || $altInput === "0") {
+        echo $altInput;
     } else {
-        return;
+        return null;
     }
 }
 function showID($input, $rplc="_") {
@@ -70,6 +74,43 @@ function showID($input, $rplc="_") {
         return;
     }
 }
+
+function formCmp($input, $compare=null, $type="c", $strict=false) {
+    switch ($type) {
+        case ('s') : // 's' = 'select'
+        $echo1 = 'selected';
+        $echo2 = null;
+        break;
+        case ('sr') : // 'sr' = 'select-reverse'
+            $echo1 = null;
+            $echo2 = 'selected';
+        break;
+        case ('cr') : // 'cr' = 'checkbox-reverse'
+            $echo1 = null;
+            $echo2 = 'checked';
+        break;
+        case ('c') : // 'c' = 'checkbox'
+            // inherit default
+        default :
+            $echo1 = 'checked';
+            $echo2 = null;
+            break;
+    }
+    if (($compare===null)
+        &&
+        (($strict===true && $input) 
+            ||
+            ($strict===false && ($input || $input === 0 || $input === "0")))
+        ) {
+        echo $echo1;
+    } elseif (($strict && $input === $compare) ||
+    (!$strict && $input == $compare)) {
+        echo $echo1;
+    } else {
+        echo $echo2;
+    }
+}
+
 function truncateTxt($txt,$at=140,$trail="...") {
     if (strlen($txt)>$at) {
         $cutOff = ($at - strlen($trail));
@@ -215,24 +256,29 @@ function getFormatList($key='items') {
     return $formatList;
 }
 
+function pwCmp($pw1,$pw2){
+    if ($pw1 === $pw2) {
+        return hash("sha256", $pw1);
+    } else {
+        return false;
+    }
+}
+
 if (isset($_POST['submit_credentials'])) {
     $msg= '';
     global $db; global $route;
     global $emailHeaders;
     $name = stripHTML($_POST['name']);
     if ($_POST['email'] && $_POST['password'] && $_POST['password2']) {
-        $passw = $_POST['password'];
-        $passw2 = $_POST['password2'];
         if (filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
             $email = stripHTML(strtolower($_POST['email']));
         } else {
             $msg .= 'Please enter a valid email address.<br/>';
         }
-        if ($passw == $email) {
+        $password = pwCmp($_POST['password'],$_POST['password2']);
+        if (strcasecmp($_POST['password'], $email) === 0) {
             $msg .= "Your password can't be the same as your email.<br/>";
-        } else if ($passw === $passw2) {
-            $password = hash("sha256", $passw);
-        } else {
+        } else if ($password === false) {
             $msg .= 'Your password and password confirmation do not match.<br/>';
         }
     } else {
@@ -290,39 +336,76 @@ if (isset($_POST['submit_credentials'])) {
 
 function validateEmail($key) {
     global $db;
-    $ehash = null; $email = null; $unix = null; $expired = true;
+    $adminValid = null; $emailValid = null; $unix = null; $expired = true; $newEmail = null; $bind = null;
     $conn = new SQLite3($db);
-    $msg = '';
-    $qry = "SELECT Email, Activation_Timestamp, Activation_Key FROM Accounts WHERE Is_Admin = 1 LIMIT 1;";
+    $msg = 'Something went wrong. Please try again.';
+    $qry = "SELECT Email_Valid FROM Accounts WHERE Is_Admin = 1 LIMIT 1;";
     $result = $conn->prepare($qry)->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-            $email = $row['Email'];
+            $adminValid = $row['Email_Valid'];
+    }
+    if (!$adminValid) {
+        $qryWhere = 'Is_Admin = 1';
+    } elseif (isset($_SESSION['New_Email']) && $_SESSION['New_Email']>'') {
+        $qryWhere = 'Curr_Sess_ID = ?';
+        $bind = session_id();
+        $newEmail = $_SESSION['New_Email'];
+    } else {
+        //// this is for later, if the capability for more than one account is ever added to the system
+        $qryWhere = 'Activation_Key = ?';
+        $bind = $key;
+    }
+    $qry = "SELECT Email_Valid, Activation_Timestamp, Activation_Key FROM Accounts WHERE $qryWhere LIMIT 1;";
+    $stmt = $conn->prepare($qry);
+    if ($bind) {
+        $stmt->bindValue(1, $bind, SQLITE3_TEXT);
+    }
+    $result = $stmt->execute();
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+            $emailValid = $row['Email_Valid'];
             $unix = $row['Activation_Timestamp'];
             $keyHash = $row['Activation_Key'];
-    } 
+    }
+    if (!$keyHash) {
+        return $error;
+    }
     // if it's been less than 15 minutes between the validation and when the email was sent
     if ((intval($unix) + (15*60)) > time()) {
         $expired = false;
     } else {
-        $error .= "This activation email has expired. Please try again.";
+        $error = "This email activation key has expired. Please try again.";
         return $error;
     }
     if (!$expired && hash_equals(hash("sha256", $key), $keyHash)) {
-        $updQry = "UPDATE Accounts SET Email_Valid = 1 WHERE Is_Admin = 1;";
-        if ($conn->prepare($updQry)->execute()) {
-            if(is_writable('install.php')){
-                //Delete the file
-                if (!unlink('install.php')) {
-                    error_log('install.php failed to delete.');
+        if (!$newEmail) {
+            $updQry = "UPDATE Accounts SET Email_Valid = 1 WHERE Activation_Key = ? LIMIT 1;";
+            $updStmt = $conn->prepare($updQry);
+            $updStmt->bindValue(1,$keyHash,SQLITE3_TEXT);
+            if ($updStmt->execute()) {
+                // if install.php still exists and is writable...
+                if(is_writable('install.php')){
+                    // ...delete the install.php file
+                    if (!unlink('install.php')) {
+                        error_log("The 'install.php' file failed to delete.");
+                    }
                 }
+                return true;
+            } else {
+                return $error;
             }
-            return true;
         } else {
-            $error .= 'Something went wrong. Please try again.';
-            return $error;
+            $updQry = "UPDATE Accounts SET Email = ? WHERE Curr_Sess_ID = ? LIMIT 1;";
+            $updStmt = $conn->prepare($updQry);
+            $updStmt->bindValue(1,$newEmail, SQLITE3_TEXT);
+            $updStmt->bindValue(2,$sessID, SQLITE3_TEXT);
+            if (!$updStmt->execute()) {
+                return $error;
+            } else {
+                return true;
+            }
         }
     } else {
-        $error .= 'Credentials do no match or were set incorrectly.';
+        $error = 'Credentials do no match or were set incorrectly.';
         return $error;
     }
 }
@@ -410,11 +493,8 @@ if (isset($_POST['reset_password'])) {
     global $db;
     $key = htmlspecialchars($_POST['key']);
     if ($_POST['password'] && $_POST['password2']) {
-        $passw = $_POST['password'];
-        $passw2 = $_POST['password2'];
-        if ($passw === $passw2) {
-            $password = hash("sha256", $passw);
-        } else {
+        $password = pwCmp($_POST['password'],$_POST['password2']);
+        if ($password === false) {
             $msg .= 'Your password and password confirmation do not match.<br/>';
             return ;
         }
@@ -437,15 +517,11 @@ if (isset($_POST['reset_password'])) {
             $msg = "A database error occurred. Try again.";
             return ;
         } 
-            } else {
-                $msg = "New password failed to record. Try again.";
-                return ;
-            }
-        if ($failed === false) {
-            $msg = 'Password has been reset! <a href="'.$set['dir'].'/admin">Login here.</a>';
-        } else {
-            $msg = 'Credential submission failed. Please try again.';
-        }
+    } else {
+        $msg = "New password failed to record. Try again.";
+        return ;
+    }
+    $msg = 'Password has been reset! <a href="'.$set['dir'].'/admin">Login here.</a>';
 }
 
 if (isset($_POST['login'])) {
@@ -504,7 +580,7 @@ if (isset($_POST['login'])) {
         $loginAttempts = $loginAttempts+1;
         $updtQry= "UPDATE Accounts SET Login_Attempts = :la";
         if ($loginAttempts >= 2) {
-            $lockedUntil = (time()+(60*8));
+            $lockedUntil = (time()+(60*8)); //lock for 8 minutes
             $updtQry .= ", Locked_Until = :lu ";
             $msg .= '<br/>Too many failed login attempts. Try again in a few minutes.';
         } else {
@@ -537,6 +613,85 @@ function logout() {
     session_destroy();
     session_write_close();
     //setcookie(session_name(),'',0,'/');
+}
+
+if (isset($_POST['change_password'])) {
+    $msg= '';
+    global $db;
+    if ($_POST['password'] && $_POST['password2']) {
+        $password = pwCmp($_POST['password'],$_POST['password2']);
+        if ($password === false) {
+            $msg .= 'Your password and password confirmation do not match.<br/>';
+            return ;
+        }
+    } else {
+        $msg .= 'Please fill out all of the following fields.';
+        return ;
+    }
+    $oldPW = hash("sha256", $_POST['old_password']);
+    $sessID = session_id();
+    $conn = new SQLite3($db);
+    $dateQry = "UPDATE Accounts SET 
+                            Password = :pw
+                        WHERE Password = :oldpw AND Curr_Sess_ID = :sessid;";
+    $stmt = $conn->prepare($dateQry);
+    $stmt->bindValue(':pw', $password, SQLITE3_TEXT);
+    $stmt->bindValue(':oldpw', $oldPW, SQLITE3_TEXT);
+    $stmt->bindValue(':sessid', $sessID, SQLITE3_TEXT);
+    if (!$stmt->execute()) {
+        $msg = "A database error occurred. Try again.";
+        return ;
+    } else if ($conn->changes()<1) {
+        $msg = "Your current password is incorrect.";
+        return ;
+    }
+    $msg = "Your password has been changed!";
+}
+
+if (isset($_POST['change_email'])) {
+    global $db; global $emailHeaders; 
+    $failed = false;
+    $email = filter_var($_POST['new_email'], FILTER_VALIDATE_EMAIL);
+    if ($email) {
+        $_SESSION['New_Email'] = $email;
+    } else {
+        $msg = "<p>The email input is invalid. Check to make sure that it's written correctly, and try again.</p>";
+        return $msg;
+    }
+    $conn = new SQLite3($db);
+    $time = time();
+    $key = bin2hex(random_bytes(22));
+    $keyHash = hash("sha256", $key);
+    $sessID = session_id();
+    $qry = "UPDATE Accounts SET 
+                    Activation_Timestamp = :time, 
+                    Activation_Key = :key
+                WHERE Curr_Sess_ID = :sessid
+                LIMIT 1;";
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(':time', $time, SQLITE3_INTEGER);
+    $stmt->bindValue(':key', $keyHash, SQLITE3_TEXT);
+    $stmt->bindValue(':sessid', $sessID, SQLITE3_TEXT);
+    if (!$stmt->execute()) {
+        $failed = true;
+    }
+    if ($failed === false) {
+        $body = "To activate your new email address, click the following link:<br/>";
+        $activateUrl = html_entity_decode($route."/index.php?key=$key");
+        $body .=  '<a href="'.$activateUrl.'">'.$activateUrl.'</a>';
+            if (mail($email, 'Validate your new email address', $body, $emailHeaders)) {
+                $msg = "<p>A confirmation email has been sent to your new email address! If it hasn't shown up within a few minutes, 
+                check your spam or junk folder.</p>";
+            } else {
+                $msg = "<p>The email to validate your new email address failed to send. Please try again.</p>";
+            }
+            error_log('Email activation link failsafe: '.$activateUrl);
+            ////FOR TESTING 
+            //echo $body;
+    } else {
+        $msg = '<p>Something went wrong. Please try again.</p>';
+        return $msg;
+    }
 }
 
 function getPage($page, $key="id"){

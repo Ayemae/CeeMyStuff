@@ -13,6 +13,12 @@ if (isset($_GET['id'])) {
 } else {
     $pageID = 0;
 }
+
+// refractor later:
+// $page;
+// if (!empty($_POST)) {
+//     $page = array(['']=>,)
+// }
 ?>
 
 <main>
@@ -27,6 +33,7 @@ if (isset($_GET['id'])) {
         break;
     case 'edit' :
         $page = getPage($pageID);
+        $sectList = getPageSects($pageID);
         $formatList = getFormatList('page');
         include '_components/page-edit.inc.php';
         break;

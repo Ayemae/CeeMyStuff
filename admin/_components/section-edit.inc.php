@@ -95,7 +95,7 @@
             <label for="item-format">Default Item Display Format:</label>
             <select name="item_format" id="item-format">
                 <?php foreach ($itemFormats AS $iFormat) :?>
-                <option value="<?show($iFormat['Path'])?>" <?=($sect['Default_Item_Format']===$iFormat['Path'] ? 'selected' : null)?>>
+                <option value="<?show($iFormat['Path'])?>" <?formCmp($sect['Default_Item_Format'],$iFormat['Path'],'s')?>>
                     <?show($iFormat['Name'])?>
                 </option>
                 <?php endforeach;?>
@@ -114,18 +114,18 @@
     <li>
         <label for="show_text">Show Item Text:</label>
         <select id="show_text" name="n_show_text">
-            <option value="0" <?show((!$sect['Show_Item_Text'] ? 'selected' : null ))?>>No</option>
-            <option value="1" <?show(($sect['Show_Item_Text']==1 ? 'selected' : null ))?>>Show Truncated Text</option>
-            <option value="2" <?show(($sect['Show_Item_Text']==2 ? 'selected' : null ))?>>Show Full Text</option>
+            <option value="0" <?formCmp($sect['Show_Item_Text'],0,'s')?>>No</option>
+            <option value="1" <?formCmp($sect['Show_Item_Text'],1,'s')?>>Show Truncated Text</option>
+            <option value="2" <?formCmp($sect['Show_Item_Text'],2,'s')?>>Show Full Text</option>
         </select>
     </li>
 
     <li>
         <label for="show_images">Show Item Images:</label>
         <select id="show_images" name="n_show_images">
-            <option value="0" <?show((!$sect['Show_Item_Images'] ? 'selected' : null ))?>>No</option>
-            <option value="1" <?show(($sect['Show_Item_Images'] ==1 ? 'selected' : null ))?>>Show Thumbnails</option>
-            <option value="2" <?show(($sect['Show_Item_Images'] ==2 ? 'selected' : null ))?>>Show Full-Sized Images</option>
+            <option value="0" <?formCmp($sect['Show_Item_Images'],0,'s')?>>No</option>
+            <option value="1" <?formCmp($sect['Show_Item_Images'],1,'s')?>>Show Thumbnails</option>
+            <option value="2" <?formCmp($sect['Show_Item_Images'],2,'s')?>>Show Full-Sized Images</option>
         </select>
     </li>
     <?php endif;?>
@@ -143,8 +143,8 @@
                 <li>
                     <label for="thumb_axis">Axis of thumbnail size:</label>
                     <select id="thumb_axis" name="n_thumb_axis">
-                        <option value="0" <?echo ($sect["Thumb_Size_Axis"] == 'width' ? 'selected' : null);?>>Width</option>
-                        <option value="1" <?echo ($sect["Thumb_Size_Axis"] == 'height' ? 'selected' : null);?>>Height</option>
+                        <option value="0" <?formCmp($sect['Thumb_Size_Axis'],'width','s')?>>Width</option>
+                        <option value="1" <?formCmp($sect['Thumb_Size_Axis'],'height','s')?>>Height</option>
                     </select>
                 </li>
             </ul>
@@ -152,10 +152,65 @@
     </li>
 
     <?php if ($sect['ID']>0) :?>
+
+    <li>
+        <div>
+            <label for="show_files">Show Item Files:</label>
+            <select id="show_files" name="n_show_files">
+                <option value="0" <?formCmp($sect['Show_Item_Files'],0,'s')?>>No</option>
+                <option value="1" <?formCmp($sect['Show_Item_Files'],1,'s')?>>Show Link to File</option>
+                <option value="2" <?formCmp($sect['Show_Item_Files'],2,'s')?>>Show File Download</option>
+            </select>
+        </div>
+        <div>
+            <label for="name">File Link Text:</label>
+            <input type="text" name="link_text" id="link-text" max-length="255" value="<?show($sect['Link_Text'])?>">
+        </div>
+    </li>
+
+    <li>
+        <div>
+            <label for="onclick-action">Item On-Click Actions:</label>
+            <p>What should happen when a viewer clicks on an item?</p>
+            <select id="onclick-action" name="onclick_action">
+                <option value="0">Load a single-item viewing page</option>
+                <option value="1">Open a lightbox with the subject</option>
+                <option value="1">Open the subject file in a new window</option>
+                <option value="0">Nothing; items should not be clickable</option>
+            </select>
+        </div>
+
+        <ul class="form-list">
+            <div>
+                <label for="click-area">Item Display Subject:</label>
+                <p>What aspect of the item do you want the spotlight on?</p>
+                <select id="onclick-action" name="n_show_titles">
+                    <option value="1">Image</option>
+                    <option value="0">Text</option>
+                    <option value="1">File</option>
+                    <option value="0">Embed</option>
+                </select>
+            </div>
+
+            <div>
+                <div><label for="click-area">Item Click Area:</label></div>
+                <input type="checkbox" class="chktoggle" id="clk-anywhere" name="item_click_area[1]" value="Anywhere">
+                <label for="anywhere">Anywhere</label>
+                <div class="chktoggle-hide">
+                    <label for="clk-title"><input type="checkbox" id="clk-title" name="item_click_area[2]" value="Title"> Title</label>
+                    <label for="clk-image"><input type="checkbox" id="clk-image" name="item_click_area[3]" value="Image"> Image</label>
+                    <label for="clk-text"><input type="checkbox" id="clk-text" name="item_click_area[4]" value="Text"> Text</label>
+                    <label for="clk-link"><input type="checkbox" id="clk-link" name="item_click_area[5]" value="Link"> Added 'View' Link</label>
+                </div>
+            </div>
+
+        </ul>
+    </li>
+
     <li>
             <label for="hidden"> Hide this section:</label>
             <input type="hidden" id="hidden" name="n_hidden" value="0">
-            <input type="checkbox" id="hidden" name="n_hidden" value="1" <?show(($sect['Hidden'] ? 'checked' : null ))?>>
+            <input type="checkbox" id="hidden" name="n_hidden" value="1" <?formCmp($sect['Hidden'])?>>
     </li>
     <?php endif;?>
     </ul>

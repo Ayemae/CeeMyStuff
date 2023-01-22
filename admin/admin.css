@@ -147,6 +147,9 @@ footer {
     justify-content: center;
 }
 
+.settings-header h2::before {
+}
+
 i.fi {
     position: relative;
     top: 2px;
