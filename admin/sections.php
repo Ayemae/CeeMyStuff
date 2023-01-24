@@ -45,6 +45,7 @@ if (isset($_GET['pageid'])) {
     case 'create' :
         $sectFormats = getFormatList('section');
         $itemFormats = getFormatList();
+        $pgList = getPageList($sect['Page_ID']);
         include '_components/section-create.inc.php';
         break;
     case 'edit' :

@@ -10,22 +10,32 @@ $settings = fetchSettings();
 
 <h1><i class="fi fi-rs-settings"></i> Site Settings</h1>
 
-<label class="settings-header" for="account-sets">
-        <h2><i class="fi fi-rs-caret-right"></i> Account/Security Settings</h2>
-    </label>
-    <input type="checkbox" class="chktoggle invis" id="account-sets">
-    <ul class="form-list chktoggle-show">
-        <li>
-            <a href="<?show($route)?>/change-email.php">Change Email</a>
-        </li>
-        <li>
-            <a href="<?show($route)?>/change-password.php">Change Password</a>
-        </li>
-    </ul>
 
 <form id='settings-form' method="post" enctype="multipart/form-data">
-<ul class="form-list">
-    <?php foreach ($settings AS $stg) :?>
+    <ul>
+        <div class="settings-block" id="account-settings-block">
+            <label class="settings-header" for="account-sets">
+                <h2><i class="fi fi-rs-caret-right"></i> Account/Security Settings</h2>
+            </label>
+            <input type="checkbox" class="chktoggle invis" id="account-sets">
+            <ul class="form-list chktoggle-show">
+                <li>
+                    <a href="<?show($route)?>/change-email.php">Change Email</a>
+                </li>
+                <li>
+                    <a href="<?show($route)?>/change-password.php">Change Password</a>
+                </li>
+            </ul>
+        </div>
+
+    <?php foreach ($settings AS $heading => $li) :?>
+        <div class="settings-block" id="<?=strtolower($heading)?>-settings-block">
+        <label class="settings-header" for="<?=strtolower($heading)?>-sets">
+            <h2><i class="fi fi-rs-caret-right"></i> <?=$heading?> Settings</h2>
+        </label>
+        <input type="checkbox" class="chktoggle invis" id="<?=strtolower($heading)?>-sets">
+        <ul class="form-list chktoggle-show">
+    <? foreach ($li AS $stg) :?>
         <li>
             <label for="<?show($stg['Field']);?>"><b><?show($stg['Field']);?>:</b></label>
             
@@ -81,6 +91,8 @@ $settings = fetchSettings();
 
         endswitch; ?>
         </li>
+    <?php endforeach;?>
+    </ul></div>
     <?php endforeach; ?>
 <ul>
 

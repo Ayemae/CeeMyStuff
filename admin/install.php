@@ -50,6 +50,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Pages (
     Name TEXT UNIQUE COLLATE NOCASE NOT NULL,
     Link TEXT UNIQUE COLLATE NOCASE NOT NULL,
     Meta_Text TEXT DEFAULT null,
+    Content TEXT DEFAULT null,
     Header_Img_Path TEXT DEFAULT null,
     Show_Title INTEGER NOT NULL DEFAULT 1,
     Show_Header_Img INTEGER NOT NULL DEFAULT 1,
@@ -78,8 +79,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Sections (
     Show_Item_Titles INTEGER NOT NULL DEFAULT 1,
     Show_Item_Text INTEGER NOT NULL DEFAULT 1,
     Show_Item_Files INTEGER NOT NULL DEFAULT 1,
-    Item_Click_Area TEXT DEFAULT "Whole",
-    On_Click_Subject INTEGER DEFAULT 1,
+    Item_Click_Area TEXT DEFAULT "All",
     On_Click_Action INTEGER DEFAULT 1,
     Link_Text TEXT DEFAULT "Click here",
     Order_By TEXT NOT NULL DEFAULT "Date",
@@ -89,6 +89,8 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Sections (
     Thumb_Size_Axis INTEGER NOT NULL DEFAULT 0,
     Format TEXT,
     Default_Item_Format TEXT,
+    View_Item_Format TEXT,
+    Lightbox_Format TEXT,
     Hidden INTEGER NOT NULL DEFAULT 0
 )');
 

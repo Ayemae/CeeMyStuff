@@ -32,8 +32,8 @@
             <select id="n_page_id" name="n_page_id">
                 <option value="">None</option>
                 <?php foreach($pgList AS $page) : 
-                if (isset($sectID) && ($sectID===$page['ID'] || $page['Can_Add_Sect'])) :?>
-                    <option value="<?show($page['ID']);?>" <?=($pageID===$page['ID'] ? 'selected' : null)?>>
+                if ($page['Can_Add_Sect']) :?>
+                    <option value="<?show($page['ID']);?>" <?=(isset($pageID) && $pageID==$page['ID'] ? 'selected' : null)?>>
                         <?show($page['Name']);?>
                     </option>
                 <?php endif; endforeach; unset($page); ?>

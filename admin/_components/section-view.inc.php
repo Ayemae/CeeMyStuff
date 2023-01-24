@@ -90,9 +90,9 @@
 
 <script src="_js/enumerate.js"></script>
 <script>
-    
+
 // May not need this after all.
-//enumerate('enumerate');
+enumerate('enumerate', 'class');
 
 function setOrderParams() {
     var order = document.getElementById('order').value;

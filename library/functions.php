@@ -1,5 +1,5 @@
 <?php
-$showErrors = 0;
+$showErrors = 1;
 if ($showErrors) {
     ini_set('display_errors', '1');
     ini_set('display_startup_errors', '1');
@@ -268,7 +268,9 @@ if (isset($_POST['submit_credentials'])) {
     $msg= '';
     global $db; global $route;
     global $emailHeaders;
-    $name = stripHTML($_POST['name']);
+    if (isset($name) && $name) {
+        $name = stripHTML($_POST['name']);
+    }
     if ($_POST['email'] && $_POST['password'] && $_POST['password2']) {
         if (filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
             $email = stripHTML(strtolower($_POST['email']));
@@ -319,8 +321,8 @@ if (isset($_POST['submit_credentials'])) {
             $activateUrl = html_entity_decode($route."/index.php?key=$key");
             $body .=  '<a href="'.$activateUrl.'">'.$activateUrl.'</a>';
              if (mail($email, 'Validate your credentials', $body, $emailHeaders)) {
-                $msg .= "<p>Thank you! A confirmation email has been sent. If it hasn't shown up after a few minutes, 
-                check your spam folder.</p>";
+                $msg .= "<p>Thank you! A confirmation email has been sent to ".$email.". If it hasn't shown up after a few minutes, 
+                check your spam or junk folder.</p>";
                 $_POST = array();
              } else {
                 $msg .= "<p>The email to validate your account failed to send. Please try again.</p>";
@@ -366,7 +368,8 @@ function validateEmail($key) {
             $unix = $row['Activation_Timestamp'];
             $keyHash = $row['Activation_Key'];
     }
-    if (!$keyHash) {
+    if (!isset($keyHash) || !$keyHash) {
+        $error = "The activation key was not found.";
         return $error;
     }
     // if it's been less than 15 minutes between the validation and when the email was sent
@@ -679,7 +682,7 @@ if (isset($_POST['change_email'])) {
         $body = "To activate your new email address, click the following link:<br/>";
         $activateUrl = html_entity_decode($route."/index.php?key=$key");
         $body .=  '<a href="'.$activateUrl.'">'.$activateUrl.'</a>';
-            if (mail($email, 'Validate your new email address', $body, $emailHeaders)) {
+            if (mail($email, 'Validate your new email address', $body, $emailHeadegetrs)) {
                 $msg = "<p>A confirmation email has been sent to your new email address! If it hasn't shown up within a few minutes, 
                 check your spam or junk folder.</p>";
             } else {
@@ -750,7 +753,7 @@ function getPageList($sectPageID=false) {
     }
     $conn = new SQLite3($db);
     $pageList = array();
-    // TODO: Fix this, 'Can_Add_Sect' does not work
+    // TODO: Fix this, 'Can_Add_Sect' is inconsistent
     $qry = 'SELECT p.ID, p.Name, p.Multi_Sect, s.Sect_Num,
     (CASE
     WHEN (p.Multi_Sect=0 AND s.Sect_Num >= 1)
@@ -763,7 +766,7 @@ function getPageList($sectPageID=false) {
     GROUP BY Page_ID
     ) AS s ON s.Page_ID = p.ID';
     if (!$admin_panel || !$loggedIn) {
-        $qry .= ' WHERE Hidden=0';
+        $qry .= ' WHERE p.Hidden=0';
     }
     $qry .= ';';
     $result = $conn->prepare($qry)->execute();
@@ -819,6 +822,7 @@ function getPageSects($pageID) {
     $result = $stmt->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         $row['Text'] = html_entity_decode($row['Text']);
+        $row['Item_Click_Area'] = explode(',',$row['Item_Click_Area']);
         $sectList[]= $row;
     } 
     return $sectList;
@@ -834,6 +838,7 @@ function getSectInfo($id) {
     $result = $stmt->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         $row['Text'] = html_entity_decode($row['Text']);
+        $row['Item_Click_Area'] = explode(',',$row['Item_Click_Area']);
         return $row;
     } 
 }
@@ -894,10 +899,17 @@ function getSectItems($id, $pageNum=1,
     $result = $stmt->execute();
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         $row['Text'] = htmlspecialchars_decode($row['Text']);
-        $dt = new DateTime('@'.$row['Publish_Timestamp']);
-        $dt->setTimeZone(new DateTimeZone($set['timezone']));
-        $row['Publish_Timestamp'] = $dt->format('Y-m-d\TH:i');
-        $row['Date'] = $dt->format($set['date_format']);
+        // handle date w/timezone
+        $date = new DateTime('@'.$row['Publish_Timestamp']);
+        $date->setTimeZone(new DateTimeZone($set['timezone']));
+        $row['Publish_Timestamp'] = $date->format('Y-m-d\TH:i');
+        $row['Date'] = $date->format($set['date_format']);
+        ///
+        $row['File_Pres'] = '';
+        if ($row['File_Path']) {
+            $row['File_Pres'] = substr($row['File_Path'], 1, 3);
+            $row['File_Path'] = substr($row['File_Path'],5);
+        }
         $items[] = $row;
     } 
     return $items;
@@ -911,7 +923,7 @@ function getItem($id) {
     $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
     $conn = new SQLite3($db);
     $qry = 'SELECT * FROM Items WHERE ID = :itemid';
-    if (!$admin_panel || !$loggedIn) {
+    if (!$admin_panel || !$loggedIn || $view) {
         $qry .= ' AND Hidden=0';
     }
     $qry .= ' LIMIT 1;';
@@ -926,6 +938,7 @@ function getItem($id) {
         $row['Publish_Timestamp'] = $date->format('Y-m-d\TH:i');
         $row['Date'] = $date->format($set['date_format']);
         ///
+        $row['File_Pres'] = '';
         if ($row['File_Path']) {
             $row['File_Pres'] = substr($row['File_Path'], 1, 3);
             $row['File_Path'] = substr($row['File_Path'],5);
@@ -994,9 +1007,9 @@ function showImage($setShowImg, $img=false, $thumb=false, $title=false) {
     return $img;
 }
 
-function showFile($filePath, $pres, $linkTxt=false) {
-    global $set;
-    if ($filePath) {
+function showFile($setShowFile, $filePath, $pres, $linkTxt=false) {
+    global $set; global $route;
+    if ($setShowFile && $filePath) {
         if (!$linkTxt) {
             $linkTxt = 'Click here';
         }
@@ -1009,7 +1022,7 @@ function showFile($filePath, $pres, $linkTxt=false) {
             break;
             case 'txt':
             default:
-                $file = $set['dir'].$filePath;
+                $file = $route.$filePath;
             break;
         }
         return $file;
@@ -1053,18 +1066,62 @@ function printPageItems($itemList=false, $sect=false) {
         $sect['Show_Item_Images'] = 1;
     }
     global $set; global $root; global $themePath;
-    $content = '';
+    $content = $itemContent = '';
     foreach($itemList AS $item){
         $id = $item['ID'];
-        $title = showTitle($sect['Show_Item_Titles'], $item['Title']);
-        $text = showText($sect['Show_Item_Text'], $item['Text']);
-        $image = showImage($sect['Show_Item_Images'], $item['Img_Path'], $item['Img_Thumb_Path'], $item['Title']);
-        $file = showFile($sect['Show_Item_Files'], $item['File_Path'], $sect['Link_Text']);
-        $date = $item['Date'];
-        $embed = $item['Embed_HTML'];
         $srcImgFull = $set['dir'].$item['Img_Path'];
         $srcImgThumb = $set['dir'].$item['Img_Thumb_Path'];
+        $srcFilePath = $set['dir'].$item['File_Path'];
+        $textFull = $item['Text'];
+        $title = showTitle($sect['Show_Item_Titles'], $item['Title']);
+        $text = showText($sect['Show_Item_Text'], $textFull);
+        $image = showImage($sect['Show_Item_Images'], $item['Img_Path'], $item['Img_Thumb_Path'], $item['Title']);
+        $file = showFile($sect['Show_Item_Files'], $item['File_Path'], $item['File_Pres'], $sect['Link_Text']);
+        $date = $item['Date'];
+        $embed = $item['Embed_HTML'];
         $class = className($item['Title']);
+        $aStrt = $aEnd = '';
+        if ($sect['On_Click_Action']==1) {
+            // load item viewing page
+            $aStrt = '<a href="'.$set['dir'].'/view/'.$id.'">';
+            $aEnd = '</a>';
+        }
+        if ($sect['On_Click_Action']==2) {
+            // lightbox
+            switch ($sect['Item_Subject']) {
+                case 'File' :
+                    $lightbox=$srcFilePath;
+                    break;
+                case 'Embed' : 
+                    $lightbox=$item['Embed_HTML'];
+                    break;
+                case 'Image' :
+                default : 
+                    $lightbox=$srcImgFull;
+                break;
+            }
+            $aStrt = '<a data-lightbox="'.$lightbox.'" href="'.$set['dir'].'/view/'.$id.'" >';
+            $aEnd = '</a>';
+        }
+        if ($sect['On_Click_Action']==3) {
+            // load/open in new window
+            $aStrt = '<a href="'.$set['dir'].'/view/'.$id.'" target="_blank">';
+            $aEnd = '</a>';
+        }
+        if (in_array('Title',$sect['Item_Click_Area'])) {
+            $title = $aStrt.$title.$aEnd;
+        }
+        if (in_array('Image',$sect['Item_Click_Area'])) {
+            $image = $aStrt.$image.$aEnd;
+        }
+        if (in_array('Text',$sect['Item_Click_Area'])) {
+            $text = $aStrt.$text.$aEnd;
+        }
+        if (in_array('Link',$sect['Item_Click_Area'])) {
+            $viewLink = $aStrt.'<div class="item-view-link">View</div>'.$aEnd;
+        } else {
+            $viewLink = '';
+        }
         if ($item['Format'] <= '' && isset($sect['Default_Item_Format'])) {
             $item['Format'] = $sect['Default_Item_Format'];
         }
@@ -1072,24 +1129,32 @@ function printPageItems($itemList=false, $sect=false) {
         if ($item['Format'] && file_exists($formatFile)) {
             ob_start();
             include($formatFile);
-            $content .= ob_get_clean();
+            $itemContent .= ob_get_clean();
         } else {
-            $content .= '<div id="item_'.$id.'" class="item '.$class.'">';
+            $itemContent .= '<div id="item_'.$id.'" class="item '.$class.'">';
             if ($title) {
-                $content .= '<h3 class="item-title">'.$title.'</h3>';
+                $itemContent .= '<h3 class="item-title">'.$title.'</h3>';
             }
-            $content .= '<!-- No valid item format assigned. -->';
+            $itemContent .= '<!-- No valid item format assigned. -->';
             if ($image) {
-                $content .= $image;
+                $itemContent .= $image;
             }
             if ($embed) {
-                $content .= $embed;
+                $itemContent .= $embed;
             }
             if ($text) {
-                $content .= $text;
+                $itemContent .= $text;
             }
-            $content .= '</div>';
+            if ($file) {
+                $itemContent .= $file;
+            }
+            $itemContent .= $viewLink;
+            $itemContent .= '</div>';
         }
+        if (in_array('All',$sect['Item_Click_Area'])) {
+            $itemContent = $aStrt.$itemContent.$aEnd;
+        }
+        $content .= $itemContent;
     }unset($item);
     return $content;
 }
@@ -1243,8 +1308,10 @@ function printPage($page=false,$num=1,$singleItem=false) {
         $metaText = $page['Meta_Text'];
     } else {
         $item = getItem($num);
+        $sectInfo = getSectInfo($item['Sect_ID']);
         $name = $item['Title']; 
         $metaText = truncateTxt($item['Text'], 300);
+        $page['Format'] = $sectInfo['View_Item_Format'];
     }
     $content = '';
     $menuList1 = serializeMenu();
@@ -1279,18 +1346,72 @@ function printPage($page=false,$num=1,$singleItem=false) {
     $menuAuto = $root.'/components/site-menu-auto.php';
     $formatFile = $root.$page['Format'];
 
-    if ($page['Format'] && file_exists($formatFile)) {
-        ob_start();
-        include($formatFile);
-        $content .= ob_get_clean();
-    } else {
-        $content .= '<main id="page_'.$page['ID'].'" class="page '.$class.'">';
-        if ($page['Name'] && $page['Show_Title'] > 0) {
-            $content .= '<h1 class="page-title">'.$page['Name'].'</h1>';
+    if ($singleItem !== true) {
+        if ($page['Format'] && file_exists($formatFile)) {
+            ob_start();
+            include($formatFile);
+            $content .= ob_get_clean();
+        } else {
+            ob_start();
+            include($header);
+            $content .= ob_get_clean();
+            $content .= '<main id="page_'.$page['ID'].'" class="page '.$class.'">';
+            if ($page['Name'] && $page['Show_Title'] > 0) {
+                $content .= '<h1 class="page-title">'.$page['Name'].'</h1>';
+            }
+            $content .= '<!-- No valid page format assigned. -->';
+            $content .= $section_content;
+            $content .= '</main>';
+            ob_start();
+            include($footer);
+            $content .= ob_get_clean();
         }
-        $content .= '<!-- No valid page format assigned. -->';
-        $content .= $section_content;
+    } else {
+        // name vars for single-item view page
+        $id = $item['ID'];
+        $title = $item['Title'];
+        $text =  $item['Text'];
+        $image = ($item['Img_Path'] ? '<img src="'.$set['dir'].$item['Img_Path'].'" alt="'.$item['Title'].'">' : null);
+        $file = showFile(1, $item['File_Path'], $item['File_Pres'], $sectInfo['Link_Text']);
+        $date = $item['Date'];
+        $embed = $item['Embed_HTML'];
+        $srcImgFull = $set['dir'].$item['Img_Path'];
+        $srcImgThumb = $set['dir'].$item['Img_Thumb_Path'];
+        $srcFilePath = $set['dir'].$item['File_Path'];
+        $class = className($item['Title']);
+        ///////
+        ob_start();
+        include($header);
+        $content .= ob_get_clean();
+        $content .= '<main id="view_item_'.$item['ID'].'" class="page '.$class.'">';
+        if ($page['Format'] && file_exists($formatFile)) {
+            ob_start();
+            include($formatFile);
+            $content .= ob_get_clean();
+        } else {
+            $content .= '<div id="item_'.$id.'" class="item '.$class.'">';
+            if ($title) {
+                $content .= '<h3 class="item-title">'.$title.'</h3>';
+            }
+            $content .= '<!-- No valid item view format assigned. -->';
+            if ($image) {
+                $content .= $image;
+            }
+            if ($embed) {
+                $content .= $embed;
+            }
+            if ($text) {
+                $content .= $text;
+            }
+            if ($file) {
+                $content .= $file;
+            }
+            $content .= '</div>';
+        }
         $content .= '</main>';
+        ob_start();
+        include($footer);
+        $content .= ob_get_clean();
     }
 
     echo $content;
@@ -1335,9 +1456,26 @@ function fetchSettings($arr=false) {
         } unset($i);
     }
     $result = $stmt->execute();
-    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-        $row['Options'] = explode(', ', $row['Options']);
-        $settings[] = $row;
+    if ($result) {
+        $info = array();
+        $display = array();
+        $advanced = array();
+        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+            $row['Options'] = explode(', ', $row['Options']);
+            switch ($row['Heading']) {
+                case 'Display' :
+                    $display[] = $row;
+                break;
+                case 'Advanced' :
+                    $advanced[] = $row;
+                break;
+                case 'Info' :
+                default :
+                    $info[] = $row;
+                break;
+            }
+        }
+        $settings = array('Info' => $info, 'Display' => $display, 'Advanced' => $advanced);
     }
     return $settings;
 }
@@ -1392,7 +1530,7 @@ if (isset($_POST['save_settings'])) {
             $stmt->execute();
         }
     }
-    $msg .= "Saved!";
+    $msg .= "Changes were saved at ".date('d F, Y h:i:s').'.';
 }
 
 
@@ -1466,6 +1604,8 @@ if (isset($_POST['create_page'])) {
 if (isset($_POST['edit_page'])) {
     global $db;
     global $set;
+    $msg = '';
+    $error = false;
     $conn = new SQLite3($db);
     $cPost = cleanServerPost($_POST);
     $link = strtolower(preg_replace("/[^A-Za-z0-9-]/",'',str_replace(' ','-',$cPost['name'])));
@@ -1513,10 +1653,35 @@ if (isset($_POST['edit_page'])) {
                 $menuImgPath = null;
             }
         }
+        $error = false;
 
-        $msg="Changes to '".$cPost['name']."' have been saved!";
+        // sort sections by the order of their inputs
+        usort($_POST["sect"], function ($a, $b) {
+            return $a['n_index'] <=> $b['n_index'];
+        });
+        $indexOrder=0;
+        $error = false;
+        $qry = "UPDATE Sections 
+            SET  Page_Index_Order=:inorder WHERE ID=:sectid";
+        foreach ($_POST["sect"] AS &$sect) {
+            if ($error) { // if 'error' was set to 'true' in the previous loop...
+                $msg.=" There was an error saving your section order changes. Please try again.";
+                return;
+            }
+            $siPost = cleanServerPost($sect);
+            $indexOrder = ($indexOrder+1);
+            $stmt = $conn->prepare($qry);
+            $stmt->bindValue(':inorder',$indexOrder, SQLITE3_INTEGER);
+            $stmt->bindValue(':sectid',$siPost['n_sect_id'], SQLITE3_INTEGER);
+            if (!$stmt->execute()) {
+                $error = true;
+            }
+        }
+    }
+    if (!$error) {
+        $msg .="Changes to '".$cPost['name']."' were saved at ".date('d F, Y h:i:s').'.';
     } else {
-        $msg="Changes failed to save. Please try again.";
+        $msg .="Changes failed to save. Please try again.";
     }
 }
 
@@ -1626,12 +1791,18 @@ if (isset($_POST['edit_section'])) {
     } else {
         $imgPath = null;
     }
-    // I tried changing the '?'s to ':whatever's and it didn't work? :(
+    $clickAreas = cleanServerPost($cPost['item_click_area']);
+    if (in_array('All',$clickAreas)) {
+        $clickAreas = array('All');
+    }
+    $clickAreas= implode(',',$clickAreas);
+    // I tried changing the '?'s in the query to ':thisformat' and it didn't work? :(
     $qry = 'UPDATE Sections SET 
         Name=?, Text=?,
         Header_Img_Path=?, Show_Title=?, Show_Header_Img=?, Show_Item_Images=?, 
         Show_Item_Titles=?, Show_Item_Text=?, Order_By=?, Order_Dir=?, Auto_Thumbs=?, 
-        Thumb_Size=?, Thumb_Size_Axis=?, Format=?, Default_Item_Format=?, Hidden=?, Page_ID=?
+        Thumb_Size=?, Thumb_Size_Axis=?, Format=?, Default_Item_Format=?, View_Item_Format=?, Page_ID=?,
+        Show_Item_Files=?, Item_Click_Area=?, On_Click_Action=?, Item_Subject=?, Hidden=?
     WHERE ID=?;';
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(1,$cPost['name'], SQLITE3_TEXT);
@@ -1642,8 +1813,6 @@ if (isset($_POST['edit_section'])) {
     $stmt->bindValue(6,$cPost['n_show_images'], SQLITE3_INTEGER);
     $stmt->bindValue(7,$cPost['n_show_titles'], SQLITE3_INTEGER);
     $stmt->bindValue(8,$cPost['n_show_text'], SQLITE3_INTEGER);
-    // TODO: Add the following
-    //$stmt->bindValue(':showitemfiles',$cPost['n_show_files'], SQLITE3_INTEGER);
     $stmt->bindValue(9,$cPost['order_by'], SQLITE3_TEXT);
     $stmt->bindValue(10,$cPost['n_order_dir'], SQLITE3_INTEGER);
     $stmt->bindValue(11,$cPost['n_create_thumbs'], SQLITE3_INTEGER);
@@ -1651,13 +1820,18 @@ if (isset($_POST['edit_section'])) {
     $stmt->bindValue(13,$cPost['n_thumb_axis'], SQLITE3_INTEGER);
     $stmt->bindValue(14,$cPost['format'], SQLITE3_TEXT);
     $stmt->bindValue(15,$cPost['item_format'], SQLITE3_TEXT);
-    $stmt->bindValue(16,$cPost['n_hidden'], SQLITE3_INTEGER);
+    $stmt->bindValue(16,$cPost['view_item_format'], SQLITE3_TEXT);
     $stmt->bindValue(17,$cPost['n_page_id'], SQLITE3_INTEGER);
-    $stmt->bindValue(18,$cPost['n_sect_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(18,$cPost['n_show_files'], SQLITE3_INTEGER);
+    $stmt->bindValue(19,$clickAreas, SQLITE3_TEXT);
+    $stmt->bindValue(20,$cPost['n_onclick_action'], SQLITE3_INTEGER);
+    $stmt->bindValue(21,$cPost['n_item_subject'], SQLITE3_INTEGER);
+    $stmt->bindValue(22,$cPost['n_hidden'], SQLITE3_INTEGER);
+    $stmt->bindValue(23,$cPost['n_sect_id'], SQLITE3_INTEGER);
     if (!$stmt->execute()) {
         $msg="Changes failed to save. Please try again.";
     } else {
-        $msg="Section setting changes saved!";
+        $msg="Section settings were saved at ".date('d F, Y h:i:s').'.';
         if ($conn->changes()<1) {
             $msg="Nothing changed!";
         }
@@ -1700,16 +1874,16 @@ if (isset($_POST['create_item'])) {
     if (!$set['has_max_upld_storage']) {$set['max_upld_storage'] = false;}
     // if there are uploads...
     if (
-        (isset($_FILES['img_upload']) && $_FILES['img_upload']['name']>'') || 
-        (isset($cPost['create_thumbnail']) && $_FILES['create_thumbnail']['name']>'') ||
-        (isset($cPost['file_upload']) && $_FILES['file_upload']['name']>'')
+        (isset($_FILES['img_upload']) && $_FILES['img_upload']['name']) || 
+        (isset($cPost['create_thumbnail']) && $_FILES['create_thumbnail']['name']) ||
+        (isset($cPost['file_upload']) && $_FILES['file_upload']['name'])
         ) {
         require_once 'upload.php';
         $dir = '/assets/uploads/items/section-'.$cPost['n_sect_id'].'/';
         }
     if (
-        (isset($_FILES['img_upload']) && $_FILES['img_upload']['name']>'') || 
-        (isset($cPost['create_thumbnail']) && $_FILES['create_thumbnail']['name']>'')
+        (isset($_FILES['img_upload']) && $_FILES['img_upload']['name']) || 
+        (isset($cPost['create_thumbnail']) && $_FILES['create_thumbnail']['name'])
         ) {
         $imgName = str_replace(pathinfo($_FILES['img_upload']['name'],PATHINFO_EXTENSION),"",$_FILES['img_upload']['name']).'-'.time();
         $imgPath = uploadImage ($dir, $_FILES['img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
@@ -1882,7 +2056,7 @@ if (isset($_POST['edit_item'])) {
     $stmt->bindValue(':format',$cPost['format'], SQLITE3_TEXT);
     $stmt->bindValue(':id',$cPost['n_item_id'], SQLITE3_INTEGER);
     if ($stmt->execute()) {
-        $msg.="Changes saved!";
+        $msg.="Changes were saved at ".date('d F, Y h:i:s').'.';
     } else {
         $msg.="Changes did not save. Please try again.";
     }
@@ -1928,7 +2102,7 @@ if (isset($_POST['save_item_order'])) {
         }
     }
     if (!$error) {
-        $msg.="Changes saved!";
+        $msg.="Changes were saved at ".date('d F, Y h:i:s').".";
     } else {
         $msg.=" There was an error saving your item order changes. Please try again.";
     }
@@ -1967,7 +2141,7 @@ if (isset($_POST['save_menu'])) {
         }
     }
     if (!$error) {
-        $msg.="Changes saved!";
+        $msg.="Changes were saved at ".date('d F, Y h:i:s').'.';
     } else {
         $msg.=" There was an error saving your menu changes. Please try again.";
     }

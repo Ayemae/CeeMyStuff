@@ -28,10 +28,10 @@ Route::add('/'.$page['Link'].'/page/([0-9]*)',function($pageNum){
 },'get');
 
 // single item displays
-Route::add('/item/([0-9]*)',function($id){
+Route::add('/view/([0-9]*)',function($id){
     global $set;global $db;global $page;
     $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
-    printPage($page, $pageNum);
+    printPage($page, $id, true);
 },'get');
 
 

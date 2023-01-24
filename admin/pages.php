@@ -38,7 +38,7 @@ if (isset($_GET['id'])) {
         include '_components/page-edit.inc.php';
         break;
     case 'list' :
-        // do not break here, we want default to inherit 'list'
+        // do not break here, we want 'list' to inherit the default
     default : 
         $pgList = getPageList(); 
         include '_components/page-list.inc.php';

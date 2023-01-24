@@ -38,8 +38,8 @@
         <select id="n_page_id" name="n_page_id">
             <option value="0">None</option>
             <?php foreach($pgList AS $page) : 
-                if ($sect['Page_ID']===$page['ID'] || $page['Can_Add_Sect']) : ?>
-                <option value="<?show($page['ID']);?>" <?=($sect['Page_ID']===$page['ID'] ? 'selected' : null)?>>
+                if ($sect['Page_ID']==$page['ID'] || $page['Can_Add_Sect']) : ?>
+                <option value="<?show($page['ID']);?>" <?=($sect['Page_ID']==$page['ID'] ? 'selected' : null)?>>
                     <?show($page['Name']);?>
                 </option>
             <?php endif;
@@ -172,36 +172,45 @@
         <div>
             <label for="onclick-action">Item On-Click Actions:</label>
             <p>What should happen when a viewer clicks on an item?</p>
-            <select id="onclick-action" name="onclick_action">
-                <option value="0">Load a single-item viewing page</option>
-                <option value="1">Open a lightbox with the subject</option>
-                <option value="1">Open the subject file in a new window</option>
-                <option value="0">Nothing; items should not be clickable</option>
+            <select id="onclick-action" name="n_onclick_action">
+                <option value="1" <?formCmp($sect['On_Click_Action'],1,'s')?>>Load a single-item viewing page</option>
+                <option value="2" <?formCmp($sect['On_Click_Action'],2,'s')?>>Open a lightbox with the subject</option>
+                <option value="3" <?formCmp($sect['On_Click_Action'],3,'s')?>>Open the subject file in a new window</option>
+                <option value="0" <?formCmp($sect['On_Click_Action'],0,'s')?>>Nothing; items should not be clickable</option>
             </select>
         </div>
 
         <ul class="form-list">
             <div>
-                <label for="click-area">Item Display Subject:</label>
-                <p>What aspect of the item do you want the spotlight on?</p>
-                <select id="onclick-action" name="n_show_titles">
-                    <option value="1">Image</option>
-                    <option value="0">Text</option>
-                    <option value="1">File</option>
-                    <option value="0">Embed</option>
-                </select>
+                <div><label for="click-area">Item Click Area:</label></div>
+                <input type="checkbox" class="chktoggle" id="clk-anywhere" name="item_click_area[1]" value="All" <?=(in_array("All",$sect['Item_Click_Area']) ? "checked" : null )?>>
+                <label for="anywhere">Anywhere</label>
+                <div class="chktoggle-hide">
+                    <div class="space-btw">
+                        <label for="clk-title">
+                            <input type="checkbox" id="clk-title" name="item_click_area[2]" value="Title" <?=(in_array("Title",$sect['Item_Click_Area']) ? "checked" : null )?>> Title
+                        </label>
+                        <label for="clk-image"><input type="checkbox" id="clk-image" name="item_click_area[3]" value="Image" <?=(in_array("Image",$sect['Item_Click_Area']) ? "checked" : null )?>> Image
+                        </label>
+                        <label for="clk-text">
+                            <input type="checkbox" id="clk-text" name="item_click_area[4]" value="Text" <?=(in_array("Text",$sect['Item_Click_Area']) ? "checked" : null )?>> Text
+                        </label>
+                        <label for="clk-link">
+                            <input type="checkbox" id="clk-link" name="item_click_area[5]" value="Link" <?=(in_array("Link",$sect['Item_Click_Area']) ? "checked" : null )?>> Added 'View' Link
+                        </label>
+                    </div>
+                </div>
             </div>
 
             <div>
-                <div><label for="click-area">Item Click Area:</label></div>
-                <input type="checkbox" class="chktoggle" id="clk-anywhere" name="item_click_area[1]" value="Anywhere">
-                <label for="anywhere">Anywhere</label>
-                <div class="chktoggle-hide">
-                    <label for="clk-title"><input type="checkbox" id="clk-title" name="item_click_area[2]" value="Title"> Title</label>
-                    <label for="clk-image"><input type="checkbox" id="clk-image" name="item_click_area[3]" value="Image"> Image</label>
-                    <label for="clk-text"><input type="checkbox" id="clk-text" name="item_click_area[4]" value="Text"> Text</label>
-                    <label for="clk-link"><input type="checkbox" id="clk-link" name="item_click_area[5]" value="Link"> Added 'View' Link</label>
-                </div>
+                <label for="item-subject">Item Display Subject:</label>
+                <p>Lightbox only. What aspect of the item do you want the spotlight on?</p>
+                <select id="item-subject" name="n_item_subject">
+                    <option value="1" <?formCmp($sect['Item_Subject'],1,'s')?>>Image</option>
+                    <option value="2" <?formCmp($sect['Item_Subject'],2,'s')?>>Text</option>
+                    <option value="3" <?formCmp($sect['Item_Subject'],3,'s')?>>File</option>
+                    <option value="4" <?formCmp($sect['Item_Subject'],4,'s')?>>Embed</option>
+                </select>
             </div>
 
         </ul>
@@ -210,7 +219,7 @@
     <li>
             <label for="hidden"> Hide this section:</label>
             <input type="hidden" id="hidden" name="n_hidden" value="0">
-            <input type="checkbox" id="hidden" name="n_hidden" value="1" <?formCmp($sect['Hidden'])?>>
+            <input type="checkbox" id="hidden" name="n_hidden" value="1" <?=($sect['Hidden']==1 ? "checked" : null)?>>
     </li>
     <?php endif;?>
     </ul>

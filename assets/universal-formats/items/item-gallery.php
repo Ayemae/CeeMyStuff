@@ -4,4 +4,5 @@
     </div>
     <?show($title)?>
     <?show($text)?>
+    <?show($viewLink)?>
 </div>

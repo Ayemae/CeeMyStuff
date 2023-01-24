@@ -8,4 +8,5 @@
     </div>
     <?show($date)?>
     <?show($text)?>
+    <?show($viewLink)?>
 </div>

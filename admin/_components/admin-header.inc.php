@@ -12,7 +12,7 @@
 </head>
 <body>
 <header>
-    <?php if ($admin_panel) : ?>
+    <?php if (isset($admin_panel) && $admin_panel) : ?>
         <div class="space-btwn">
             <h2>CeeMyStuff Admin Panel</h2>
             <?php if ($loggedIn) :?>

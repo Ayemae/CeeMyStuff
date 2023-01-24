@@ -74,6 +74,24 @@
     </li>
 </ul>
 
+<? if ($page['Multi_Sect']) :?>
+    <h2>Section Order</h2>
+    <p>For multi-section pages only.</p>
+    <ul class="form-list">
+        <? foreach ($sectList AS $sect) :?>
+    <li class="menu-settings-item">
+            <input type="hidden" name="sect[<?show($sect['ID'])?>][n_sect_id]" value="<?show($sect['ID'])?>">
+            <div>
+                <!--<i class="fi fi-rs-expand-arrows"></i>-->
+                <input type="number" class="menu-item-order" name="sect[<?show($sect['ID'])?>][n_index]" value="<?show($sect['Page_Index_Order'])?>" style="width:3em;">
+                <?=$sect['Name']?>
+            </div>
+        </li>
+        <? endforeach;?>
+        <a class="button small" href="<?=$set['dir']?>/admin//sections.php?task=create&pageid=<?=$page['ID']?>"><i class="fi fi-rs-plus"></i> Add New Section</a>
+    </ul>
+<? endif;?>
+
   <button name="edit_page"><i class="fi fi-rs-check"></i> Submit</button>
   <div id="modal-home"></div>
 </form>
