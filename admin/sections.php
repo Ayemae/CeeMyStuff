@@ -43,6 +43,7 @@ if (isset($_GET['pageid'])) {
         include '_components/section-view.inc.php';
         break;
     case 'create' :
+        $sect = getSectInfo($sectID);
         $sectFormats = getFormatList('section');
         $itemFormats = getFormatList();
         $pgList = getPageList($sect['Page_ID']);

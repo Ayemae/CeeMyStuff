@@ -1,7 +1,6 @@
 <h1>Create New Item</h1>
 
 <form method="post" enctype="multipart/form-data">
-<!-- <input type="hidden" name="type" value="<?show($type)?>"> -->
 <ul class="form-list">
     <li>
         <label for="title">Title:</label>
@@ -70,7 +69,9 @@
     <li>
     <?php if (isset($sectInfo) && $sectInfo['Auto_Thumbs'] > 0) : ?>
         <i>If an image was added, a thumbnail image with a <?echo(!$sectInfo['Thumb_Size_Axis'] ? 'width' : 'height');?> of <?show($sectInfo['Thumb_Size'])?>px will be created for this item.<br/>
-        <a href="<?show($route)?>/sections.php?task=edit&sectid=<?show($sectInfo['ID'])?>">Click here to change this setting.</a></i>
+        <? if ($sectInfo['ID']>0) :?>
+            <a href="<?show($route)?>/sections.php?task=edit&sectid=<?show($sectInfo['ID'])?>">Click here to change this setting.</a></i>
+        <? endif; ?>
         <input type="hidden" name="create_thumbnail" value="checked">
         <input type="hidden" name="n_thumb_size" value="<?show($sectInfo['Thumb_Size'])?>">
         <input type="hidden" name="n_thumb_size_axis" value="<?show($sectInfo['Thumb_Size_Axis'])?>">

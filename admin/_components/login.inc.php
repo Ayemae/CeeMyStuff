@@ -1,7 +1,7 @@
 <section>
     <h2>Login</h2>
 
-    <form method='post'>
+    <form method='post' action="<?=strtok($_SERVER["REQUEST_URI"], '?')?>">
         <ul class="form-list">
             <li>
                 <label for="email">Email</label>

@@ -94,10 +94,10 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Sections (
     Hidden INTEGER NOT NULL DEFAULT 0
 )');
 
-$conn->exec('INSERT INTO Sections (ID, Page_ID, Page_Index_Order, Name, Text, Format, Default_Item_Format)
+$conn->exec('INSERT INTO Sections (ID, Page_ID, Page_Index_Order, Name, Text, Format, Default_Item_Format, Auto_Thumbs)
     VALUES 
-    (0, null, 0, "Orphaned Items", "Items that are not sorted into any section.", null, null),
-    (1, 0, 1, "Home Content", "See my stuff!", "/assets/universal-formats/section/section-general.php", "/assets/universal-formats/item/item-general.php");');
+    (0, null, 0, "Orphaned Items", "Items that are not sorted into any section.", null, null, 0),
+    (1, 0, 1, "Home Content", "See my stuff!", "/assets/universal-formats/section/section-general.php", "/assets/universal-formats/item/item-general.php", 1);');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Items (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,

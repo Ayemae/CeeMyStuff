@@ -390,6 +390,34 @@ ul.index-item-list li {
 ul.menu-settings-item-list li .menu-item-order {
     width: 3em;
 }
+.js-check {
+    display: none;
+}
+.js-check.js-enabled, 
+.js-check .js-enabled {
+    display: unset;
+}
+
+main.user-manual section {
+    padding: 0 1vw;
+    margin: 5px auto 15px;
+}main.user-manual p {
+    padding: 5px 2vw;
+    text-indent: 4.5vw;
+    text-align: justify;
+    margin: 8px auto;
+}main.user-manual blockquote {
+    padding-left: 3vw;
+}p.ni {
+    text-indent: unset;
+}
+.rose {
+    color: #9e245c;
+}.powblu {
+    color: #5756de;
+}.teal {
+    color: #008080;
+}
 
 
 
