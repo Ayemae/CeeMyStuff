@@ -1,12 +1,10 @@
-<section id="sect_<?show($id);?>" class="section <?show($class);?>">
-    <div class="sect-header-wrapper">
-        <?show($image)?>
-    </div>
-    <?show($title)?>
-    <div class="sect-text">
-        <?show($text)?>
-    </div>
-    <div class="sect-items">
-        <?show($items_content)?>
-    </div>
-</section>
+<div class="sect-header-wrapper">
+    <?show($image)?>
+</div>
+<?show($title)?>
+<div class="sect-text">
+    <?show($text)?>
+</div>
+<div class="sect-items">
+    <?show($items_content)?>
+</div>

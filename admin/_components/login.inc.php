@@ -1,5 +1,5 @@
 <section>
-    <h2>Login</h2>
+    <h2>CeeMyStuff Login</h2>
 
     <form method='post' action="<?=strtok($_SERVER["REQUEST_URI"], '?')?>">
         <ul class="form-list">
@@ -14,4 +14,6 @@
         </ul>
         <button name="login">Login</button>
     </form>
+
+    <a href="<?=$set['dir']?>/admin/account-settings.php?task=pw-reset">Click here if you forgot your password.</a>
 </section>

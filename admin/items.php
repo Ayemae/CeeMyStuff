@@ -34,12 +34,17 @@ $formatList = getFormatList();
 
 <main>
     <?php if (isset($sectID) && $task === 'create') :
+        $create = true;
+        $edit = false;
+        $item = null;
         $sectInfo = getSectInfo($sectID);
-        include_once '_components/item-create.inc.php';
+        include_once '_components/item-create-edit.inc.php';
     elseif (isset($sectID) && $task === 'edit') :
+        $create = false;
+        $edit = true;
         $item = getItem($itemID); 
         $sectInfo = getSectInfo($item['Sect_ID']);
-        include_once '_components/item-edit.inc.php';
+        include_once '_components/item-create-edit.inc.php';
     endif;?>
 
 

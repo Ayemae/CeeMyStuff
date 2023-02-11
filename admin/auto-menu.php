@@ -30,7 +30,7 @@ $menu = getMenu();
             </div>
             <div>
                 <?show($option['External_Link'] < 1 ? $option['Page_Name'] : $option['Ext_Link_Name'])?>
-                <?show($option['Img_Path'] ? '<img src="'.$option['Img_Path'].'" alt="">' : null)?>
+                <?show($option['Img_Path'] ? '<img src="'.$set['dir'].$option['Img_Path'].'" alt="">' : null)?>
                 <input type="hidden" name="option[<?show($option['Page_ID'])?>][link]" value="<?show($option['Ext_Url'])?>">
                 <!-- link to edit? -->
             </div>

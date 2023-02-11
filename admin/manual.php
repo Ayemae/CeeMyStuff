@@ -28,17 +28,33 @@ include '_components/admin-header.inc.php';?>
         </blockquote>
 
         <p>CeeMyStuff's three building blocks are a hierarchy as follows: <span class="rose">Pages</span> > <span class="powblu">Sections</span> > <span class="teal">Items</span>. In other words, <span class="rose">Pages</span> contain <span class="powblu">Sections</span>, which contain <span class="teal">Items</span>.</p>
+
+        <p>All of these building blocks can be assigned a 'format' for how they display on the site. More on that in 'Formats'. (coming soon)</p>
     </section>
     <section class="manual-sect" id="about-pages" style="display:none;">
         <h2>About Pages</h2>
 
-        <p>Pages are on the top of the hierarchy of CeeMyStuff's building blocks.
+        <p>Pages are on the top of the hierarchy out of CeeMyStuff's three building blocks.</p>
+         - multi-section pages!!!!!!!
+         - formats?
+         - menu link images??
+         - 'hidden' pages
     </section>
     <section class="manual-sect" id="about-sections" style="display:none;">
         <h2>About Sections</h2>
+
+        <p></p>
+        - Section Display Settings!
     </section>
     <section class="manual-sect" id="about-items" style="display:none;">
         <h2>About Items</h2>
+
+        <p></p>
+    </section>
+    <section class="manual-sect" id="about-items" style="display:none;">
+        <h2>Formats</h2>
+
+        <p></p>
     </section>
 
 </main>

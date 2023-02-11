@@ -18,6 +18,9 @@ if (isset($_GET['pageid'])) {
 } else {
     $pageID = 0;
 }
+// if ($sectID == 0 && $pageID == 0 && $task != false) {
+//     $task = 'list';
+// }
 ?>
 
 <main>
@@ -43,18 +46,26 @@ if (isset($_GET['pageid'])) {
         include '_components/section-view.inc.php';
         break;
     case 'create' :
+        $create = true;
+        $edit = false;
         $sect = getSectInfo($sectID);
         $sectFormats = getFormatList('section');
         $itemFormats = getFormatList();
+        $viewItemFormats = getFormatList('view-item-page');
+        $lightboxFormats = getFormatList('lightbox');
         $pgList = getPageList($sect['Page_ID']);
-        include '_components/section-create.inc.php';
+        include '_components/section-create-edit.inc.php';
         break;
     case 'edit' :
+        $create = false;
+        $edit = true;
         $sectFormats = getFormatList('section');
         $itemFormats = getFormatList();
+        $viewItemFormats = getFormatList('view-item-page');
+        $lightboxFormats = getFormatList('lightbox');
         $sect = getSectInfo($sectID);
         $pgList = getPageList($sect['Page_ID']);
-        include '_components/section-edit.inc.php';
+        include '_components/section-create-edit.inc.php';
         break;
     case 'list' :
         // do not break here, we want 'list' to inherit default

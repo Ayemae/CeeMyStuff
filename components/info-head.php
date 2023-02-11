@@ -10,4 +10,5 @@ if (!$loggedIn && $admin_panel && !$loginArea) {
     exit();
 }
 $page_title=null;
+$lightbox=false;
 ?>

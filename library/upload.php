@@ -50,7 +50,7 @@ function isAniGif($filename) {
   return $count > 1;
 }
 
-//////// STANDARD FILE UPLOAD /////////
+//////// STANDARD NON-IMAGE FILE UPLOAD /////////
 function uploadFile ($targetDir, $file, $setName=false, $storageLimit=false, $storedName=false, $validFTs=false) {
   global $root;
   if (is_string($validFTs)) {
@@ -231,11 +231,13 @@ function uploadImage ($targetDir, $file, $w=false, $h=false, $wIsSoft=false, $hI
             } else {
               $imgErrorMsg .= "There was an error uploading your image.";
               $_SESSION['Msg'] = $imgErrorMsg;
+              error_log('Image "'.$targetFile.'" failed to upload; file not present in target directory');
               return false;
             }
       } else {
         $imgErrorMsg .= "There was an error uploading your image.";
         $_SESSION['Msg'] = $imgErrorMsg;
+        error_log('Image "'.$targetFile.'" failed to upload; file could not be moved to target directory');
         return false;
       }
     }

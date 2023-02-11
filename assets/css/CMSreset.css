@@ -60,3 +60,8 @@ nav#site-menu li {
 ul, ol {
     padding-left: 8%;
 }
+
+.hidden {
+    visibility: hidden;
+    cursor: unset;
+}

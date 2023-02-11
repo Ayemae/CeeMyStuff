@@ -22,7 +22,8 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Settings (
     Type TEXT,
     Description TEXT,
     Options TEXT,
-    Heading TEXT DEFAULT "Info"
+    Heading TEXT DEFAULT "Info",
+    Hidden INTEGER NOT NULL DEFAULT 0
 )');
 
 $conn->exec('INSERT INTO Settings (Index_Order, Field, Key, Value, Type, Description, Options, Heading)
@@ -67,7 +68,7 @@ $conn->exec('INSERT INTO Pages (ID, Name, Link, Meta_Text)
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Sections (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Name TEXT UNIQUE NOT NULL,
+    Name TEXT NOT NULL,
     Page_ID INTEGER DEFAULT NULL,
     Page_Index_Order INTEGER,
     Text TEXT,
@@ -91,7 +92,8 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Sections (
     Default_Item_Format TEXT,
     View_Item_Format TEXT,
     Lightbox_Format TEXT,
-    Hidden INTEGER NOT NULL DEFAULT 0
+    Hidden INTEGER NOT NULL DEFAULT 0,
+    UNIQUE(Name,Page_ID)
 )');
 
 $conn->exec('INSERT INTO Sections (ID, Page_ID, Page_Index_Order, Name, Text, Format, Default_Item_Format, Auto_Thumbs)

@@ -89,6 +89,7 @@ a.button {
 }
 button.red,
 .button.red {
+    color: #ffffff;
     background-color: var(--red);
 }
 button.small,
@@ -398,6 +399,17 @@ ul.menu-settings-item-list li .menu-item-order {
     display: unset;
 }
 
+ul#add-thumbnail {
+    background: rgb(233 255 252) 15%;
+    background: linear-gradient(90deg, rgb(233 255 252) 15%, rgba(118, 215, 231, .25) 100%);
+    list-style: none;
+    padding-left: 10px;
+    margin-top: 5px;
+}ul#add-thumbnail li {
+    padding: 0 10px;
+    background: unset;
+}
+
 main.user-manual section {
     padding: 0 1vw;
     margin: 5px auto 15px;
@@ -417,6 +429,9 @@ main.user-manual section {
     color: #5756de;
 }.teal {
     color: #008080;
+}
+.red {
+    color: #bd0020;
 }
 
 

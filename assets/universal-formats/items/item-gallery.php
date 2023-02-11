@@ -2,7 +2,7 @@
     <div class="item-image-wrapper">
         <?show($image)?>
     </div>
-    <?show($title)?>
+    <h3 class="item-title"><?show($title)?></h3>
     <?show($text)?>
     <?show($viewLink)?>
 </div>

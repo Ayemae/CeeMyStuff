@@ -20,10 +20,10 @@ $settings = fetchSettings();
             <input type="checkbox" class="chktoggle invis" id="account-sets">
             <ul class="form-list chktoggle-show">
                 <li>
-                    <a href="<?show($route)?>/change-email.php">Change Email</a>
+                    <a href="<?show($route)?>/account-settings.php?task=email">Change Email</a>
                 </li>
                 <li>
-                    <a href="<?show($route)?>/change-password.php">Change Password</a>
+                    <a href="<?show($route)?>/account-settings.php?task=password">Change Password</a>
                 </li>
             </ul>
         </div>

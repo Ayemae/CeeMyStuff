@@ -28,14 +28,18 @@ if (isset($_GET['id'])) {
         include '_components/page-view.inc.php';
         break;
     case 'create' :
+        $create = true;
+        $edit = false;
         $formatList = getFormatList('page');
-        include '_components/page-create.inc.php';
+        include '_components/page-create-edit.inc.php';
         break;
     case 'edit' :
+        $create = false;
+        $edit = true;
         $page = getPage($pageID);
         $sectList = getPageSects($pageID);
         $formatList = getFormatList('page');
-        include '_components/page-edit.inc.php';
+        include '_components/page-create-edit.inc.php';
         break;
     case 'list' :
         // do not break here, we want 'list' to inherit the default

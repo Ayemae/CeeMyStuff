@@ -3,7 +3,6 @@ $admin_panel = true;
 include_once '../components/info-head.php';
 $page_title = 'Settings';
 include '_components/admin-header.inc.php';
-$settings = fetchSettings();
 ?>
 
 <section>
