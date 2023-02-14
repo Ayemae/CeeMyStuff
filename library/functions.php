@@ -827,7 +827,7 @@ function getPageSects($pageID) {
 }
 
 function getSectInfo($id) {
-    global $db;
+    global $db; global $set;
     $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
     $conn = new SQLite3($db);
     $qry = 'SELECT * FROM Sections WHERE ID = :id LIMIT 1;';
@@ -837,6 +837,9 @@ function getSectInfo($id) {
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         $row['Text'] = html_entity_decode($row['Text']);
         $row['Item_Click_Area'] = explode(',',$row['Item_Click_Area']);
+        if ($row['Header_Img_Path']>'') {
+            $row['Header_Img_Path'] = $set['dir'].$row['Header_Img_Path'];
+        }
         return $row;
     } 
 }
@@ -1304,13 +1307,25 @@ function serializeMenu() {
     global $set;
     global $root;
     $conn = new SQLite3($db);
-    $menu = array();
+    $menuContent='<nav id="site-menu"> <ul class="automenu">';
     $qry = "SELECT m.*, p.Name AS Page_Name, p.Link FROM Auto_Site_Menu AS m
             LEFT JOIN Pages AS p ON p.ID=m.Page_ID 
             WHERE m.Hidden=0 
             ORDER BY m.Index_Order;";
     $result = $conn->prepare($qry)->execute();
+    $i=0;
+    $inDropDown = false;
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        if ($row['In_Dropdown']>0 && !$inDropDown) {
+            $inDropDown = true;
+            $menuContent .= '<ul class="automenu-dropdown">';
+        } else if ($row['In_Dropdown']<1 && $inDropDown) {
+            $inDropDown = false;
+            $menuContent .= '</ul>';
+        }
+        if ($i>0) {
+            $menuContent .= '</li>';
+        }
         if ($set['menu_format'] === 'images' && $row['Img_Path']>'' && file_exists($root.$row['Img_Path'])) {
             $a = '<img src="'.$set['dir'].$row['Img_Path'].'" alt="'.$row['Page_Name'].'" title="'.$row['Page_Name'].'">';
         } else {
@@ -1321,10 +1336,11 @@ function serializeMenu() {
         } else {
             $href= $set['dir'].'/'.$row['Link'];
         }
-        $menuLink = '<a href="'.$href.'">'.$a.'</a>';
-        $menu[] = $menuLink;
+        $menuContent .= '<li class="automenu-item"><a href="'.$href.'">'.$a.'</a>';
+        $i++;
     }
-    return $menu;
+    $menuContent .= '</li></ul></nav>';
+    return $menuContent;
 }
 
 function printPage($page=false,$num=1,$singleItem=false) {
@@ -1374,7 +1390,7 @@ function printPage($page=false,$num=1,$singleItem=false) {
         $page['Format'] = $sectInfo['View_Item_Format'];
     }
     $content = '';
-    $menuList1 = serializeMenu();
+    $automenu = serializeMenu();
     if ($set['favicon'] > '' && file_exists($root.$set['favicon'])) {
         $faviconRel = '<link rel="icon" href="'.$route.$set['favicon'].'">';
     }if ($set['mobile_icon']>'' && file_exists($root.$set['mobile_icon'])) {
@@ -1389,7 +1405,7 @@ function printPage($page=false,$num=1,$singleItem=false) {
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="'.$set['dir'].'/assets/css/CMSreset.css">
+        <link rel="stylesheet" href="'.$set['dir'].'/assets/css/CMSbasics.css">
         <link rel="stylesheet" href="'.$set['dir'].'/assets/css/lightbox.css">
         <link rel="stylesheet" href="'.$set['dir'].'/themes/'.$set['theme'].'/theme.css">
         <title>'.$set['site_name'].': '.$name.'</title>
@@ -1413,6 +1429,7 @@ function printPage($page=false,$num=1,$singleItem=false) {
     $menuAuto = $root.'/components/site-menu-auto.php';
     $formatFile = $root.$page['Format'];
     $headerImg = '';
+    // headerImg is not to be confused with the PAGE header image, referred to simply as '$image', above
     if ($set['header_img']>'' && file_exists($root.$set['header_img'])) {
         $headerImgSrc = $route.$set['header_img'];
         $headerImg = '<a href="'.$set['dir'].'/"><img src="'.$set['dir'].$set['header_img'].'" alt="'.$set['site_name'].'"></a>';
@@ -1571,30 +1588,36 @@ if (isset($_POST['save_settings'])) {
     $conn = new SQLite3($db);
     $msg= "";
     $_POST = array_map('stripHTML', $_POST);
-    if (sizeof($_FILES) > 0) {
+    if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
+    if (!$set['has_max_upld_storage']) {$set['max_upld_storage'] = false;}
         require_once 'upload.php';
         $dir = '/assets/uploads/settings/';
         // header
         if (isset($_FILES['header_img']) && $_FILES['header_img']['name']>'') {
             $_POST['header_img'] = uploadImage ($dir, $_FILES['header_img'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
+        } elseif (intval($_POST['n_rmv_header_img'])>0) {
+            $_POST['header_img']='';
         } else {
             $_POST['header_img'] = null;
         }
         // mobile icon
         if (isset($_FILES['mobile_icon']) && $_FILES['mobile_icon']['name']>'') {
             $_POST['mobile_icon'] = uploadImage ($dir, $_FILES['mobile_icon'], 180, 180, false, false, false, $set['max_upld_storage']);
+        } else if (intval($_POST['n_rmv_mobile_icon'])>0) {
+            $_POST['mobile_icon']='';
         } else {
             $_POST['mobile_icon'] = null;
         }
         // favicon
         if (isset($_FILES['favicon']) && $_FILES['favicon']['name']>'') {
             $_POST['favicon'] = uploadImage ($dir, $_FILES['favicon'], 16, 16, false, false, 'favicon', $set['max_upld_storage'],false,'gif');
+        } else if (intval($_POST['n_rmv_favicon'])>0) {
+            $_POST['favicon']='';
         } else {
             $_POST['favicon'] = null;
         }
-    }
     foreach ($_POST AS $key=>$val) {
-        if ($val != null) {
+        if ($val !== null) {
             $qry = "UPDATE Settings SET Value = :val WHERE Key = :key;";
             $stmt = $conn->prepare($qry);
             $stmt->bindValue(':val',$val,SQLITE3_TEXT);
@@ -1710,27 +1733,27 @@ if (isset($_POST['edit_page'])) {
     $stmt->bindValue(':format',$cPost['format'], SQLITE3_TEXT);
     $stmt->bindValue(':hide',$cPost['n_hidden'], SQLITE3_INTEGER);
     $stmt->bindValue(':id',$cPost['n_page_id'], SQLITE3_INTEGER);
-    if ($stmt->execute()) {
-
-        // TODO: save menu img path to menu table
-        if ($_FILES['menu_img_upload']['name']) {
-            //sanitize img name
-            $_FILES['menu_img_upload']['name'] = stripHTML($_FILES['menu_img_upload']['name']);
-            $_FILES['menu_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['menu_img_upload']['name']));
-            $menuImgPath = uploadImage ($dir, $_FILES['menu_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
+    if (!$stmt->execute()) {
+        $error=true;
+    } else {
+        if ((isset($_FILES['menu_img_upload']) && $_FILES['menu_img_upload']['name']) || 
+                (isset($cPost['n_rmv_menu_img']) && $cPost['n_rmv_menu_img']>0)) {
+            if (isset($_FILES['menu_img_upload']) && $_FILES['menu_img_upload']['name']) {
+                //sanitize img name
+                $_FILES['menu_img_upload']['name'] = stripHTML($_FILES['menu_img_upload']['name']);
+                $_FILES['menu_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['menu_img_upload']['name']));
+                $menuImgPath = uploadImage ($dir, $_FILES['menu_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
+            } else if (isset($cPost['n_rmv_menu_img']) && $cPost['n_rmv_menu_img']>0) {
+                $menuImgPath = '';
+            }
             $qry = "UPDATE Auto_Site_Menu SET Img_Path=? WHERE Page_ID=?";
             $stmt = $conn->prepare($qry);
             $stmt->bindValue(1,$menuImgPath, SQLITE3_TEXT);
             $stmt->bindValue(2,$cPost['n_page_id'], SQLITE3_INTEGER);
-            $stmt->execute();
-        } else {
-            if ($cPost['stored_menu_img']) {
-                $menuImgPath = $cPost['stored_menu_img'];
-            } else {
-                $menuImgPath = null;
+            if (!$stmt->execute()) {
+                $error=true;
             }
         }
-        $error = false;
 
         // sort sections by the order of their inputs
         if (isset($_POST["sect"]) && is_array($_POST["sect"])) {
@@ -1756,11 +1779,11 @@ if (isset($_POST['edit_page'])) {
                 }
             }
         }
-    }
+    } 
     if (!$error) {
         $msg .="Changes to '".$cPost['name']."' were saved at ".date('d F, Y h:i:s').'.';
     } else {
-        $msg .="Changes failed to save. Please try again.";
+        $msg .= "Changes failed to save. Please try again.";
     }
 }
 
@@ -2036,6 +2059,7 @@ if (isset($_POST['create_item'])) {
 if (isset($_POST['edit_item'])) {
     global $db;
     global $set;
+    $newImgUpld=false;
     $conn = new SQLite3($db);
     $cPost = cleanServerPost($_POST);
     $msg ="";
@@ -2059,6 +2083,8 @@ if (isset($_POST['edit_item'])) {
         if (!$imgPath) {
             $msg .= 'Image upload failed. Please try again. ';
             return;
+        } else {
+            $newImgUpld=true;
         }
     } else {
         if (isset($cPost['img_stored']) && $cPost['img_stored']) {
@@ -2067,7 +2093,7 @@ if (isset($_POST['edit_item'])) {
             $imgPath = null;
         }
     }
-    if ($imgPath>'' && ((isset($_FILES['thumb_upload']) && $_FILES['thumb_upload']['name']) || isset($cPost['create_thumbnail']))) {
+    if ($newImgUpld===true && ((isset($_FILES['thumb_upload']) && $_FILES['thumb_upload']['name']) || isset($cPost['create_thumbnail']))) {
         if (isset($_FILES['thumb_upload']) && $_FILES['thumb_upload']['name']) {
             $imgThumbPath = uploadImage ($dir, $_FILES['thumb_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, $imgName.'_thumb', $set['max_upld_storage'],$cPost['thumb_stored']);
             if (!$imgThumbPath) {
@@ -2075,7 +2101,7 @@ if (isset($_POST['edit_item'])) {
                 return;
             }
         } else {
-            if ($_FILES['img_upload']['name']) {
+            if (isset($_FILES['img_upload']) && $_FILES['img_upload']['name']>'') {
                 $oriImg = $_FILES['img_upload']['name'];
             } else {
                 $oriImg = $cPost['img_stored'];
@@ -2088,12 +2114,10 @@ if (isset($_POST['edit_item'])) {
             }
             $imgThumbPath = mkThumb($dir, $oriImg, $imgPath, $newW, $newH);
         }
+    } else if (isset($cPost['n_rmv_thumb_img']) && $cPost['n_rmv_thumb_img']>0) {
+        $imgThumbPath = '';
     } else {
-        if (isset($cPost['thumb_stored'])) {
-            $imgThumbPath = $cPost['thumb_stored'];
-        } else {
-            $imgThumbPath = null;
-        }
+        $imgThumbPath = null;
     }
     if (isset($_FILES['file_upload']) && $_FILES['file_upload']['name']>'') {
         $imgName = str_replace(pathinfo($_FILES['file_upload']['name'],PATHINFO_EXTENSION),"",$_FILES['file_upload']['name']).'-'.time();
@@ -2215,7 +2239,7 @@ if (isset($_POST['save_menu'])) {
             return;
         }
         $cPost = cleanServerPost($opt);
-        if (!isset($cPost['n_dropdown'])) {
+        if (!isset($cPost['n_dropdown']) || $indexOrder===0) {
             $cPost['n_dropdown'] = 0;
         }
         $indexOrder = ($indexOrder+1);

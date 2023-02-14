@@ -111,6 +111,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Items (
     Text TEXT,
     Img_Path TEXT DEFAULT NULL,
     Img_Thumb_Path TEXT DEFAULT NULL,
+    Img_Alt_Text TEXT DEFAULT NULL,
     File_Path TEXT DEFAULT NULL,
     Embed_HTML TEXT DEFAULT NULL,
     Hidden INTEGER NOT NULL DEFAULT 0

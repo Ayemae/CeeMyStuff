@@ -316,6 +316,10 @@ ul.section-list {
     gap: 5px;
 }
 
+ul.form-list {
+    margin: 0;
+    width:100%;
+}
 ul.form-list li {
     padding: 5px;
 }
@@ -375,17 +379,28 @@ ul.index-table-head {
     margin: 0;
 }
 
+
 ul.menu-settings-item-list,
 ul.index-item-list {
     padding: 0;
     margin: 0;
 }
+ul.menu-settings-item-list img {
+    height: 35px;
+    width: auto;
+}
 
-ul.menu-settings-item-list li,
+ul.menu-settings-item-list li ,
 ul.index-item-list li {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;
     padding: 8px;
+    align-items: center;
+}
+ul.menu-settings-table-head,
+ul.menu-settings-item-list li {
+    grid-template-columns: 1fr 4fr 4fr 3fr 2fr;
+    text-align: center;
 }
 
 ul.menu-settings-item-list li .menu-item-order {

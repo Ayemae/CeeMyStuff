@@ -79,22 +79,29 @@
             <input type="checkbox" class="chktoggle invis" id="add-image">
             <label for="add-image" class="chktoggle-label"><i class="fi fi-rs-plus"></i> Add Image</label>
             <div class="chktoggle-show" style="flex-direction:column">
-        <? else : ?>
-            <label style="display:block">Image:</label>
-            <img src="<?show($set['dir'].$item['Img_Path'])?>" alt="<?show($item['Title'])?> Image">
+        <? endif;?>
+        <label for="img_upload"><?=($create || $item['Img_Path']<='' ? 'U' : 'Reu')?>pload  Image File (jpg, png, gif, or webp):</label>
+                <input type="file" id="img_upload" name="img_upload">
+        <? if ($edit && $item['Img_Path']>'') :?>
+            <label><br/>Current:<br/></label>
+            <div id="img_current" class="item-current-image-wrapper">
+                <img src="<?show($set['dir'].$item['Img_Path'])?>" alt="<?show($item['Title'])?> Image">
+            </div>
             <input type="hidden" id="img_stored" name="img_stored" value="<?show($item['Img_Path'])?>">
             <p>Image Path: <?show($item['Img_Path'] ? $set['dir'].$item['Img_Path'] : '<i>None</i>')?></p>
-            <div>
+            <button type="button" class="small red" onclick="rmvFilePath('img_stored', 'img_current')">Remove Item Image</button>
         <? endif;?>
-                <label for="img_upload"><?=($create || $item['Img_Path']<='' ? 'U' : 'Reu')?>pload  Image File (jpg, png, gif, or webp):</label>
-                <input type="file" id="img_upload" name="img_upload">
+                
 
                 <ul id="add-thumbnail">
                 <?php if ($edit && $item['Img_Thumb_Path']) :?>
                 <li>
-                    <label>Thumbnail:</label>
-                    <img src="<?show($set['dir'])?><?show($item['Img_Thumb_Path'])?>" alt="<?show($item['Title'])?> Thumbnail">
-                    <input type="hidden" id="thumb_stored" name="thumb_stored" value="<?show($item['Img_Thumb_Path'])?>">
+                    <label class="">Thumbnail:<br/></label>
+                    <div id="thumb_current" class="item-current-thumbnail-wrapper">
+                        <img src="<?show($set['dir'])?><?show($item['Img_Thumb_Path'])?>" alt="<?show($item['Title'])?> Thumbnail">
+                    </div>
+                    <input type="hidden" id="rmv_thumb_img" name="n_rmv_thumb_img" value="0">
+                    <button type="button" class="small red" onclick="rmvFilePath('rmv_thumb_img', 'thumb_current', 1)">Remove Thumbnail Image</button>
                 </li>
             <?php endif;?>
 
@@ -134,29 +141,13 @@
 
 
     <li>
-        <? if ($create || $item['Embed_HTML']<='') :?>
-            <input type="checkbox" class="chktoggle invis" id="add-embed">
-            <label for="add-embed" class="chktoggle-label"><i class="fi fi-rs-plus"></i> Add Embed</label>
-            <div class="chktoggle-show" style="flex-direction:column">
-        <? endif;?>
-            <label for="embed" style="display:block">Embed HTML/Script:</label>
-            <textarea id="embed" name="b_embed"><?show(isset($item) && $item['Embed_HTML'] ? $item['Embed_HTML'] : null)?></textarea>
-        <? if ($create || $item['Embed_HTML']>'') :?>
-            </div>
-        <? endif;?>
-    </li>
-
-    <li>
     <? if ($create || $item['File_Path']<='') :?>
             <input type="checkbox" class="chktoggle invis" id="add-file">
             <label for="add-file" class="chktoggle-label"><i class="fi fi-rs-plus"></i> Add File Download</label>
             <div class="chktoggle-show" style="flex-direction:column">
         <? endif;?>
-            <input type="hidden" id="file-stored" name="file_stored" value="<?($edit ? show($item['File_Path']) : null)?>">
-            <?if (isset($item) && $item['File_Path']>'') :?>
-                <div>Uploaded File: <a href="<?show($set['dir'].$item['File_Path'])?>" target="_blank">[File link]</a></div>
-                <p>File Path: <?show($item['File_Path'] ? $set['dir'].$item['File_Path'] : '<i>None</i>')?></p>
-            <?endif;?>
+             <label for="file_upload"><?=($create || $item['File_Path']<='' ? 'U' : 'Reu')?>pload File:</label>
+                <input type="file" id="file_upload" name="file_upload">
             <div>
                 <label for="file-pres">File Presentation:</label>
                 <select id="file-pres" name="file_pres">
@@ -165,9 +156,30 @@
                     <option value="txt" <?($edit ? formCmp($item['File_Pres'],'txt','s') : null)?>>Text</option>
                 </select>
             </div>
-            <label for="file_upload">Reupload File:</label>
-            <input type="file" id="file_upload" name="file_upload">
+            
+                <?if ($edit && $item['File_Path']>'') :?>
+            <input type="hidden" id="file-stored" name="file_stored" value="<?show($item['File_Path'])?>">
+                <div class="item-file-wrapper">
+                    Current Uploaded File: <span id="file_current"><a href="<?show($set['dir'].$item['File_Path'])?>" target="_blank">[File link]</a></span>
+                </div>
+                <p>File Path: <?show($item['File_Path'] ? $set['dir'].$item['File_Path'] : '<i>None</i>')?></p>
+                <button type="button" class="small red" onclick="rmvFile('file-stored', 'file_current')">Remove File</button>
+            <?endif;?>
         <? if ($create || $item['File_Path']>'') :?>
+            </div>
+        <? endif;?>
+    </li>
+
+
+    <li>
+        <? if ($create || $item['Embed_HTML']<='') :?>
+            <input type="checkbox" class="chktoggle invis" id="add-embed">
+            <label for="add-embed" class="chktoggle-label"><i class="fi fi-rs-plus"></i> Add Embed</label>
+            <div class="chktoggle-show" style="flex-direction:column">
+        <? endif;?>
+            <label for="embed" style="display:block">Embed HTML/Script:</label>
+            <textarea id="embed" name="b_embed"><?show(isset($item) && $item['Embed_HTML'] ? $item['Embed_HTML'] : null)?></textarea>
+        <? if ($create || $item['Embed_HTML']>'') :?>
             </div>
         <? endif;?>
     </li>
@@ -184,6 +196,7 @@
 
 <? if ($edit) :?>
 <script src="_js/modal.js"></script>
+<script src="_js/rmvFilePaths.js"></script>
 <script>
 let modalHTML = `<h2>Are you sure you want to delete '<?=($item['Title'])?>'?</h2>
                 <p>This cannot be undone.</p>

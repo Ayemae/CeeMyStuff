@@ -17,37 +17,40 @@ $menu = getMenu();
         <ul class="menu-settings-table-head">
             <li>Order</li>
             <li>Name</li>
+            <li>Image</li>
             <li>In Dropdown</li>
             <li>Hidden</li>
         </ul>
     <ul class="menu-settings-item-list">
-        <?php foreach ($menu AS $option) :?>
+        <?php $i=0;
+        foreach ($menu AS $option) :?>
         <li class="menu-settings-item">
             <input type="hidden" name="option[<?show($option['Page_ID'])?>][n_page_id]" value="<?show($option['Page_ID'])?>">
-            <div>
+            <div class="mensets-order">
                 <!--<i class="fi fi-rs-expand-arrows"></i>-->
                 <input type="number" class="menu-item-order" name="option[<?show($option['Page_ID'])?>][n_index]" value="<?show($option['Index_Order'])?>">
             </div>
-            <div>
+            <div class="mensets-name">
                 <?show($option['External_Link'] < 1 ? $option['Page_Name'] : $option['Ext_Link_Name'])?>
-                <?show($option['Img_Path'] ? '<img src="'.$set['dir'].$option['Img_Path'].'" alt="">' : null)?>
                 <input type="hidden" name="option[<?show($option['Page_ID'])?>][link]" value="<?show($option['Ext_Url'])?>">
+            </div>
+            <div class="mensets-image">
+                <?show($option['Img_Path'] ? '<img src="'.$set['dir'].$option['Img_Path'].'" alt="">' : "n/a")?>
                 <!-- link to edit? -->
             </div>
-            <div>
-                <?php if ($option['Page_ID']>0) :?>
-                    <input type="hidden" name="option[<?show($option['Page_ID'])?>][n_dropdown]" value="0">
+            <div  class="mensets-dropdown">
+                <?php if ($i>0) :?>
                     <input type="checkbox" id="dropdown" name="option[<?show($option['Page_ID'])?>][n_dropdown]" value="1" <?(!isset($option['In_Dropdown']) ? null : show((!$option['In_Dropdown'] ? null : 'checked')))?>>
                 <?php else:?>
-                    <input type="checkbox" title="Home pages cannot be in a dropdown." disabled>
+                    <input type="checkbox" title="The first link in the menu cannot be in a dropdown." disabled>
                 <?php endif;?>
             </div>
-            <div>
+            <div class="mensets-hidden">
                 <input type="hidden" name="option[<?show($option['Page_ID'])?>][n_hidden]" value="0">
                 <input type="checkbox" id="hidden" name="option[<?show($option['Page_ID'])?>][n_hidden]" value="1" <? echo (isset($option['Hidden'])===true ? ($option['Hidden']==1 ? 'checked' : null) : null)?>>
             </div>
         </li>
-        <?php endforeach; ?>
+        <?php $i++; endforeach; ?>
     </ul>
     </div>
 <button name="save_menu">Save</button>

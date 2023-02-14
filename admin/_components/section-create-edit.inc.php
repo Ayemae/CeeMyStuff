@@ -21,7 +21,13 @@
     <li>
     <label for="header_img_upload">Header Image:</label>
         <input type="file" id="header_img_upload" name="header_img_upload">
-        <input type="hidden" name="header_img_stored" value="<?=($edit && isset($sect['Img_Path']) ? show($sect['Img_Path']) : null )?>">
+        <input type="hidden" id="header_img_stored" name="header_img_stored" value="<?=($edit && isset($sect['Img_Path']) ? show($sect['Img_Path']) : null )?>">
+        <?if ($edit && isset($sect['Header_Img_Path']) && $sect['Header_Img_Path']>''):?>
+            <div id="header_img_current" class="sect-current-image-wrapper">
+                Current:<br/> <img src="<?=$sect['Header_Img_Path']?>">
+            </div>
+            <button type="button" class="small red" onclick="rmvFilePath('header_img_stored', 'header_img_current')">Remove Current Image</button>
+        <?endif;?>
         <br/>
         <label for="n_show_title">Show header image on the website:</label>
         <input type="hidden" name="n_show_header_img" value="0">
@@ -260,6 +266,7 @@
 
 <? if ($edit) :?>
 <script src="_js/modal.js"></script>
+<script src="_js/rmvFilePaths.js"></script>
 <script>
 let modalHTML = `<h2>Are you sure you want to delete the '<?=$sect['Name']?>' Section?</h2>
                 <p>This cannot be undone.</p>

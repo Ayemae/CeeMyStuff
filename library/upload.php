@@ -180,8 +180,7 @@ function uploadImage ($targetDir, $file, $w=false, $h=false, $wIsSoft=false, $hI
       // Check if filename already exists within folder
         if ($targetDir.basename($file["name"]) != $storedName) {
           if (file_exists($dir.basename($file["name"]))) {
-            $imgErrorMsg .= "<br/>Sorry, a file with this name already exists.<br/>";
-            $valid = false;
+            $targetFile = $dir.$filename.'-'.time().".".$imageFileType;
           }
         }
       }

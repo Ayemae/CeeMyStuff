@@ -12,20 +12,21 @@ $settings = fetchSettings();
 
 
 <form id='settings-form' method="post" enctype="multipart/form-data">
-    <ul>
         <div class="settings-block" id="account-settings-block">
             <label class="settings-header" for="account-sets">
                 <h2><i class="fi fi-rs-caret-right"></i> Account/Security Settings</h2>
             </label>
             <input type="checkbox" class="chktoggle invis" id="account-sets">
-            <ul class="form-list chktoggle-show">
-                <li>
-                    <a href="<?show($route)?>/account-settings.php?task=email">Change Email</a>
-                </li>
-                <li>
-                    <a href="<?show($route)?>/account-settings.php?task=password">Change Password</a>
-                </li>
-            </ul>
+            <div class="chktoggle-show ease">
+                <ul class="form-list">
+                    <li>
+                        <a href="<?show($route)?>/account-settings.php?task=email">Change Email</a>
+                    </li>
+                    <li>
+                        <a href="<?show($route)?>/account-settings.php?task=password">Change Password</a>
+                    </li>
+                </ul>
+            </div>
         </div>
 
     <?php foreach ($settings AS $heading => $li) :?>
@@ -34,7 +35,8 @@ $settings = fetchSettings();
             <h2><i class="fi fi-rs-caret-right"></i> <?=$heading?> Settings</h2>
         </label>
         <input type="checkbox" class="chktoggle invis" id="<?=strtolower($heading)?>-sets">
-        <ul class="form-list chktoggle-show">
+        <div class="chktoggle-show ease">
+        <ul class="form-list">
     <? foreach ($li AS $stg) :?>
         <li>
             <label for="<?show($stg['Field']);?>"><b><?show($stg['Field']);?>:</b></label>
@@ -70,11 +72,15 @@ $settings = fetchSettings();
                 <input type="file" id="<?show($stg['Key']);?>" name="<?show($stg['Key']);?>" value="">
                 <br/>Current:
                 <?php if ($stg['Value']>'') :?>
-                <br/><img src="<?show($set['dir'].$stg['Value']);?>" alt="Header image" style="height:auto;width:auto;max-width:600px;max-height:300px;">
-            <? else : ?>
-                <i>None</i>
-            <? endif;
-            break;
+                    <div class="settings-image-wrapper">
+                        <img id="<?show($stg['Key']);?>_current" src="<?show($set['dir'].$stg['Value']);?>" alt="<?show($stg['Field']);?> Current Image" style="height:auto;width:auto;max-width:600px;max-height:300px;">
+                    </div>
+                    <input type="hidden" id="rmv_<?show($stg['Key']);?>" name="n_rmv_<?show($stg['Key']);?>" value="0">
+                    <button type="button" class="small red" onclick="rmvFilePath('rmv_<?show($stg['Key']);?>', '<?show($stg['Key']);?>_current', 1)">Remove Current Image</button>
+                <? else : ?>
+                    <i>None</i>
+                <? endif;
+                break;
 
 
              default : 
@@ -92,14 +98,14 @@ $settings = fetchSettings();
         endswitch; ?>
         </li>
     <?php endforeach;?>
-    </ul></div>
+    </div></ul></div>
     <?php endforeach; ?>
-<ul>
 
 <button name="save_settings">Save Settings</button>
 </form>
 
 </main>
 
+<script src="_js/rmvFilePaths.js"></script>
 <?php
 include '_components/admin-footer.php';

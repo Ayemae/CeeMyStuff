@@ -20,7 +20,13 @@
     <li>
     <label for="header_img_upload">Header Image (Optional):</label>
         <input type="file" id="header_img_upload" name="header_img_upload" value="<?(!isset($_POST['header_img_upload']) ? null : show($_POST['header_img_upload']))?>">
-        <input type="hidden" name="stored_header_img" value="<?show($edit ? $page['Header_Img_Path'] : null);?>">
+        <input type="hidden" id="stored_header_img" name="stored_header_img" value="<?show($edit ? $page['Header_Img_Path'] : null);?>">
+        <?if ($edit && isset($page['Header_Img_Path']) && $page['Header_Img_Path']>''):?>
+            <div id="header_img_current" class="page-current-image-wrapper">
+                Current:<br/> <img src="<?=$page['Header_Img_Path']?>">
+            </div>
+            <button type="button" class="small red" onclick="rmvFilePath('stored_header_img', 'header_img_current')">Remove Current Image</button>
+        <?endif;?>
         <br/>
         <label for="n_show_title">Show header image on the website:</label>
         <input type="hidden" name="n_show_header_img" value="0">
@@ -65,11 +71,12 @@
     <?php endif;?>
 
     <li>
-        <label for="header_img_upload">Menu Link Image (Optional):</label>
+        <label for="menu_img_upload">Menu Link Image (Optional):</label>
         <input type="file" id="menu_img_upload" name="menu_img_upload" value="<?(!isset($_POST['menu_img_upload']) ? null : show($_POST['menu_img_upload']))?>">
-        <input type="hidden" name="stored_menu_img" value="<?show($edit && isset($page['Menu_Link_Img']) ? $page['Menu_Link_Img'] : null);?>">
         <?if ($edit && isset($page['Menu_Link_Img']) && $page['Menu_Link_Img']>''):?>
-            <div>Current: <img src="<?=$set['dir'].$page['Menu_Link_Img']?>"></div>
+            <div>Current: <img id="menu_img_current" src="<?=$set['dir'].$page['Menu_Link_Img']?>"></div>
+            <input type="hidden" id="rmv_menu_img" name="n_rmv_menu_img" value="0">
+            <button type="button" class="small red" onclick="rmvFilePath('rmv_menu_img', 'menu_img_current', 1)">Remove Current Image</button>
         <?endif;?>
     </li>
 
@@ -105,6 +112,7 @@
 <? if ($edit) :?>
 <script src="_js/enumerate.js"></script>
 <script src="_js/modal.js"></script>
+<script src="_js/rmvFilePaths.js"></script>
 <script>
 enumerate('menu-item-order', 'class');
 let modalHTML = `<h2>Are you sure you want to delete the '<?=$page['Name']?>' page?</h2>
