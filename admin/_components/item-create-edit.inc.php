@@ -70,7 +70,7 @@
         <? endif;?>
             <label for="text-editor" style="display:block">Text:</label>
             <?include('_components/text-edit-panel.inc.php')?>
-            <textarea id="text-editor" name="b_text"><?show($edit ? $item['Text'] : null)?></textarea>
+            <textarea id="text-editor" name="m_text"><?show($edit ? $item['Text'] : null)?></textarea>
         <? if ($edit ? $item['Text']<='' : null) :?>
             </div>
         <? endif;?>

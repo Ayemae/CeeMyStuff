@@ -37,7 +37,7 @@
     <li>
         <label for="text-editor">Section Text:</label><br/>
         <?include('_components/text-edit-panel.inc.php')?>
-        <textarea id="text-editor" name="b_text"><?show($edit ? $sect['Text'] : null)?></textarea>
+        <textarea id="text-editor" name="m_text"><?show($edit ? $sect['Text'] : null)?></textarea>
     </li>
     <li>
         <label for="n_page_id">In Page:</label>

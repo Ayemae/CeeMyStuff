@@ -1,5 +1,5 @@
 <?php
-$showErrors = 1;
+$showErrors = 0;
 if ($showErrors) {
     ini_set('display_errors', '1');
     ini_set('display_startup_errors', '1');
@@ -140,37 +140,64 @@ $emailHeaders =
 
 
 // deals with non-html text
-function stripHTML($str, $nl2br=false, $trim=true){
+function stripHTML($str, $nl2br=false, $incov=true, $trim=true){
     if ($nl2br) {$str = nl2br($str);}
-    $str = iconv('UTF-8', 'ASCII//TRANSLIT', $str);
+    if ($incov) {$str = iconv('UTF-8', 'ASCII//TRANSLIT', $str);}
     $str = htmlspecialchars($str);
     if ($trim) {$str = trim($str);}
     return $str;
 }
 
+// suggested by: https://stackoverflow.com/questions/7409512/new-line-to-paragraph-function
+function nl2p($str) {
+    $html='';
+    $lines = explode("\n", $str);
+    $i = 1;
+    foreach($lines AS $p) {
+        if (trim($p)) {
+            if (substr($p,0,1) != '<' && substr($p,-1) != '>') {
+                $p = htmlspecialchars('<p>'.$p.'</p>');
+            }
+        } else {
+            if ($i<=count($lines)) {
+                $p="<br/>";
+            }
+        }
+        if ($i>1) {
+            $p = "\n".$p;
+        }
+        $html .= $p;
+        $i++;
+    }
+    return $html;
+}
 
 function cleanServerPost($post){
     if (is_array($post)) {
         foreach ($post AS $key=>&$val) {
             // get type from marked html name attributes
             $t = substr($key,0,2);
-            $val = trim($val);
             switch ($t) {
-                case 'n_':
-                    $val = intval(filter_var($val, FILTER_SANITIZE_NUMBER_INT));
+                case 'n_': //number/integer
+                    $val = intval(filter_var(trim($val), FILTER_SANITIZE_NUMBER_INT));
                     break;
-                case 'b_':
-                    // might treat these ('blocks') differently than regular text if I find a need to in the future.
+                case 'm_': // markup/html text
+                    $val = nl2p($val);
+                    break;
+                case 'b_': // blocks/code?
+                    // might treat these differently than regular text if I find a need to in the future.
                     //break;
                 default:
-                    $val = nl2br($val);
-                    $val = iconv('UTF-8', 'ASCII//TRANSLIT', $val);
-                    $val = htmlspecialchars($val);
+                    if (is_string($val)) {
+                        $val = stripHTML($val, true);
+                    } else if (is_array($val)) {
+                        $val = array_map('stripHTML', $val);
+                    }
                     break;
             }
-            return $post;
         }
     }
+    return $post;
 }
 
 // Snippet from PHP Share: http://www.phpshare.org
@@ -1712,7 +1739,7 @@ if (isset($_POST['save_settings'])) {
         // header
         if (isset($_FILES['header_img']) && $_FILES['header_img']['name']>'') {
             $_POST['header_img'] = uploadImage ($dir, $_FILES['header_img'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
-        } elseif (intval($_POST['n_rmv_header_img'])>0) {
+        } elseif (isset($_POST['n_rmv_header_img']) && intval($_POST['n_rmv_header_img'])>0) {
             $_POST['header_img']='';
         } else {
             $_POST['header_img'] = null;
@@ -1974,7 +2001,7 @@ if (isset($_POST['create_section'])) {
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(':name',$cPost['name'], SQLITE3_TEXT);
     $stmt->bindValue(':pageid',$cPost['n_page_id'], SQLITE3_INTEGER);
-    $stmt->bindValue(':text',$cPost['b_text'], SQLITE3_TEXT);
+    $stmt->bindValue(':text',$cPost['m_text'], SQLITE3_TEXT);
     $stmt->bindValue(':imgpath',$imgPath, SQLITE3_TEXT);
     $stmt->bindValue(':showtitle',$cPost['n_show_title'], SQLITE3_INTEGER);
     $stmt->bindValue(':showimg',$cPost['n_show_header_img'], SQLITE3_INTEGER);
@@ -2052,7 +2079,7 @@ if (isset($_POST['edit_section'])) {
     WHERE ID=?;';
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(1,$cPost['name'], SQLITE3_TEXT);
-    $stmt->bindValue(2,$cPost['b_text'], SQLITE3_TEXT);
+    $stmt->bindValue(2,$cPost['m_text'], SQLITE3_TEXT);
     $stmt->bindValue(3,$imgPath, SQLITE3_TEXT);
     $stmt->bindValue(4,$cPost['n_show_title'], SQLITE3_INTEGER);
     $stmt->bindValue(5,$cPost['n_show_header_img'], SQLITE3_INTEGER);
@@ -2190,7 +2217,7 @@ if (isset($_POST['create_item'])) {
     $stmt->bindValue(':linktext',$cPost['file_link_text'], SQLITE3_TEXT);
     $stmt->bindValue(':embed',$cPost['b_embed'], SQLITE3_TEXT);
     $stmt->bindValue(':imgthumb',$imgThumbPath, SQLITE3_TEXT);
-    $stmt->bindValue(':text',$cPost['b_text'], SQLITE3_TEXT);
+    $stmt->bindValue(':text',$cPost['m_text'], SQLITE3_TEXT);
     $stmt->bindValue(':ts',$pdtUnix, SQLITE3_INTEGER);
     $stmt->bindValue(':hide',$cPost['n_hidden'], SQLITE3_INTEGER);
     $stmt->bindValue(':format',$cPost['format'], SQLITE3_TEXT);
@@ -2305,7 +2332,7 @@ if (isset($_POST['edit_item'])) {
     $stmt->bindValue(':sectid',$cPost['n_sect_id'], SQLITE3_INTEGER);
     $stmt->bindValue(':title',$cPost['title'], SQLITE3_TEXT);
     $stmt->bindValue(':ts',$pdtUnix, SQLITE3_INTEGER);
-    $stmt->bindValue(':text',$cPost['b_text'], SQLITE3_TEXT);
+    $stmt->bindValue(':text',$cPost['m_text'], SQLITE3_TEXT);
     $stmt->bindValue(':img',$imgPath, SQLITE3_TEXT);
     $stmt->bindValue(':alttext',$cPost['img_alt_text'], SQLITE3_TEXT);
     $stmt->bindValue(':file',$filePath, SQLITE3_TEXT);
