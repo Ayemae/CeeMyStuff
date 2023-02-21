@@ -7,6 +7,8 @@
         <? endif;?>
     </div>
 
+<noscript>Enable Javascript for more dynamic features.</noscript>
+
 <ul class="form-list">
     <li>
         <label for="title">Title:</label>
@@ -66,8 +68,9 @@
             <label for="add-text" class="chktoggle-label"><i class="fi fi-rs-plus"></i> Add Text</label>
             <div class="chktoggle-show" style="flex-direction:column">
         <? endif;?>
-            <label for="text" style="display:block">Text:</label>
-            <textarea id="text" name="b_text"><?show($edit ? $item['Text'] : null)?></textarea>
+            <label for="text-editor" style="display:block">Text:</label>
+            <?include('_components/text-edit-panel.inc.php')?>
+            <textarea id="text-editor" name="b_text"><?show($edit ? $item['Text'] : null)?></textarea>
         <? if ($edit ? $item['Text']<='' : null) :?>
             </div>
         <? endif;?>
@@ -91,6 +94,10 @@
             <p>Image Path: <?show($item['Img_Path'] ? $set['dir'].$item['Img_Path'] : '<i>None</i>')?></p>
             <button type="button" class="small red" onclick="rmvFilePath('img_stored', 'img_current')">Remove Item Image</button>
         <? endif;?>
+        <div>
+            <label for="img-alt-text">Image Description (Alt Text):</label>
+            <input type="text" name="img_alt_text" value="<?show($item['Img_Alt_Text'])?>">
+        </div>
                 
 
                 <ul id="add-thumbnail">
@@ -100,6 +107,7 @@
                     <div id="thumb_current" class="item-current-thumbnail-wrapper">
                         <img src="<?show($set['dir'])?><?show($item['Img_Thumb_Path'])?>" alt="<?show($item['Title'])?> Thumbnail">
                     </div>
+                    <input type="hidden" id="stored-thumb-img" name="stored_thumb_img" value="<?show($item['Img_Thumb_Path'])?>">
                     <input type="hidden" id="rmv_thumb_img" name="n_rmv_thumb_img" value="0">
                     <button type="button" class="small red" onclick="rmvFilePath('rmv_thumb_img', 'thumb_current', 1)">Remove Thumbnail Image</button>
                 </li>
@@ -108,7 +116,7 @@
 
             <li>
             <?php if ($sectInfo['Auto_Thumbs']) :?>
-                <i>If an image was added, a thumbnail image with a <?echo(!$sectInfo['Thumb_Size_Axis'] ? 'width' : 'height');?> of <?show($sectInfo['Thumb_Size'])?>px will be created for this item.<br/>
+                <i>If a new image is added, a thumbnail image with a <?echo(!$sectInfo['Thumb_Size_Axis'] ? 'width' : 'height');?> of <?show($sectInfo['Thumb_Size'])?>px will be created for this item.<br/>
                 <a href="<?show($route)?>/sections.php?task=edit&sectid=<?show($sectInfo['ID'])?>">Click here to change this setting.</a></i>
                 <input type="hidden" name="create_thumbnail" value="checked">
                 <input type="hidden" name="n_thumb_size" value="<?show($sectInfo['Thumb_Size'])?>">
@@ -143,7 +151,7 @@
     <li>
     <? if ($create || $item['File_Path']<='') :?>
             <input type="checkbox" class="chktoggle invis" id="add-file">
-            <label for="add-file" class="chktoggle-label"><i class="fi fi-rs-plus"></i> Add File Download</label>
+            <label for="add-file" class="chktoggle-label"><i class="fi fi-rs-plus"></i> Add File</label>
             <div class="chktoggle-show" style="flex-direction:column">
         <? endif;?>
              <label for="file_upload"><?=($create || $item['File_Path']<='' ? 'U' : 'Reu')?>pload File:</label>
@@ -197,6 +205,7 @@
 <? if ($edit) :?>
 <script src="_js/modal.js"></script>
 <script src="_js/rmvFilePaths.js"></script>
+<script src="_js/text-editor.js"></script>
 <script>
 let modalHTML = `<h2>Are you sure you want to delete '<?=($item['Title'])?>'?</h2>
                 <p>This cannot be undone.</p>

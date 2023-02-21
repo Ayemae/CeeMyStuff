@@ -39,7 +39,7 @@ $settings = fetchSettings();
         <ul class="form-list">
     <? foreach ($li AS $stg) :?>
         <li>
-            <label for="<?show($stg['Field']);?>"><b><?show($stg['Field']);?>:</b></label>
+            <label for="<?show($stg['Field']);?>"><?show($stg['Field']);?>:</label>
             
             <p><?show($stg['Description'])?></p>
 

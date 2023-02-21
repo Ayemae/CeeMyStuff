@@ -1,5 +1,5 @@
 <?php
-$showErrors = 0;
+$showErrors = 1;
 if ($showErrors) {
     ini_set('display_errors', '1');
     ini_set('display_startup_errors', '1');
@@ -830,7 +830,10 @@ function getSectInfo($id) {
     global $db; global $set;
     $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
     $conn = new SQLite3($db);
-    $qry = 'SELECT * FROM Sections WHERE ID = :id LIMIT 1;';
+    $qry = 'SELECT s.*, p.ID AS Page_ID, p.Name AS Page_Name, p.Link AS Page_Link 
+    FROM Sections AS s
+    LEFT JOIN Pages AS p ON s.Page_ID=p.ID
+    WHERE s.ID = :id LIMIT 1;';
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
     $result = $stmt->execute();
@@ -915,6 +918,61 @@ function getSectItems($id, $pageNum=1,
     } 
     return $items;
 }
+function getSectItemIDs($sectid, $orderBy='Date', $orderDir=false) {
+    global $db;global $loggedIn;global $admin_panel;
+    $itemIDs = array();
+    $sectid = filter_var($sectid, FILTER_SANITIZE_NUMBER_INT);
+    $conn = new SQLite3($db);
+    $qry = "SELECT ID, Title";
+    if ($admin_panel) {
+        $qry .= ", CASE
+        WHEN Publish_Timestamp>=strftime('%s','now')
+        THEN 1
+        ELSE 0
+        END AS Queued ";
+    }
+    $qry .= " FROM Items WHERE Sect_ID = :sectid ";
+    if (!$loggedIn || !$admin_panel) {
+        $qry .= " AND Hidden=0 AND Publish_Timestamp<=strftime('%s','now')";
+    }
+    $qry .= " ORDER BY ";
+    switch ($orderBy) {
+        case 'Title':
+            $qry .= 'Title';
+            break;
+        case 'Custom':
+            $qry .= 'Sect_Index_Order';
+            break;
+        case 'Random':
+            $qry .= 'RANDOM() ';
+            break;
+        case 'ID':
+            $qry .= 'ID';
+        break;
+        case 'Date':
+        default:
+            $qry .= 'Publish_Timestamp';
+            break;
+    }
+    if ($orderBy != 'Random') {
+        if (intval($orderDir)===1) {
+            $qry .= ' DESC ';
+        } else {
+            $qry .= ' ASC ';
+        }
+    }
+    $qry .= ';';
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(':sectid', $sectid, SQLITE3_INTEGER);
+    $result = $stmt->execute();
+    $i=1;
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $row['Index'] = $i;
+        $itemIDs[] = $row;
+        $i++;
+    } 
+    return $itemIDs;
+}
 
 function getItem($id) {
     global $db;
@@ -923,9 +981,15 @@ function getItem($id) {
     global $loggedIn;
     $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
     $conn = new SQLite3($db);
-    $qry = 'SELECT * FROM Items WHERE ID = :itemid';
+    $qry = 'SELECT i.*, 
+        s.Name AS Sect_Name, 
+        p.ID AS Page_ID, p.Name AS Page_Name, p.Link AS Page_Link
+    FROM Items AS i 
+    LEFT JOIN Sections AS s ON i.Sect_ID=s.ID
+    LEFT JOIN Pages AS p ON s.Page_ID=p.ID
+    WHERE i.ID = :itemid';
     if (!$admin_panel || !$loggedIn || (isset($view) && $view)) {
-        $qry .= ' AND Hidden=0';
+        $qry .= ' AND i.Hidden=0';
     }
     $qry .= ' LIMIT 1;';
     $stmt = $conn->prepare($qry);
@@ -982,10 +1046,13 @@ function showText($setShowText, $text) {
     return $text;
 }
 
-function showImage($setShowImg, $img=false, $thumb=false, $title=false) {
+function showImage($setShowImg, $img=false, $thumb=false, $alt=false, $title=false) {
     global $set;
     if (is_array($setShowImg)) {
         $setShowImg = $setShowImg['Show_Item_Images'];
+    }
+    if (!$alt) {
+        $alt= addslashes($title).' Image';
     }
     $dataAttr= 'data-thumbnail="'.$set['dir'].$thumb.'"';
     switch ($setShowImg) {
@@ -1003,7 +1070,7 @@ function showImage($setShowImg, $img=false, $thumb=false, $title=false) {
         break;
     }
     if ($img) {
-        $img = '<img class="item-image" src="'.$set['dir'].$img.'" alt="'.$title.' Image" '.$dataAttr.'>';
+        $img = '<img class="item-image" src="'.$set['dir'].$img.'" alt="'.$alt.'" '.$dataAttr.'>';
     }
     return $img;
 }
@@ -1036,7 +1103,7 @@ function className($str) {
     return strtolower(preg_replace("/[^A-Za-z-]/",'',str_replace(' ','-',$str)));
 }
 
-function printPaginator($pgAfter, $pageNum, $itemTotal, $pageLink) {
+function printSectPaginator($pgAfter, $pageNum, $itemTotal, $pageLink) {
     global $set;
     $last = ceil($itemTotal/$pgAfter);
     if ($itemTotal>$pgAfter) {
@@ -1053,6 +1120,39 @@ function printPaginator($pgAfter, $pageNum, $itemTotal, $pageLink) {
     $pageDropdown = '<select class="page-nav-dropdown" name="page_nav_dropdown" onchange="window.location.replace(this.value)">';
     for ($i=1;$i<=$last;$i++) {
         $pageDropdown .= '<option value="'.$set['dir'].'/'.urlencode($pageLink).'/page/'.$i.'" '.($i == $pageNum ? "selected" : null).'>'.$i.'</option>';
+    }
+    $pageDropdown .= '</select>';
+    ob_start();
+    include 'components/paginator.php';
+    $output = ob_get_clean();
+    return $output;
+    }
+}
+
+function printItemPaginator($itemList, $currentID, $pageLink=false, $pageName=false) {
+    global $set;
+    $idList = array_column($itemList, 'ID');
+    $itemTotal = count($idList);
+    $lastID = $idList[($itemTotal-1)];
+    $iLast = ($itemTotal-1);
+    $iCurr = array_search($currentID, $idList);
+    if ($itemTotal>$iCurr) {
+        $firstURL = $set['dir'].'/view/'.$idList[0];
+        $backURL = $nextURL = '';
+        $isFirst = $isLast = false;
+        $lastURL = $set['dir'].'/view/'.$lastID;
+    if ($iCurr>0) {
+        $backURL = $set['dir'].'/view/'.$idList[($iCurr-1)];
+    } else {$isFirst = true;}
+    if ($iCurr<$iLast) {
+        $nextURL = $set['dir'].'/view/'.$idList[($iCurr+1)];
+    } else {$isLast = true;}
+    $pageDropdown = '<select class="page-nav-dropdown" name="page_nav_dropdown" onchange="window.location.replace(this.value)">';
+    if ($pageLink!=false && $pageName!=false) {
+        $pageDropdown .= '<option value="'.$set['dir'].'/'.$pageLink.'">Back to '.$pageName.'</option>';
+    }
+    for ($i=0;$i<$itemTotal;$i++) {
+        $pageDropdown .= '<option value="'.$set['dir'].'/view/'.$idList[$i].'" '.($i == $iCurr ? "selected" : null).'>'.$itemList[$i]['Title'].'</option>';
     }
     $pageDropdown .= '</select>';
     ob_start();
@@ -1123,6 +1223,7 @@ function printPageItems($itemList=false, $sect=false) {
         if ($item['Img_Thumb_Path']) {$srcImgThumb = $set['dir'].$item['Img_Thumb_Path'];}
         if ($item['File_Path']) {$srcFilePath = $set['dir'].$item['File_Path'];}
         $textFull = $item['Text'];
+        $alt = addslashes($item['Img_Alt_Text']);
         $title = showTitle($sect['Show_Item_Titles'], $item['Title']);
         if ($title) {
             $title = addItemLinks($sect['Item_Click_Area'], $id, $title, 'Title', $sect['On_Click_Action'], $sect['ID']);
@@ -1131,10 +1232,10 @@ function printPageItems($itemList=false, $sect=false) {
         if ($text) {
             $text = addItemLinks($sect['Item_Click_Area'], $id, $text, 'Text', $sect['On_Click_Action'], $sect['ID']);
         }
-        $image = showImage($sect['Show_Item_Images'], $item['Img_Path'], $item['Img_Thumb_Path'], $item['Title']);
+        $image = showImage($sect['Show_Item_Images'], $item['Img_Path'], $item['Img_Thumb_Path'], $alt, $item['Title']);
         if ($image) {
             $image = addItemLinks($sect['Item_Click_Area'], $id, $image, 'Image', $sect['On_Click_Action'], $sect['ID']);
-            $imageFull = '<img src="'.$srcImgFull.'" alt="'.$item['Title'].'">';
+            $imageFull = '<img src="'.$srcImgFull.'" alt="'.($item['Img_Alt_Text'] ? $item['Img_Alt_Text'] : $item['Title']).'">';
         }
         $file = showFile($sect['Show_Item_Files'], $item['File_Path'], $item['File_Pres'], $sect['Link_Text']);
         if ($file) {
@@ -1206,6 +1307,7 @@ function printPageSects($sectList=false, $pageNum=1, $paginate=false, $pgAfter=1
     $content = '';
     foreach($sectList AS &$sect) {
         $id = $sect['ID'];
+        $dataAttr = '';
         if ($sect['Show_Header_Img'] && $sect['Header_Img_Path']>'') {
             $image = '<img src="'.$sect['Header_Img_Path'].'" alt="'.$sect['Name'].' Header">';
          } else {
@@ -1235,13 +1337,18 @@ function printPageSects($sectList=false, $pageNum=1, $paginate=false, $pgAfter=1
 
         $formatFile = $root.$sect['Format'];
 
-        $dataAttr = '';
         if ($sect['On_Click_Action']==2) {
-            $dataAttr = 'data-sect-action="lightbox"';
+            $dataAttr .= ' data-sect-action="lightbox"';
+            if ($sect['Paginate_Items'] > 0) {
+                $pBool= 'true';
+            } else {
+                $pBool= 'false';
+            }
+            $dataAttr .= ' data-lb-paginate="'.$pBool.'"';
             $hasLightbox = true;
         }
 
-        $content .= '<section id="sect_'.$sect['ID'].'" class="section '.$class.'" '.$dataAttr.'>';
+        $content .= '<section id="sect_'.$sect['ID'].'" class="section '.$class.'"'.$dataAttr.'>';
         if ($sect['Format'] && file_exists($formatFile)) {
             ob_start();
             include($formatFile);
@@ -1361,7 +1468,7 @@ function printPage($page=false,$num=1,$singleItem=false) {
     }
     if ($page['Paginate']==1 && $page['Multi_Sect']==0 &&
     ($page['Paginate_After']<$page['Total_Items'])) {
-        $paginator = printPaginator($page['Paginate_After'], $num, $page['Total_Items'], $page['Link']);
+        $paginator = printSectPaginator($page['Paginate_After'], $num, $page['Total_Items'], $page['Link']);
     } else {
         $paginator = '';
     }
@@ -1388,6 +1495,13 @@ function printPage($page=false,$num=1,$singleItem=false) {
         $name = $item['Title']; 
         $metaText = truncateTxt($item['Text'], 300);
         $page['Format'] = $sectInfo['View_Item_Format'];
+        $pageURL = $set['dir'].'/'.$item['Page_Link'];
+        $pageLink = '<a href="'.$pageURL.'">Back to '.$item['Page_Name'].'</a>';
+        $paginator = '';
+        if ($sectInfo['Paginate_Items']) {
+            $itemList = getSectItemIDs($item['Sect_ID'], $sectInfo['Order_By'], $sectInfo['Order_Dir']);
+            $paginator = printItemPaginator($itemList, $num, $item['Page_Link'], $item['Page_Name']);
+        }
     }
     $content = '';
     $automenu = serializeMenu();
@@ -1411,6 +1525,9 @@ function printPage($page=false,$num=1,$singleItem=false) {
         <title>'.$set['site_name'].': '.$name.'</title>
         '.$faviconRel.$moIconRel.'
         <meta name="description" content="'.$metaText.'">
+        <script type="text/javascript">'.PHP_EOL.'
+            const subdir = "'.$set['dir'].'";'.PHP_EOL.'
+        </script>
     </head>
     <body>';
 
@@ -1460,7 +1577,7 @@ function printPage($page=false,$num=1,$singleItem=false) {
         $id = $item['ID'];
         $title = $item['Title'];
         $text =  $item['Text'];
-        $image = ($item['Img_Path'] ? '<img src="'.$set['dir'].$item['Img_Path'].'" alt="'.$item['Title'].'">' : null);
+        $image = ($item['Img_Path'] ? '<img src="'.$set['dir'].$item['Img_Path'].'" alt="'.($item['Img_Alt_Text'] ? $item['Img_Alt_Text'] : $item['Title']).'">' : null);
         $file = showFile(1, $item['File_Path'], $item['File_Pres'], $sectInfo['Link_Text']);
         $date = $item['Date'];
         $embed = $item['Embed_HTML'];
@@ -1637,10 +1754,10 @@ if (isset($_POST['create_page'])) {
     $msg = "";
     $link = strtolower(preg_replace("/[^A-Za-z0-9-]/",'',str_replace(' ','-',$cPost['name'])));
     require_once 'upload.php';
-    $dir = '/assets/uploads/sect-headers/';
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
     if (!$set['has_max_upld_storage']) {$set['max_upld_storage'] = false;}
     if ($_FILES['header_img_upload']['name']>'') {
+        $dir = '/assets/uploads/page-headers/';
         $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
     } else {
         $imgPath = null;
@@ -1683,6 +1800,7 @@ if (isset($_POST['create_page'])) {
 
         // TODO: save menu img path to menu table
         if ($_FILES['menu_img_upload']['name']) {
+            $dir = '/assets/uploads/menu/';
             //sanitize img name
             $_FILES['menu_img_upload']['name'] = stripHTML($_FILES['menu_img_upload']['name']);
             $_FILES['menu_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['menu_img_upload']['name']));
@@ -1705,10 +1823,10 @@ if (isset($_POST['edit_page'])) {
     $cPost = cleanServerPost($_POST);
     $link = strtolower(preg_replace("/[^A-Za-z0-9-]/",'',str_replace(' ','-',$cPost['name'])));
     require_once 'upload.php';
-    $dir = '/assets/uploads/sect-headers/';
     if (!$set['has_max_img_dimns']) {$set['max_img_dimns'] = false;}
     if (!$set['has_max_upld_storage']) {$set['max_upld_storage'] = false;}
     if ($_FILES['header_img_upload']['name']) {
+        $dir = '/assets/uploads/page-headers/';
         $imgPath = uploadImage ($dir, $_FILES['header_img_upload'], $set['max_img_dimns'], $set['max_img_dimns'], true, true, false, $set['max_upld_storage']);
     } else {
         if ($cPost['stored_header_img']) {
@@ -1739,6 +1857,7 @@ if (isset($_POST['edit_page'])) {
         if ((isset($_FILES['menu_img_upload']) && $_FILES['menu_img_upload']['name']) || 
                 (isset($cPost['n_rmv_menu_img']) && $cPost['n_rmv_menu_img']>0)) {
             if (isset($_FILES['menu_img_upload']) && $_FILES['menu_img_upload']['name']) {
+                $dir = '/assets/uploads/menu/';
                 //sanitize img name
                 $_FILES['menu_img_upload']['name'] = stripHTML($_FILES['menu_img_upload']['name']);
                 $_FILES['menu_img_upload']['name'] = str_replace(" ","-",preg_replace("/[^A-Za-z0-9. \-_]/", '', $_FILES['menu_img_upload']['name']));
@@ -1837,11 +1956,21 @@ if (isset($_POST['create_section'])) {
     } else {
         $imgPath = null;
     }
-    $qry = 'INSERT INTO Sections (Name,Page_ID,Text,Header_Img_Path,Show_Title,Show_Header_Img,
-    Show_Item_Images,Show_Item_Titles,Show_Item_Text,Order_By,Order_Dir,Auto_Thumbs,Thumb_Size,
-    Thumb_Size_Axis,Format,Default_Item_Format,Hidden) 
+    if ($cPost['file_link_text'] === "") {
+        $cPost['file_link_text'] = "Click here";
+    }
+    $clickAreas = cleanServerPost($cPost['item_click_area']);
+    if (in_array('All',$clickAreas)) {
+        $clickAreas = array('All');
+    } $clickAreas= implode(',',$clickAreas);
+
+    $qry = 'INSERT INTO Sections (Name, Page_ID, Text, Header_Img_Path, Show_Title, Show_Header_Img, 
+    Show_Item_Images, Show_Item_Titles, Show_Item_Text, Order_By, Order_Dir, Auto_Thumbs, Thumb_Size, 
+    Thumb_Size_Axis, Format, Default_Item_Format, Show_Items_Files, Default_File_Link_Text, Item_Click_Area, 
+    On_Click_Action, View_Item_Format, Lightbox_Format, Paginate_Items, Hidden) 
     VALUES (:name, :pageid, :text, :imgpath, :showtitle, :showimg, :showitemimgs, :showitemtitles, 
-    :showitemtext, :orderby, :orderdir, :autothumbs, :thumbsize, :thumbsizea, :format, :itemformat, :hidden);';
+    :showitemtext, :orderby, :orderdir, :autothumbs, :thumbsize, :thumbsizea, :format, :itemformat, 
+    :showfiles, :filelinktext, :clickarea, :clickaction, :viformat, :lbformat, :paginate, :hidden);';
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(':name',$cPost['name'], SQLITE3_TEXT);
     $stmt->bindValue(':pageid',$cPost['n_page_id'], SQLITE3_INTEGER);
@@ -1859,6 +1988,13 @@ if (isset($_POST['create_section'])) {
     $stmt->bindValue(':thumbsizea',$cPost['n_thumb_axis'], SQLITE3_INTEGER);
     $stmt->bindValue(':format',$cPost['format'], SQLITE3_TEXT);
     $stmt->bindValue(':itemformat',$cPost['item_format'], SQLITE3_TEXT);
+    $stmt->bindValue(':showfiles',$cPost['n_show_files'], SQLITE3_INTEGER);
+    $stmt->bindValue(':filelinktext',$cPost['file_link_text'], SQLITE3_TEXT);
+    $stmt->bindValue(':clickarea',$clickAreas, SQLITE3_TEXT);
+    $stmt->bindValue(':clickaction',$cPost['n_onclick_action'], SQLITE3_INTEGER);
+    $stmt->bindValue(':viformat',$cPost['view_item_Format'], SQLITE3_TEXT);
+    $stmt->bindValue(':lbformat',$cPost['lightbox_format'], SQLITE3_TEXT);
+    $stmt->bindValue(':paginate',$cPost['n_paginate_items'], SQLITE3_INTEGER);
     $stmt->bindValue(':hidden',$cPost['n_hidden'], SQLITE3_INTEGER);
     if ($stmt->execute()) {
         $msg="New section created at ".date('d F, Y h:i:s').".";
@@ -1897,6 +2033,9 @@ if (isset($_POST['edit_section'])) {
     } else {
         $imgPath = null;
     }
+    if ($cPost['file_link_text'] === "") {
+        $cPost['file_link_text'] = "Click here";
+    }
     $clickAreas = cleanServerPost($cPost['item_click_area']);
     if (in_array('All',$clickAreas)) {
         $clickAreas = array('All');
@@ -1908,7 +2047,8 @@ if (isset($_POST['edit_section'])) {
         Header_Img_Path=?, Show_Title=?, Show_Header_Img=?, Show_Item_Images=?, 
         Show_Item_Titles=?, Show_Item_Text=?, Order_By=?, Order_Dir=?, Auto_Thumbs=?, 
         Thumb_Size=?, Thumb_Size_Axis=?, Format=?, Default_Item_Format=?, View_Item_Format=?, Page_ID=?,
-        Show_Item_Files=?, Item_Click_Area=?, On_Click_Action=?, Lightbox_Format=?, Hidden=?
+        Show_Item_Files=?, Default_File_Link_Text=?, Item_Click_Area=?, On_Click_Action=?, Lightbox_Format=?, 
+        Paginate_Items=?, Hidden=?
     WHERE ID=?;';
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(1,$cPost['name'], SQLITE3_TEXT);
@@ -1929,11 +2069,13 @@ if (isset($_POST['edit_section'])) {
     $stmt->bindValue(16,$cPost['view_item_format'], SQLITE3_TEXT);
     $stmt->bindValue(17,$cPost['n_page_id'], SQLITE3_INTEGER);
     $stmt->bindValue(18,$cPost['n_show_files'], SQLITE3_INTEGER);
-    $stmt->bindValue(19,$clickAreas, SQLITE3_TEXT);
-    $stmt->bindValue(20,$cPost['n_onclick_action'], SQLITE3_INTEGER);
-    $stmt->bindValue(21,$cPost['lightbox_format'], SQLITE3_TEXT);
-    $stmt->bindValue(22,$cPost['n_hidden'], SQLITE3_INTEGER);
-    $stmt->bindValue(23,$cPost['n_sect_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(19,$cPost['file_link_text'], SQLITE3_TEXT);
+    $stmt->bindValue(20,$clickAreas, SQLITE3_TEXT);
+    $stmt->bindValue(21,$cPost['n_onclick_action'], SQLITE3_INTEGER);
+    $stmt->bindValue(22,$cPost['lightbox_format'], SQLITE3_TEXT);
+    $stmt->bindValue(23,$cPost['n_paginate_items'], SQLITE3_TEXT);
+    $stmt->bindValue(24,$cPost['n_hidden'], SQLITE3_INTEGER);
+    $stmt->bindValue(25,$cPost['n_sect_id'], SQLITE3_INTEGER);
     if (!$stmt->execute()) {
         $msg="Changes failed to save. Please try again.";
     } else {
@@ -2036,13 +2178,16 @@ if (isset($_POST['create_item'])) {
     if ($cPost['format'] <= '') {
         $cPost['format'] = null;
     }
-    $qry = "INSERT INTO Items (Sect_ID,Title,Img_Path,File_Path,Embed_HTML,Img_Thumb_Path,Text,Publish_Timestamp,Hidden,Format)
-    VALUES (:sectid,:title,:img,:file,:embed,:imgthumb,:text,:ts,:hide,:format);";
+    $qry = "INSERT INTO Items (Sect_ID,Title,Img_Path,Img_Alt_Text,File_Path,File_Link_Text,
+    Embed_HTML,Img_Thumb_Path,Text,Publish_Timestamp,Hidden,Format)
+    VALUES (:sectid,:title,:img,:alttext,:file,:linktext,:embed,:imgthumb,:text,:ts,:hide,:format);";
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(':sectid',$cPost['n_sect_id'], SQLITE3_INTEGER);
     $stmt->bindValue(':title',$cPost['title'], SQLITE3_TEXT);
     $stmt->bindValue(':img',$imgPath, SQLITE3_TEXT);
+    $stmt->bindValue(':alttext',$cPost['img_alt_text'], SQLITE3_TEXT);
     $stmt->bindValue(':file',$filePath, SQLITE3_TEXT);
+    $stmt->bindValue(':linktext',$cPost['file_link_text'], SQLITE3_TEXT);
     $stmt->bindValue(':embed',$cPost['b_embed'], SQLITE3_TEXT);
     $stmt->bindValue(':imgthumb',$imgThumbPath, SQLITE3_TEXT);
     $stmt->bindValue(':text',$cPost['b_text'], SQLITE3_TEXT);
@@ -2117,7 +2262,7 @@ if (isset($_POST['edit_item'])) {
     } else if (isset($cPost['n_rmv_thumb_img']) && $cPost['n_rmv_thumb_img']>0) {
         $imgThumbPath = '';
     } else {
-        $imgThumbPath = null;
+        $imgThumbPath = $cPost['stored_thumb_img'];
     }
     if (isset($_FILES['file_upload']) && $_FILES['file_upload']['name']>'') {
         $imgName = str_replace(pathinfo($_FILES['file_upload']['name'],PATHINFO_EXTENSION),"",$_FILES['file_upload']['name']).'-'.time();
@@ -2153,8 +2298,8 @@ if (isset($_POST['edit_item'])) {
         $cPost['format'] = null;
     }
     $qry = "UPDATE Items 
-            SET Sect_ID=:sectid,Title=:title,Publish_Timestamp=:ts,Text=:text,Img_Path=:img,File_Path=:file,
-            Embed_HTML=:embed,Img_Thumb_Path=:imgthumb,Format=:format,Hidden=:hide
+            SET Sect_ID=:sectid,Title=:title,Publish_Timestamp=:ts,Text=:text,Img_Path=:img, Img_Alt_Text=:alttext,
+            File_Path=:file, File_Link_Text=:linktext, Embed_HTML=:embed,Img_Thumb_Path=:imgthumb,Format=:format,Hidden=:hide
             WHERE ID=:id;";
     $stmt = $conn->prepare($qry);
     $stmt->bindValue(':sectid',$cPost['n_sect_id'], SQLITE3_INTEGER);
@@ -2162,7 +2307,9 @@ if (isset($_POST['edit_item'])) {
     $stmt->bindValue(':ts',$pdtUnix, SQLITE3_INTEGER);
     $stmt->bindValue(':text',$cPost['b_text'], SQLITE3_TEXT);
     $stmt->bindValue(':img',$imgPath, SQLITE3_TEXT);
+    $stmt->bindValue(':alttext',$cPost['img_alt_text'], SQLITE3_TEXT);
     $stmt->bindValue(':file',$filePath, SQLITE3_TEXT);
+    $stmt->bindValue(':linktext',$cPost['file_link_text'], SQLITE3_TEXT);
     $stmt->bindValue(':embed',$cPost['b_embed'], SQLITE3_TEXT);
     $stmt->bindValue(':imgthumb',$imgThumbPath, SQLITE3_TEXT);
     $stmt->bindValue(':hide',$cPost['n_hidden'], SQLITE3_INTEGER);

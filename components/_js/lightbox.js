@@ -6,11 +6,15 @@ var lbElems = [];
 
 for (let i=0; i < lbSects.length; i++) {
     items = lbSects[i].querySelectorAll('[data-lightbox]');
+    let paginate = false;
+    if (lbSects[i].dataset.lbPaginate==="true") {
+        paginate = true;
+    }
     for (let i2=0; i2 < items.length; i2++) {
         items[i2].addEventListener('click', function(e) {
             e.preventDefault();
             const lbArrows = document.getElementById('lightbox-arrows');
-            if (lbArrs[i].length<2) {
+            if (lbArrs[i].length<2 || paginate===false) {
                 lbArrows.classList.add("off");
             } else {
                 if (lbArrows.classList.contains("off")) {

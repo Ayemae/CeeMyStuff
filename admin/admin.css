@@ -97,6 +97,13 @@ button.small,
     font-size: 1rem;
     padding: 3px 8px;
 }
+#text-edit-panel button {
+    font-size: 1rem;
+    letter-spacing: unset;
+    margin: 0 0 4px;
+    padding: 3px 6px;
+    background-color: #4a4e7c;
+}
 
 main {
     margin: 6px;
@@ -363,6 +370,18 @@ ul.form-list p {
     margin:0;
     line-height: 1rem;
 }
+.form-list label,
+label.font-2 {
+    font-family: var(--font-2);
+    font-size: 1.15em;
+    line-height: 1.5em;
+}
+.form-list label.sublabel,
+.sub-form-list label {
+    font-family: var(--font-1);
+    font-size: 1rem;
+    line-height: unset;
+}
 
 .menu-settings-table {
     width: 90%;
@@ -406,6 +425,48 @@ ul.menu-settings-item-list li {
 ul.menu-settings-item-list li .menu-item-order {
     width: 3em;
 }
+.sub-form-list  {
+    list-style: none;
+}
+.sub-form-list > li,
+.form-list li .sub-form-list li,
+.form-list li .chktoggle-show .sub-form-list li {
+    background:unset;
+    background-color: rgb(255 255 199 / 50%);
+    border-radius: 3px;
+    margin: 5px 0;
+}
+.form-list fieldset,
+.sub-form-list fieldset {
+    border: none;
+    padding: 0;
+    margin: 4px 0;
+}
+fieldset label {
+    display: inline-block;
+    padding: 1px 10px;
+    margin: 1px 8px 1px 0;
+    background-color: rgb(255,255,200);
+    border-radius: 3px;
+}
+fieldset input[type=checkbox] {
+    margin:0;
+}
+label.fl-chkbox {
+    background-color: rgb(255,255,200);
+    padding: 3px 10px 3px 27px;
+    border-radius: 3px;
+    margin: 1px 8px 1px -18px;
+}input[type=checkbox].fl-chkbox,
+input[type=checkbox].chktoggle.fl-chkbox {
+    background-color: rgb(255,255,200);
+    padding: 3px 0 3px 10px;
+    border-radius: 3px 0 0 3px;
+    margin: 1px 0;
+    position: relative;
+    left:9px;
+}
+
 .js-check {
     display: none;
 }
@@ -447,6 +508,14 @@ main.user-manual section {
 }
 .red {
     color: #bd0020;
+}
+
+figure#sm-icon {
+    width: 35px;
+    height: 35px;
+}figure#sm-icon > img {
+    width: 35px;
+    height: 35px;
 }
 
 

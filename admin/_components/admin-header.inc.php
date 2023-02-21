@@ -9,6 +9,9 @@
     <?php if ($page_title) :?>
         <title><?show($page_title);?></title>
     <?php endif; ?>
+    <script type="text/javascript">
+        const subdir = "<?=$set['dir']?>";
+    </script>
 </head>
 <body>
 <header>

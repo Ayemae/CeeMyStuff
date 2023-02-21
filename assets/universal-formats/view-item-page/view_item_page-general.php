@@ -11,6 +11,9 @@
         <?show($date)?>
         <?show($text)?>
     <?show($paginator)?>
+    <div class="back-link">
+        <?show($pageLink)?>
+    </div>
 </main>
 
 <? include_once($footer); ?>

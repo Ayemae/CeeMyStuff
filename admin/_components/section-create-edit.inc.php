@@ -35,8 +35,9 @@
     </li>
 
     <li>
-        <label for="b_text">Text:</label><br/>
-        <textarea name="b_text"><?show($edit ? $sect['Text'] : null)?></textarea>
+        <label for="text-editor">Section Text:</label><br/>
+        <?include('_components/text-edit-panel.inc.php')?>
+        <textarea id="text-editor" name="b_text"><?show($edit ? $sect['Text'] : null)?></textarea>
     </li>
     <li>
         <label for="n_page_id">In Page:</label>
@@ -45,7 +46,7 @@
             <option value="0">None</option>
             <?php foreach($pgList AS $page) : 
                 if ($sect['Page_ID']==$page['ID'] || $page['Can_Add_Sect']) : ?>
-                <option value="<?show($page['ID']);?>" <?=formCmp($sect['Order_By'],'Date','s')?>>
+                <option value="<?show($page['ID']);?>" <?=formCmp($sect['Page_ID'],$page['ID'],'s')?>>
                     <?show($page['Name']);?>
                 </option>
             <?php endif;
@@ -151,7 +152,7 @@
         <input type="hidden" name="n_create_thumbs" value="0">
         <input type="checkbox" id="create-thumbs" name="n_create_thumbs" class="chktoggle" value="1" <?=($sect['Auto_Thumbs'] ? "checked=checked" : null );?>>
         <div class="chktoggle-show">
-            <ul class="form-list">
+            <ul class="sub-form-list">
                 <li>
                     <label for="thumb_size">Choose default thumbnail size:</label>
                     <input type="number" id="thumb_size" name="n_thumb_size" value="<?=($sect['Thumb_Size'] ? $sect['Thumb_Size'] : null );?>">
@@ -169,40 +170,40 @@
 
     <?php if ($create || $sect['ID']>0) :?>
 
-    <li>
+    <li class="select-cond-container">
         <div>
             <label for="show_files">Show Item Files:</label>
-            <select id="show_files" name="n_show_files">
+            <select id="show_files" name="n_show_files" class="select-cond-master">
                 <option value="0" <?formCmp($sect['Show_Item_Files'],0,'s')?>>No</option>
                 <option value="1" <?formCmp($sect['Show_Item_Files'],1,'s')?>>Show Link to File</option>
                 <option value="2" <?formCmp($sect['Show_Item_Files'],2,'s')?>>Show File Download</option>
             </select>
         </div>
-        <div>
-            <label for="name">File Link Text:</label>
-            <input type="text" name="link_text" id="link-text" max-length="255" value="<?show($sect['Link_Text'])?>">
-        </div>
+        <ul class="sub-form-list select-cond" data-sc-conditions="1,2">
+            <li>
+                <label for="name">Default File Link Text:</label>
+                <input type="text" name="file_link_text" id="link-text" max-length="255" value="<?show($edit ? $sect['Default_File_Link_Text'] : "Click here")?>">
+            <l/i>
+        </ul>
     </li>
 
-    <li>
-        <div>
+    <li class="select-cond-container">
             <label for="onclick-action">Item On-Click Actions:</label>
             <p>What should happen when a viewer clicks on an item?</p>
-            <select id="onclick-action" name="n_onclick_action">
+            <select id="onclick-action" class="select-cond-master" name="n_onclick_action">
                 <option value="1" <?formCmp($sect['On_Click_Action'],1,'s')?>>Load a single-item viewing page</option>
-                <option value="2" <?formCmp($sect['On_Click_Action'],2,'s')?>>Open a lightbox with the subject</option>
-                <option value="3" <?formCmp($sect['On_Click_Action'],3,'s')?>>Open the subject file in a new window</option>
+                <option value="2" <?formCmp($sect['On_Click_Action'],2,'s')?>>Open a lightbox to view item</option>
+                <option value="3" <?formCmp($sect['On_Click_Action'],3,'s')?>>Open new window with single-item viewing page</option>
                 <option value="0" <?formCmp($sect['On_Click_Action'],0,'s')?>>Nothing; items should not be clickable</option>
             </select>
-        </div>
 
-        <ul class="form-list">
-            <div>
+        <ul class="sub-form-list">
+            <li id="item-click-area-sc" class="select-cond" data-sc-conditions="0" data-sc-exclude="true" data-sc-reverse="true">
                 <div><label for="click-area">Item Click Area:</label></div>
-                <input type="checkbox" class="chktoggle" id="clk-anywhere" name="item_click_area[1]" value="All" <?=(in_array("All",$sect['Item_Click_Area']) ? "checked" : null )?>>
-                <label for="anywhere">Anywhere</label>
+                <input type="checkbox" class="chktoggle fl-chkbox" id="clk-anywhere" name="item_click_area[1]" value="All" <?=(in_array("All",$sect['Item_Click_Area']) ? "checked" : null )?>>
+                <label class="fl-chkbox" for="clk-anywhere">Anywhere</label>
                 <div class="chktoggle-hide">
-                    <div class="space-btw">
+                    <fieldset>
                         <label for="clk-title">
                             <input type="checkbox" id="clk-title" name="item_click_area[2]" value="Title" <?=(in_array("Title",$sect['Item_Click_Area']) ? "checked" : null )?>> Title
                         </label>
@@ -214,43 +215,57 @@
                         <label for="clk-link">
                             <input type="checkbox" id="clk-link" name="item_click_area[5]" value="Link" <?=(in_array("Link",$sect['Item_Click_Area']) ? "checked" : null )?>> Added 'View' Link
                         </label>
-                    </div>
+                    </fieldset>
                 </div>
-            </div>
+            </li>
+        
+
+            <li id="lightbox-format-sc" class="select-cond" data-sc-conditions="2" data-sc-exclude="" data-sc-reverse="">
+                <label for="lightbox-format">Lightbox Format:</label>
+                <p>Select a format for how you would like Section's items to display within lightbox.</p>
+                <?php if ($lightboxFormats) :?>
+                    <select name="lightbox_format" id="lightbox-format">
+                        <?php foreach ($lightboxFormats AS $lFormat) :?>
+                        <option value="<?show($lFormat['Path'])?>" <?formCmp($sect['Lightbox_Format'],$lFormat['Path'],'s')?>>
+                            <?show($lFormat['From'])?> > <?show($lFormat['Name'])?>
+                        </option>
+                        <?php endforeach;?>
+                    </select>
+                <?php else :?>
+                    <i class="red">No valid Lightbox formats found.</i>
+                <?php endif;?>
+            </li>
+
+
+            <li id="viewitem-format-sc" class="select-cond" data-sc-conditions="1,3" data-sc-exclude="" data-sc-reverse="">
+                <label for="view-item-format">Default View-Item Page Display Format:</label>
+                <p>Select a format for how you would like Section's items to display on their individual 'view' pages on the website.</p>
+                <?php if ($viewItemFormats) :?>
+                    <select name="view_item_format" id="view-item-format">
+                        <?php foreach ($viewItemFormats AS $vFormat) :?>
+                        <option value="<?show($vFormat['Path'])?>" <?formCmp($sect['View_Item_Format'],$vFormat['Path'],'s')?>>
+                            <?show($vFormat['From'])?> > <?show($vFormat['Name'])?>
+                        </option>
+                        <?php endforeach;?>
+                    </select>
+                <?php else :?>
+                    <i class="red">No valid View-Item Page formats found.</i>
+                <?php endif;?>
+            </li>
+
+            <li class="select-cond" data-sc-conditions="0" data-sc-exclude="true" data-sc-reverse="true">
+                <label for="paginate-items">
+                    Enable pagination between items:
+                </label>
+                <input type="hidden" name="n_paginate_items" value="0">
+                <input type="checkbox" id="paginate-items" name="n_paginate_items" value="1" <?($edit ? formCmp($sect['Paginate_Items'],1) : "checked")?>>
+            </li>
+
         </ul>
     </li>
 
-        <li class="select-cond-show selected-lightbox">
-            <label for="lightbox-format">Lightbox Format:</label>
-            <p>Select a format for how you would like Section's items to display within lightbox.</p>
-            <?php if ($lightboxFormats) :?>
-                <select name="lightbox_format" id="lightbox-format">
-                    <?php foreach ($lightboxFormats AS $lFormat) :?>
-                    <option value="<?show($lFormat['Path'])?>" <?formCmp($sect['Lightbox_Format'],$lFormat['Path'],'s')?>>
-                        <?show($lFormat['From'])?> > <?show($lFormat['Name'])?>
-                    </option>
-                    <?php endforeach;?>
-                </select>
-            <?php else :?>
-                <i class="red">No valid Lightbox formats found.</i>
-            <?php endif;?>
-        </li>
 
-        <li class="select-cond-show selected-view-page">
-            <label for="view-item-format">Default View-Item Page Display Format:</label>
-            <p>Select a format for how you would like Section's items to display on their individual 'view' pages on the website.</p>
-            <?php if ($viewItemFormats) :?>
-                <select name="view_item_format" id="view-item-format">
-                    <?php foreach ($viewItemFormats AS $vFormat) :?>
-                    <option value="<?show($vFormat['Path'])?>" <?formCmp($sect['View_Item_Format'],$vFormat['Path'],'s')?>>
-                        <?show($vFormat['From'])?> > <?show($vFormat['Name'])?>
-                    </option>
-                    <?php endforeach;?>
-                </select>
-            <?php else :?>
-                <i class="red">No valid View-Item-Page formats found.</i>
-            <?php endif;?>
-        </li>
+        
 
     <li>
             <label for="hidden"> Hide this section:</label>
@@ -265,8 +280,12 @@
 </form>
 
 <? if ($edit) :?>
+<script type="text/javascript">
+</script>
 <script src="_js/modal.js"></script>
 <script src="_js/rmvFilePaths.js"></script>
+<script src="_js/toggle-on-cond.js"></script>
+<script src="_js/text-editor.js"></script>
 <script>
 let modalHTML = `<h2>Are you sure you want to delete the '<?=$sect['Name']?>' Section?</h2>
                 <p>This cannot be undone.</p>

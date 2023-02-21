@@ -30,7 +30,7 @@ $conn->exec('INSERT INTO Settings (Index_Order, Field, Key, Value, Type, Descrip
     VALUES 
     (3, "Subdirectory", "dir", "", "text", "If this portfolio site is in a subdirectory, write which subdirectory in here.", null, "Info"),
     (1, "Site Name", "site_name", "My Portfolio", "text", null, null, "Info"),
-    (2, "Owner Name", "owner_name", "My Name", "text", "Your name, or the name of the group this site belongs to.", null, "Info"),
+    (2, "Owner Name", "owner_name", "", "text", "Your name, or the name of the group this site belongs to.", null, "Info"),
     (4, "Theme", "theme", "White-Bread", "function", "What theme you want to use for the aesthetic look of your site.",null, "Display"),
     (5, "Initial Copyright Year", "c_year", "", "number", null, null, "Info"),
     (6, "Timezone", "timezone", "America/New_York", "function", null,null, "Info"),
@@ -81,8 +81,9 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Sections (
     Show_Item_Text INTEGER NOT NULL DEFAULT 1,
     Show_Item_Files INTEGER NOT NULL DEFAULT 1,
     Item_Click_Area TEXT DEFAULT "All",
-    On_Click_Action INTEGER DEFAULT 1,
-    Link_Text TEXT DEFAULT "Click here",
+    On_Click_Action INTEGER NOT NULL DEFAULT 1,
+    Paginate_Items INTEGER NOT NULL DEFAULT 1,
+    Default_File_Link_Text TEXT DEFAULT "Click here",
     Order_By TEXT NOT NULL DEFAULT "Date",
     Order_Dir INTEGER NOT NULL DEFAULT 0,
     Auto_Thumbs INTEGER NOT NULL DEFAULT 1,
@@ -113,6 +114,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Items (
     Img_Thumb_Path TEXT DEFAULT NULL,
     Img_Alt_Text TEXT DEFAULT NULL,
     File_Path TEXT DEFAULT NULL,
+    File_Link_Text TEXT,
     Embed_HTML TEXT DEFAULT NULL,
     Hidden INTEGER NOT NULL DEFAULT 0
 )');
