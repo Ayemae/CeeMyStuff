@@ -383,6 +383,13 @@ label.font-2 {
     line-height: unset;
 }
 
+.text-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
 .menu-settings-table {
     width: 90%;
     margin: auto;

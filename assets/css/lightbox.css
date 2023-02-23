@@ -1,6 +1,11 @@
 #lightbox > * {
     box-sizing: border-box;
 }
+#lightbox a {
+	position: relative;
+	z-index: 1;
+	color: #96a3ff;
+}
 #lightbox {
     box-sizing: border-box;
 	z-index: -100;
@@ -14,23 +19,27 @@
 	left:0;
 	right:0;
 	bottom:0;
-}
-#lightbox.on {
+}#lightbox.on {
 	z-index: 100;
 	visibility: visible;
-}
-#lightbox-close {
-	font-size: 40px;
-    height: 55px;
-    width: 55px;
-    position: absolute;
-    top: 0;
-    right: 0;
+}#lightbox button {
+	color: #ffffff;
 	text-shadow: #000000 1px 0 10px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 	cursor: pointer !important;
-    margin:3px;
-}#lightbox-arrows {
-	font-size: 38px;
+}
+#lightbox-close.cms-default {
+    position: absolute;
+    right: 2%;
+}#lightbox i.icon {
+    font-size: 40px;
+	cursor: pointer !important;
+}#lightbox i.close.icon {
+	padding-left: 6px;
+}
+#lightbox-arrows.cms-default {
     position: absolute;
     top: 0;right: 0;left: 0;bottom: 0;
     text-shadow: #000000 1px 0 10px;
@@ -40,8 +49,15 @@
     align-items: center;
     padding: 20px;
     margin:3px;
-}#lightbox-arrows.off {
-	display:none;
+}#lightbox-arrows.off,
+#lb-back.off,
+#lb-next.off,
+#lightbox-close.off {
+	visibility: hidden;
+	cursor: unset;
+}
+#lightbox-arrows button {
+	flex-direction: column;
 }
 .lightbox-arrow {
 	cursor: pointer !important;

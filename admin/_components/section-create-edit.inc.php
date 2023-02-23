@@ -36,8 +36,10 @@
 
     <li>
         <label for="text-editor">Section Text:</label><br/>
-        <?include('_components/text-edit-panel.inc.php')?>
-        <textarea id="text-editor" name="m_text"><?show($edit ? $sect['Text'] : null)?></textarea>
+        <div class="text-panel">
+            <?include('_components/text-edit-panel.inc.php')?>
+            <textarea id="text-editor" name="m_text"><?show($edit ? $sect['Text'] : null)?></textarea>
+        </div>
     </li>
     <li>
         <label for="n_page_id">In Page:</label>
@@ -279,13 +281,11 @@
   <div id="modal-home"></div>
 </form>
 
+<script src="_js/text-editor.js"></script>
+<script src="_js/toggle-on-cond.js"></script>
 <? if ($edit) :?>
-<script type="text/javascript">
-</script>
 <script src="_js/modal.js"></script>
 <script src="_js/rmvFilePaths.js"></script>
-<script src="_js/toggle-on-cond.js"></script>
-<script src="_js/text-editor.js"></script>
 <script>
 let modalHTML = `<h2>Are you sure you want to delete the '<?=$sect['Name']?>' Section?</h2>
                 <p>This cannot be undone.</p>

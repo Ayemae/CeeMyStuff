@@ -69,8 +69,10 @@
             <div class="chktoggle-show" style="flex-direction:column">
         <? endif;?>
             <label for="text-editor" style="display:block">Text:</label>
-            <?include('_components/text-edit-panel.inc.php')?>
-            <textarea id="text-editor" name="m_text"><?show($edit ? $item['Text'] : null)?></textarea>
+            <div class="text-panel">
+                <?include('_components/text-edit-panel.inc.php')?>
+                <textarea id="text-editor" name="m_text"><?show($edit ? $item['Text'] : null)?></textarea>
+            </div>
         <? if ($edit ? $item['Text']<='' : null) :?>
             </div>
         <? endif;?>
@@ -202,10 +204,10 @@
   <div id="modal-home"></div>
 </form>
 
+<script src="_js/text-editor.js"></script>
 <? if ($edit) :?>
 <script src="_js/modal.js"></script>
 <script src="_js/rmvFilePaths.js"></script>
-<script src="_js/text-editor.js"></script>
 <script>
 let modalHTML = `<h2>Are you sure you want to delete '<?=($item['Title'])?>'?</h2>
                 <p>This cannot be undone.</p>

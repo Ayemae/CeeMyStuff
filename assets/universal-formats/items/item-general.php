@@ -1,6 +1,9 @@
-<h3 class="item-title"><?show($title)?></h3>
-<div class="item-image-wrapper">
+<?show($title)?>
+<figure class="item-image-wrapper">
     <?show($image)?>
+</figure>
+<div class="item-file-wrapper">
+    <?show($file)?>
 </div>
 <div class="item-embed-wrapper">
     <?show($embed)?>

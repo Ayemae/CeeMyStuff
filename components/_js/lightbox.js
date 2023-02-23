@@ -4,29 +4,56 @@ let itemIndex = 0;
 var arrIndex = 0;
 var lbElems = [];
 
+
+function unwrapLinks(item) {
+    let links = item.getElementsByClassName("item-link");
+    for (let i=0;i<links.length;i++) {
+        links[i].replaceWith(...links[i].children)
+    }
+};
+
 for (let i=0; i < lbSects.length; i++) {
-    items = lbSects[i].querySelectorAll('[data-lightbox]');
+    let items = lbSects[i].querySelectorAll('[data-lightbox]');
     let paginate = false;
+    let hasClose = false;
+    let hasArrows = true;
     if (lbSects[i].dataset.lbPaginate==="true") {
         paginate = true;
+        if (lbSects[i].dataset.lbformatHasArrows==="false") {
+            hasArrows = false;
+        }
+    }
+    if (lbSects[i].dataset.lbformatHasClose==="true") {
+        hasClose = true;
     }
     for (let i2=0; i2 < items.length; i2++) {
-        items[i2].addEventListener('click', function(e) {
-            e.preventDefault();
-            const lbArrows = document.getElementById('lightbox-arrows');
-            if (lbArrs[i].length<2 || paginate===false) {
-                lbArrows.classList.add("off");
-            } else {
-                if (lbArrows.classList.contains("off")) {
-                    lbArrows.classList.remove("off");
+        let itemLinks = items[i2].querySelectorAll('a[data-lightbox-link]');
+        for (let i3=0;i3<itemLinks.length;i3++) {
+            itemLinks[i3].addEventListener('click', function(e) {
+                e.preventDefault();
+                const lbArrows = document.getElementById('lightbox-arrows');
+                const lbClose = document.getElementById('lightbox-close');
+                if (lbArrs[i].length<2 || paginate===false || 
+                    (paginate===true && hasArrows===true)) {
+                    lbArrows.classList.add("off");
+                } else {
+                    if (lbArrows.classList.contains("off")) {
+                        lbArrows.classList.remove("off");
+                    }
                 }
-            }
-            triggerLightbox(lbArrs[i], i2);
-            itemIndex = i2;
-            arrIndex = i;
-        })
+                if (hasClose===true) {
+                    lbClose.classList.add("off");
+                } else {
+                    if (lbClose.classList.contains("off")) {
+                        lbClose.classList.remove("off");
+                    }
+                }
+                triggerLightbox(lbArrs[i], i2);
+                itemIndex = i2;
+                arrIndex = i;
+            })
+        }
     }
-    lbElems[i] = items;
 }
 
 function navItemIndex(arr,i,navNext) {
@@ -40,6 +67,7 @@ function navItemIndex(arr,i,navNext) {
 
 function setLbHTML (sectArr, i) {
     document.getElementById('lightbox-inner').innerHTML = sectArr[i];
+    unwrapLinks(document.getElementById('lightbox-inner'));
 }
 
 function triggerLightbox(sectArr, i) {
@@ -51,20 +79,28 @@ function closeLightbox() {
 }
 
 document.addEventListener('click',function(e){
-    if(e.target && e.target.id == 'lightbox-close'){
+    if(e.target && (e.target.id || e.target.parentNode.id) == 'lightbox-close'){
         closeLightbox();
-    } else if(e.target && e.target.id == 'lb-back'){
+    } else if(e.target && (e.target.id || e.target.parentNode.id) == 'lb-back'){
         itemIndex = navItemIndex(lbArrs[arrIndex],itemIndex,false);
         setLbHTML(lbArrs[arrIndex], itemIndex);
-    } else if(e.target && e.target.id == 'lb-next'){
+    } else if(e.target && (e.target.id || e.target.parentNode.id) == 'lb-next'){
         itemIndex = navItemIndex(lbArrs[arrIndex],itemIndex,true);
         setLbHTML (lbArrs[arrIndex], itemIndex);
     }
 });
 
-// for tabindex accessibility 
+// for tabindex/accessibility 
 document.addEventListener('keyup',function(e){
-    if (e.key === 'Enter') {
+    if (e.key === 'Escape') {
+        closeLightbox();
+    } else if (e.key === 'ArrowLeft' && lbArrs[arrIndex].length>1) {
+        itemIndex = navItemIndex(lbArrs[arrIndex],itemIndex,false);
+        setLbHTML(lbArrs[arrIndex], itemIndex);
+    } else if (e.key === 'ArrowRight' && lbArrs[arrIndex].length>1) {
+        itemIndex = navItemIndex(lbArrs[arrIndex],itemIndex,true);
+        setLbHTML (lbArrs[arrIndex], itemIndex);
+    } else if (e.key === 'Enter') {
         if(e.target && e.target.id == 'lightbox-close'){
             closeLightbox();
         } else if(e.target && e.target.id == 'lb-back'){

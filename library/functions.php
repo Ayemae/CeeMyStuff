@@ -150,6 +150,9 @@ function stripHTML($str, $nl2br=false, $incov=true, $trim=true){
 
 // suggested by: https://stackoverflow.com/questions/7409512/new-line-to-paragraph-function
 function nl2p($str) {
+    if (!trim($str)) {
+        return;
+    }
     $html='';
     $lines = explode("\n", $str);
     $i = 1;
@@ -159,7 +162,7 @@ function nl2p($str) {
                 $p = htmlspecialchars('<p>'.$p.'</p>');
             }
         } else {
-            if ($i<=count($lines)) {
+            if ($i<count($lines)) {
                 $p="<br/>";
             }
         }
@@ -1048,7 +1051,7 @@ function showTitle($setShowTitle, $title) {
         $setShowTitle = $setShowTitle['Show_Item_Titles'];
     }
     if ($setShowTitle) {
-        $title = $title;
+        $title = '<h3 class="item-title">'.$title.'</h3>';
     } else {
         $title = '';
     }
@@ -1110,10 +1113,10 @@ function showFile($setShowFile, $filePath, $pres, $linkTxt=false) {
         }
         switch ($pres) {
             case 'lnk':
-                $file = '<a href="'.$set['dir'].$filePath.'">'.$linkTxt.'</a>';
+                $file = '<a class="item-file link" href="'.$set['dir'].$filePath.'">'.$linkTxt.'</a>';
             break;
             case 'dld':
-                $file = '<a href="'.$set['dir'].$filePath.'" download>'.$linkTxt.'</a>';
+                $file = '<a class="item-file dnld" href="'.$set['dir'].$filePath.'" download>'.$linkTxt.'</a>';
             break;
             case 'txt':
             default:
@@ -1127,7 +1130,13 @@ function showFile($setShowFile, $filePath, $pres, $linkTxt=false) {
 }
 
 function className($str) {
-    return strtolower(preg_replace("/[^A-Za-z-]/",'',str_replace(' ','-',$str)));
+    $str = strtolower(preg_replace("/[^A-Za-z0-9-]/",'',str_replace(' ','-',$str)));
+    if (substr($str,0,1)==='-') {
+        $str='dash'.$str;
+    } else if (filter_var(substr($str,0,1), FILTER_SANITIZE_NUMBER_INT)){
+        $str='num'.$str;
+    }
+    return $str;
 }
 
 function printSectPaginator($pgAfter, $pageNum, $itemTotal, $pageLink) {
@@ -1194,7 +1203,7 @@ function addItemLinks ($areas, $id, $input, $place, $action, $sectID=false) {
     switch ($action) {
         case 1 :
             // direct to view page
-            $aStrt = '<a href="'.$set['dir'].'/view/'.$id.'">';
+            $aStrt = '<a class="item-link" href="'.$set['dir'].'/view/'.$id.'">';
             $aEnd = '</a>';
             break;
         case 2 :
@@ -1204,12 +1213,12 @@ function addItemLinks ($areas, $id, $input, $place, $action, $sectID=false) {
             } else {
                 $lightbox="section-".$sectID;
             }
-            $aStrt = '<a data-lightbox="'.$lightbox.'" href="'.$set['dir'].'/view/'.$id.'" >';
+            $aStrt = '<a class="item-link" data-lightbox-link="'.$lightbox.'" href="'.$set['dir'].'/view/'.$id.'" >';
             $aEnd = '</a>';
             break;
         case 3 :
             // load view page in new window
-            $aStrt = '<a href="'.$set['dir'].'/view/'.$id.'" target="_blank">';
+            $aStrt = '<a class="item-link" href="'.$set['dir'].'/view/'.$id.'" target="_blank">';
             $aEnd = '</a>';
             break;
         case 0 :
@@ -1218,9 +1227,6 @@ function addItemLinks ($areas, $id, $input, $place, $action, $sectID=false) {
             $aStrt = $aEnd = '';
             break;
     }
-    // if ($input === '' && $place === 'Link') {
-    //     $input = '<div class="item-view-link">View</div>';
-    // }
     if (in_array($place, $areas)) {
         $input = $aStrt.$input.$aEnd;
     }
@@ -1242,6 +1248,12 @@ function printPageItems($itemList=false, $sect=false) {
     if ($sect['On_Click_Action']==2) { //lightbox
         $jsContent .= '<script type="text/javascript">
             var sect'.$sect['ID'].'Items = [];';
+    }
+    if (!function_exists('viewLink_Custom')) {
+        function viewLink_Custom($filler){
+            if (trim($filler)==='') {$filler="Link";} else {htmlspecialchars($filler);}
+            return addItemLinks($sect['Item_Click_Area'], $id, '', $filler, $sect['On_Click_Action'], $sect['ID']);
+        }
     }
     foreach($itemList AS $item){
         $id = $item['ID'];
@@ -1279,8 +1291,8 @@ function printPageItems($itemList=false, $sect=false) {
         }
 
         $formatFile = $root.$item['Format'];
-
-        $itemContent .= '<div id="item_'.$id.'" class="item '.$class.'">';
+        $dataAttr = ($sect['On_Click_Action']==2 ? ' data-lightbox="section-'.$sect['ID'].'" ' : ' ' );
+        $itemContent .= '<div id="item_'.$id.'"'.$dataAttr.'class="item '.$class.'">';
         if ($item['Format'] && file_exists($formatFile)) {
             ob_start();
             include($formatFile);
@@ -1363,7 +1375,10 @@ function printPageSects($sectList=false, $pageNum=1, $paginate=false, $pgAfter=1
         }
 
         $formatFile = $root.$sect['Format'];
-
+        $lightboxClose = '';
+        $lightboxArrows = '';
+        $lightboxArrowL = '';
+        $lightboxArrowR = '';
         if ($sect['On_Click_Action']==2) {
             $dataAttr .= ' data-sect-action="lightbox"';
             if ($sect['Paginate_Items'] > 0) {
@@ -1373,13 +1388,49 @@ function printPageSects($sectList=false, $pageNum=1, $paginate=false, $pgAfter=1
             }
             $dataAttr .= ' data-lb-paginate="'.$pBool.'"';
             $hasLightbox = true;
+
+            $lightboxClose = '<button type="button" id="lightbox-close" class="cms-default" tabindex="0"><span>close</span><i class="close icon">&times;</i></button>';
+            $lightboxArrows = '<article id="lightbox-arrows" class="cms-default">
+                                <button type="button" id="lb-back" class="lightbox-arrow left cms-default" tabindex="0"><i class="lb-back icon">◀</i><span>back</span></button>
+                                <button type="button" id="lb-next" class="lightbox-arrow right cms-default" tabindex="0"><i class="lb-next icon">▶</i><span>next</span></button>
+                                </article>';
+            $lightboxArrowL = '<button type="button" id="lb-back" class="lightbox-arrow left cms-default" tabindex="0"><i class="lb-back icon">◀</i><span>back</span></button>';
+            $lightboxArrowR = '<button type="button" id="lb-next" class="lightbox-arrow right cms-default" tabindex="0"><i class="lb-next icon">▶</i><span>next</span></button>';
+            $hasLbClose = "false";
+            $hasLbArrows = "false";
+            if (!function_exists('lightboxClose_Custom')) {
+                function lightboxClose_Custom($filler) {
+                    if (trim($filler)==='') {$filler = 'close';} else {$filler = htmlspecialchars($filler);}
+                    return '<button type="button" id="lightbox-close" tabindex="0"><span>close</span>'.$filler.'</button>';
+                }
+                function lightboxArrowL_Custom($filler) {
+                    if (trim($filler)==='') {$filler = 'back';} else {$filler = htmlspecialchars($filler);}
+                    return '<button type="button" id="lb-back" class="lightbox-arrow left" tabindex="0">'.$filler.'</button>';
+                }
+                function lightboxArrowR_Custom($filler) {
+                    if (trim($filler)==='') {$filler = 'next';} else {$filler = htmlspecialchars($filler);}
+                    return '<button type="button" id="lb-next" class="lightbox-arrow right" tabindex="0">'.$filler.'</button>';
+                }
+            }
         }
 
-        $content .= '<section id="sect_'.$sect['ID'].'" class="section '.$class.'"'.$dataAttr.'>';
         if ($sect['Format'] && file_exists($formatFile)) {
             ob_start();
             include($formatFile);
-            $content .= ob_get_clean();
+            $format = ob_get_clean();
+            if ($hasLightbox===true) {
+                if (strpos($format, ' id="lightbox-close"') || strpos($format, " id='lightbox-close'")) {
+                    $hasLbClose="true";
+                }
+                if ((strpos($format, ' id="lb-back"') || strpos($format, " id='lb-back'"))
+                &&
+                (strpos($format, ' id="lb-next"') || strpos($format, " id='lb-next'"))) {
+                    $hasLbArrows="true";
+                }
+            }
+            $dataAttr .= ' data-lbformat-has-close="'.$hasLbClose.'" data-lbformat-has-arrows="'.$hasLbArrows.'"';
+            $content .= '<section id="sect_'.$sect['ID'].'" class="section '.$class.'"'.$dataAttr.'>';
+            $content .= $format;
 
         } else {
             $content .= '<!-- No valid section format assigned. -->';
@@ -1395,17 +1446,15 @@ function printPageSects($sectList=false, $pageNum=1, $paginate=false, $pgAfter=1
                     </script>'.$content.'
                     <script src="components/_js/lightbox.js"></script>
 
-<div id="lightbox">
-    <div class="lightbox-content lightbox-fade-in">
-        <div id="lightbox-arrows" class="">
-            <div id="lb-back" class="lightbox-arrow left" tabindex="0">&#9664;</div>
-            <div id="lb-next" class="lightbox-arrow right"  tabindex="0">&#9654;</div>
-        </div>
-        <div id="lightbox-close" tabindex="0">&times;</div>
-        <div id="lightbox-inner">
-        </div>
-    </div>
-</div>';
+            <div id="lightbox">
+                <div class="lightbox-content lightbox-fade-in">'.
+                $lightboxArrows.
+                $lightboxClose.
+                    '<div id="lightbox-inner">
+                                <!-- lightbox content goes here -->
+                                </div>
+                            </div>
+                        </div>';
     }
     return $content;
 }
@@ -1523,7 +1572,11 @@ function printPage($page=false,$num=1,$singleItem=false) {
         $metaText = truncateTxt($item['Text'], 300);
         $page['Format'] = $sectInfo['View_Item_Format'];
         $pageURL = $set['dir'].'/'.$item['Page_Link'];
-        $pageLink = '<a href="'.$pageURL.'">Back to '.$item['Page_Name'].'</a>';
+        $pageLink = '<a class="back-to-page" href="'.$pageURL.'">Back to '.$item['Page_Name'].'</a>';
+        function pageLink_Custom($filler) {
+            if (trim($filler)==='') {$filler = 'Back to '.$item['Page_Name'];} else {$filler = htmlspecialchars($filler);}
+            return '<a class="back-to-page" href="'.$pageURL.'">'.$filler.'</a>';
+        }
         $paginator = '';
         if ($sectInfo['Paginate_Items']) {
             $itemList = getSectItemIDs($item['Sect_ID'], $sectInfo['Order_By'], $sectInfo['Order_Dir']);

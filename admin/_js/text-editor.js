@@ -83,7 +83,9 @@ for (let i=0;i<wrapStyleBtns.length;i++) {
     let newText = [text.slice(0, start), '<'+tag+'>', selection, '</'+tag+'>', text.slice(end)].join('');
     textarea.value = newText;
     makeTxtHistory();
-    textarea.focus();
+    textarea.focus({preventScroll: true});
+    let cursorPos = (end+tag.length+2);
+    textarea.setSelectionRange(cursorPos,cursorPos);
   });
 }
 
@@ -96,7 +98,9 @@ for (let i=0;i<dropStyleBtns.length;i++) {
     var newText = [text.slice(0, position), '<'+tag+'/>', text.slice(position)].join('') ;
     textarea.value = newText;
     makeTxtHistory();
-    textarea.focus();
+    textarea.focus({preventScroll: true});
+    let cursorPos = (position+tag.length+3);
+    textarea.setSelectionRange(cursorPos,cursorPos);
   });
 }
 
@@ -115,14 +119,16 @@ function srcBtn(strtStr,placeholder,endStr) {
   var newText = [text.slice(0, start), strtStr, selection, endStr, text.slice(end)].join('');
   textarea.value = newText;
   makeTxtHistory();
-  textarea.focus();
+  textarea.focus({preventScroll: true});
+  let cursorPos = (end+strtStr.length);
+  textarea.setSelectionRange(cursorPos,cursorPos);
 }
 
 function startInputTimer() {
   inputTimer = window.setTimeout(function(){
     makeTxtHistory();
     typing=false;
-  }, 1000)
+  }, 800)
 }
 
 textarea.addEventListener('input', (e) => {

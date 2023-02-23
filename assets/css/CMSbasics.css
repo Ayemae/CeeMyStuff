@@ -75,6 +75,10 @@ ul, ol {
     padding-left: 8%;
 }
 
+i.icon {
+    font-style: normal;
+}
+
 .hidden {
     visibility: hidden;
     cursor: unset;
