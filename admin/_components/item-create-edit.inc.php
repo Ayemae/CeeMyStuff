@@ -49,8 +49,8 @@
         <select name="format" id="format">
             <option value="">Inherit from Section Default</option>
             <?php foreach ($formatList AS $format) :?>
-            <option value="<?show($format['Path'])?>" <?($edit ? formCmp($item['Format'],$format['Path'],'s') : null)?>>
-                <?show($format['Name'])?>
+            <option value="<?show($format['Path'])?>" <?=($item['Format']===$format['Path'] ? 'selected' : null)?>>
+                <?show($format['From'])?> > <?show($format['Name'])?>
             </option>
             <?php endforeach;?>
         </select>
@@ -98,7 +98,7 @@
         <? endif;?>
         <div>
             <label for="img-alt-text">Image Description (Alt Text):</label>
-            <input type="text" name="img_alt_text" value="<?show($item['Img_Alt_Text'])?>">
+            <input type="text" name="img_alt_text" value="<?show($edit ? $item['Img_Alt_Text'] : null)?>">
         </div>
                 
 
@@ -185,9 +185,10 @@
         <? if ($create || $item['Embed_HTML']<='') :?>
             <input type="checkbox" class="chktoggle invis" id="add-embed">
             <label for="add-embed" class="chktoggle-label"><i class="fi fi-rs-plus"></i> Add Embed</label>
-            <div class="chktoggle-show" style="flex-direction:column">
+            <div class="chktoggle-show flex-col">
         <? endif;?>
             <label for="embed" style="display:block">Embed HTML/Script:</label>
+            <p>For embed scripts such as iframes, from sites such as YouTube or Spotify.</p>
             <textarea id="embed" name="b_embed"><?show(isset($item) && $item['Embed_HTML'] ? $item['Embed_HTML'] : null)?></textarea>
         <? if ($create || $item['Embed_HTML']>'') :?>
             </div>

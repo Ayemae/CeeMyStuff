@@ -6,7 +6,11 @@ $request = str_replace($set['dir'].'/','',$_SERVER['REQUEST_URI']);
 if (strpos($request,'/')) {
     $request = substr($request,0,strpos($request,'/'));
 }
-$page = getPage(strtolower($request), 'link');
+if ($request==='') {
+    $page = getPage(0, 'id');
+} else {
+    $page = getPage(strtolower($request), 'link');
+}
 
 // home
 Route::add('/',function(){
@@ -29,10 +33,15 @@ Route::add('/'.$page['Link'].'/page/([0-9]*)',function($pageNum){
 
 // single item displays
 Route::add('/view/([0-9]*)',function($id){
-    global $set;global $db;global $page;
+    global $set;global $db;
     $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
-    printPage($page, $id, true);
+    printPage(false, $id, true);
 },'get');
 
+// menu dropdown index
+Route::add("/menu-dropdown-index/(([^\/?]+)\/?$)",function($heading){
+    global $set;global $db;
+    printPage(false, 1, false, $heading);
+},'get');
 
 Route::run($set['dir']);

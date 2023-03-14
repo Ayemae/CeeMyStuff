@@ -1,6 +1,11 @@
-<div class="item-image-wrapper">
+<figure class="item-image-wrapper">
     <?show($image)?>
+</figure>
+<div class="item-file-wrapper">
+    <?show($file)?>
+</div>
+<div class="item-embed-wrapper">
+    <?show($embed)?>
 </div>
 <?show($title)?>
-<?show($text)?>
 <?show($viewLink)?>

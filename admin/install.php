@@ -36,8 +36,8 @@ $conn->exec('INSERT INTO Settings (Index_Order, Field, Key, Value, Type, Descrip
     (6, "Timezone", "timezone", "America/New_York", "function", null,null, "Info"),
     (7, "Date Format", "date_format", "j F, Y g:i A", "text", "What format you want the date to be in. Look up PHP date formats for details.",null,"Display"),
     (8, "Header Image", "header_img", null, "img-file", "If you want to use a header image, upload it here.",null,"Display"),
-    (9, "Favicon", "favicon", null, "img-file", "Upload your favicon, or browser icon, here. Must be a \'.gif\' file, and 16x16 pixels.",null,"Display"),
-    (10, "Mobile Browser Icon", "mobile_icon", null, "img-file", "Upload your mobile browser icon here. Must be 180x180 pixels.",null,"Display"),
+    (9, "Favicon", "favicon_img", null, "img-file", "Upload your favicon, or browser icon, here. Must be a \'.gif\' file, and 16x16 pixels.",null,"Display"),
+    (10, "Mobile Browser Icon", "mobile_icon_img", null, "img-file", "Upload your mobile browser icon here. Must be 180x180 pixels.",null,"Display"),
     (11, "Site Menu Button Format", "menu_format", "Text", "select", "How your site menu buttons will display.", "Images, Text","Display"),
     (12, "Social Media Button Format", "sm_format", "Icons", "select", "How your social media buttons will display.", "Icons, Text","Display"),
     (13, "Enable Max Image Dimensions", "has_max_img_dimns","checked", "checkbox", "Enable a maximum height/width on the images you can upload. (Strongly recommended.)", null,"Advanced"),
@@ -169,7 +169,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Auto_Site_Menu (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     Page_ID INTEGER UNIQUE DEFAULT NULL,
     Index_Order INTEGER DEFAULT 999,
-    Ext_Link_Name TEXT DEFAULT NULL,
+    Link_Text TEXT DEFAULT NULL,
     Ext_Url TEXT DEFAULT NULL,
     In_Dropdown INTEGER DEFAULT 0,
     Img_Path TEXT DEFAULT NULL,
@@ -198,7 +198,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Uploads (
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Tags (
     Item_ID INTEGER,
-    Name TEXT
+    Tag TEXT
 )');
 
 // $conn->exec('CREATE TABLE IF NOT EXISTS Social_Media_Defaults (

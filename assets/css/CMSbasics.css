@@ -70,6 +70,10 @@ nav#site-menu ul li.automenu-item:hover ul.automenu-dropdown {
     background: rgba(255, 255, 255, .8);
     padding: 2px 5px;
 }
+ul.automenu-dropdown-index {
+    list-style-type: none;
+    padding: 0;
+}
 
 ul, ol {
     padding-left: 8%;

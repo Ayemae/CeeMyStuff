@@ -12,7 +12,7 @@
                 <?=(isset($sect['Hidden']) && $sect['Hidden'] ? '<i class="fi fi-rs-eye-crossed"></i>&nbsp;' : null)?>
                 <?show($sect['Name']);?> | <i class="fi fi-rs-file"></i> 
                 <?php if ($sect['Page_Name']>'') : ?>
-                    In '<?show($sect['Page_Name']);?>'
+                    In '<?show($sect['Page_Name']);?>' <a href="<?=$set['dir'].'/'.$sect['Link']?>" target="_blank">[View]</a>
                 <?php else: ?>
                     <i>Orphaned Section</i>
                 <?php endif;?>

@@ -162,8 +162,8 @@
                 <li>
                     <label for="thumb_axis">Axis of thumbnail size:</label>
                     <select id="thumb_axis" name="n_thumb_axis">
-                        <option value="0" <?formCmp($sect['Thumb_Size_Axis'],'width','s')?>>Width</option>
-                        <option value="1" <?formCmp($sect['Thumb_Size_Axis'],'height','s')?>>Height</option>
+                        <option value="0" <?formCmp($sect['Thumb_Size_Axis'],0,'s')?>>Width</option>
+                        <option value="1" <?formCmp($sect['Thumb_Size_Axis'],1,'s')?>>Height</option>
                     </select>
                 </li>
             </ul>

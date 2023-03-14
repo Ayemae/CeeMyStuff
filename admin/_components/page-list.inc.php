@@ -13,7 +13,7 @@
             <label class="page-label" for="page_<?show($page['ID']);?>">
             <?=($page['ID'] === "0" ? '<i class="fi fi-rs-home"></i>&nbsp;' : null)?>
             <?=(isset($page['Hidden']) && $page['Hidden'] ? '<i class="fi fi-rs-eye-crossed"></i>&nbsp;' : null)?>
-                <?show($page['Name']);?>
+                <?show($page['Name']);?> |&nbsp;<a href="<?=$set['dir'].'/'.$page['Link']?>" target="_blank">[View]</a>
             </label>
             <div class="btns-box chktoggle-show">
                 <div class="btns-box page-options">

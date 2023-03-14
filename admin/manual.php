@@ -17,20 +17,27 @@ include '_components/admin-header.inc.php';?>
         
     </section>
     <section class="manual-sect" id="pages-sections-items">
-        <h2>Pages > Sections > Items</h2>
+        <h2>Building Blocks: Pages > Sections > Items</h2>
 
         <p>CeeMyStuff has three website building blocks: <em class="rose">Pages</em>, <em class="powblu">Sections</em>, and <em class="teal">Items</em>.</p>
 
         <blockquote>
             <b class="rose">Pages</b> - These are the webpages that make up your site. When you first install CeeMyStuff, it already has one Page: 'Home', which is where your visitors will land when they first direct to your site's web address. You can add as many other Pages as you see fit! More on Pages in the 'About Pages' section. (coming soon)<br/>
-            <b class="powblu">Sections</b> - 'Sections' contain the content of your Pages. These can be standlone blocks of content, or they can contain Items. By default, Pages only have one Section, but you can enable your Pages to include as many Sections as you like. More on Sections in 'About Sections'. (coming soon)<br/>
+            <b class="powblu">Sections</b> - 'Sections' contain the content of your Pages. These can be standalone blocks of content, or they can contain 'Items'. By default, Pages only have one Section, but you can enable Pages to include as many Sections as you like. More on Sections in 'About Sections'. (coming soon)<br/>
             <b class="teal">Items</b> - 'Items' are individual pieces or entries that you can add to a Section. If you are using CeeMyStuff to create a drawing portfolio site, your 'Items' may be your individual drawings; if you are creating an archive of your music, your 'Items' may be your songs; if you are creating a blog, your 'Items' may be your blog entries; etc.! More on 'Items' in 'About Items'. (coming soon)
         </blockquote>
 
         <p>CeeMyStuff's three building blocks are a hierarchy as follows: <span class="rose">Pages</span> > <span class="powblu">Sections</span> > <span class="teal">Items</span>. In other words, <span class="rose">Pages</span> contain <span class="powblu">Sections</span>, which contain <span class="teal">Items</span>.</p>
-
-        <p>All of these building blocks can be assigned a 'format' for how they display on the site. More on that in 'Formats'. (coming soon)</p>
     </section>
+
+    <section class="manual-sect" id="about-formats" style="display:none;">
+        <h2>Formats</h2>
+
+        <p>Most aspects of a CeeMyStuff site &mdash; including Pages, Sections, and Items &mdash; can be assigned a 'format', which determine how they will display on the site.</p>
+
+        - universal and theme formats
+    </section>
+
     <section class="manual-sect" id="about-pages" style="display:none;">
         <h2>About Pages</h2>
 
@@ -39,22 +46,28 @@ include '_components/admin-header.inc.php';?>
          - formats?
          - menu link images??
          - 'hidden' pages
+
+         <h4>'Pages' Formats</h4>
+         - applicable variables
     </section>
     <section class="manual-sect" id="about-sections" style="display:none;">
         <h2>About Sections</h2>
 
         <p></p>
         - Section Display Settings!
+        - Clicks actions!!!
+
+        <h4>'Sections' Formats</h4>
+         - applicable variables
     </section>
     <section class="manual-sect" id="about-items" style="display:none;">
         <h2>About Items</h2>
 
         <p></p>
-    </section>
-    <section class="manual-sect" id="about-items" style="display:none;">
-        <h2>Formats</h2>
+        - what you can upload
 
-        <p></p>
+        <h4>'Items' Formats</h4>
+         - applicable variables
     </section>
 
 </main>

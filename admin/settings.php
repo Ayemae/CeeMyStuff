@@ -92,7 +92,7 @@ $settings = fetchSettings();
                     $stg['Value'] = 'checked'; 
                 endif;?>
                     <input type="hidden" name="<?show($stg['Key']);?>" value="">
-                <input type="<?show($stg['Type']);?>" id="<?show($stg['Key']);?>" name="<?show($stg['Key']);?>" value="<?show($stg['Value'])?>" <?show($checkbox);?>>
+                <input type="<?show($stg['Type']);?>" id="<?show($stg['Key']);?>" name="<?show($stg['Key']);?>" <?=($stg['Type']==='text' ? 'maxlength=85' : null )?> value="<?show($stg['Value'])?>" <?show($checkbox);?>>
             <?php break;
 
         endswitch; ?>

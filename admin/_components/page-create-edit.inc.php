@@ -11,6 +11,9 @@
     <li>
         <label for="name">Name:</label>
         <input type="text" name="name" id="name" max-length="255" value="<?show($edit ? $page['Name'] : null)?>">
+        <? if ($edit) :?>
+            <input type="hidden" name="name_stored" value="<?show($page['Name'])?>">
+        <? endif;?>
         <br/>
         <label for="n_show_title">Show page name on the website:</label>
         <input type="hidden" name="n_show_title" value="0">
@@ -62,8 +65,8 @@
         <label for="format">Display Format:</label>
         <select name="format" id="format">
             <?php foreach ($formatList AS $format) :?>
-            <option value="<?show($format['Path'])?>" <?($edit ? formCmp($page['Format'],$format['Path'],'s') : null)?>>
-                <?show($format['Name'])?>
+            <option value="<?show($format['Path'])?>" <?=($page['Format']===$format['Path'] ? 'selected' : null)?>>
+                <?show($format['From'])?> > <?show($format['Name'])?>
             </option>
             <?php endforeach;?>
         </select>
@@ -82,6 +85,9 @@
 
     <li>
             <label for="hidden">Hide this page:</label>
+            <? if ($edit) : ?>
+                <input type="hidden" id="hidden" name="n_menu_hidden" value="<?show($page['Menu_Hidden'])?>">
+            <? endif?>
             <input type="hidden" id="hidden" name="n_hidden" value="0">
             <input type="checkbox" id="hidden" name="n_hidden" value="1" <?=($edit && $page['Hidden'] ? 'checked' : null)?>>
     </li>
