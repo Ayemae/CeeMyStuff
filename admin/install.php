@@ -64,7 +64,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Pages (
 
 $conn->exec('INSERT INTO Pages (ID, Name, Link, Meta_Text)
     VALUES 
-    (0, "Home", "/", "Portfolio homepage.");');
+    (1, "Home", "", "Portfolio homepage.");');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Sections (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -165,7 +165,7 @@ $conn->exec('INSERT INTO Accounts (
     );
 
 
-$conn->exec('CREATE TABLE IF NOT EXISTS Auto_Site_Menu (
+$conn->exec('CREATE TABLE IF NOT EXISTS Automenu (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     Page_ID INTEGER UNIQUE DEFAULT NULL,
     Index_Order INTEGER DEFAULT 999,
@@ -176,8 +176,8 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Auto_Site_Menu (
     Hidden INTEGER DEFAULT 0
 )');
 
-$conn->exec('INSERT INTO Auto_Site_Menu (Page_ID, Index_Order)
-    VALUES (0,1);'
+$conn->exec('INSERT INTO Automenu (Page_ID, Index_Order)
+    VALUES (1,1);'
     );
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Social_Media (

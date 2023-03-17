@@ -66,16 +66,25 @@ else :
                 </article></i>
             </li>
             <li>Type</li>
-            <li>Dropdown 
+            <li>Submenu 
                 <i class="help icon"><i class="fi fi-rs-interrogation"></i>
                 <article class="help-text">
                     Enable if you want the menu item to appear in a dropdown or index. 
                     All checked items will be listed under the last previous unchecked item.
-                    <em>The first item in the menu cannot be within a dropdown.</em>
+                    <em>The first item in the menu cannot be within a submenu.</em>
                 </article></i>
             </li>
-            <li>Hidden</li>
-            <li>Edit</li>
+            <li>Hide
+                <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                    <article class="help-text">
+                        Hidden menu items will not display on the live site. 
+                        Additionally, hidden Pages will not display a link on the automenu.
+                    </article>
+                </i>
+            </li>
+            <li>
+                <!-- Edit -->
+            </li>
         </ul>
     <ul class="menu-settings-item-list">
         <?php $i=0;
@@ -90,15 +99,16 @@ else :
                 <input type="number" class="menu-item-order" name="option[<?show($option['ID'])?>][n_index]" value="<?show($option['Index_Order'])?>">
             </div>
             <div class="mensets-name">
-                <?show($option['Type_Code']==1 ? 
-                        '<a href="'.$set['dir'].'/admin/pages.php?task=edit&id='.$option['Page_ID'].'">'.$option['Page_Name'].'</a>' : 
-                        $option['Link_Text'])?>
+                <?if ($option['Type_Code']==1) :?>
+                        <a href="<?=$set['dir']?>/admin/pages.php?task=edit&id=<?=$option['Page_ID']?>"><?=$option['Page_Name']?></a>
+                <? else : ?>
+                        <?=$option['Link_Text']?>
+                <? endif;?>
                 <input type="hidden" name="option[<?show($option['ID'])?>][name]" value="<?show($option['Type_Code']==1 ? $option['Page_Name'] : $option['Link_Text'])?>">
                 <input type="hidden" name="option[<?show($option['ID'])?>][url]" value="<?show($option['Ext_Url'])?>">
             </div>
             <div class="mensets-image">
                 <?show($option['Img_Path'] ? '<img src="'.$set['dir'].$option['Img_Path'].'" alt="">' : "n/a")?>
-                <!-- link to edit? -->
             </div>
             <div class="mensets-type">
                 <?show($option['Link_Type'])?>
@@ -118,13 +128,13 @@ else :
             <div class="mensets-edit">
             <? switch ($option['Type_Code']) {
                 case 1 :
-                    echo '<a href="'.$set['dir'].'/admin/pages.php?task=edit&id='.$option['Page_ID'].'"><i class="fi fi-rs-edit"></i></a>';
+                    echo '<a href="'.$set['dir'].'/admin/pages.php?task=edit&id='.$option['Page_ID'].'">Edit</a>';
                 break;
                 case 2 :
-                    echo '<a href="'.$set['dir'].'/admin/automenu.php?task=edit&id='.$option['ID'].'"><i class="fi fi-rs-edit"></i></a>';
+                    echo '<a href="'.$set['dir'].'/admin/automenu.php?task=edit&id='.$option['ID'].'">Edit</a>';
                 break;
                 default: 
-                    echo '<a href="'.$set['dir'].'/admin/automenu.php?task=edit&id='.$option['ID'].'"><i class="fi fi-rs-edit"></i></a>';
+                    echo '<a href="'.$set['dir'].'/admin/automenu.php?task=edit&id='.$option['ID'].'">Edit</a>';
                 break;
             }?>
                 

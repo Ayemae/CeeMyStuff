@@ -1,19 +1,20 @@
+<?$_SESSION['MenuItemType']=$type;?>
 <form id="menu-add-edit" method="post" enctype="multipart/form-data" action="<?=$set['dir']?>/admin/automenu.php">
     <div class="space-btwn">
         <h2>Auto-Menu: <?=(!$edit ? 'Add' : 'Edit')?> <?=($type==2 ? 'Custom/External Link' : 'Heading')?></h2>
-        <button name="delete_menu_item" id="delete-menu_item" class="small red">
+        <button id="delete-menu-item" name="delete_menu_item" class="small red" on-click="return false;">
             <i class="fi fi-rs-trash"></i> Delete <?=($type==2 ? 'Link' : 'Heading')?>
         </button>
     </div>
 
     <ul class="form-list">
         <? if ($edit) :?>
-            <input type="hidden" name="menu_id" value="<?=$mItem['ID']?>">
-            <input type="hidden" name="type_code" value="<?=$mItem['Type_Code']?>">
+            <input type="hidden" name="n_menu_id" value="<?=$mItem['ID']?>">
+            <input type="hidden" name="n_type_code" value="<?=$mItem['Type_Code']?>">
         <? endif;?>
         <li>
             <label for="link-text"><?=($type==2 ? 'Link' : 'Heading')?> Text/Name:</label>
-            <input type="text" id="link-text" maxlength="100" name="link_text" autocomplete="off" value=<?=($edit ? $mItem['Link_Text'] : '')?>>
+            <input type="text" id="link-text" maxlength="100" name="link_text" autocomplete="off" value="<?=($edit ? $mItem['Link_Text'] : '')?>">
         </li>
 
         <? if ($type==2) :?>
@@ -35,13 +36,32 @@
                 <div class="link_img_current">
                     <img src="<?=$set['dir'].$mItem['Img_Path']?>" alt="Preview of the current image for this link"/>
                 </div>
-                <button type="button" class="small red" onclick="rmvFilePath('link_img_stored', 'link_img_current')">Remove Current Image</button>
+                <button type="button" class="small red" onclick="rmvFilePath(this, 'link_img_stored', 'link_img_current')">Remove Current Image</button>
             <? endif;?>
         </li>
     </ul>
     <button <?=($edit ? 'name="menu_edit_item"' : 'name="menu_add_item"')?>>Submit</button>
+    <div id="modal-home"></div>
 </form>
     
-<? if ($edit && $mItem['Img_Path']>'') :?>
-<script src="_js/rmvFilePaths.js"></script>
+<? if ($edit) :?>
+<script src="_js/modal.js"></script>
+<script>
+let modalHTML = `<h2>Are you sure you want to delete this <?=($type==2 ? 'link' : 'heading')?>?</h2>
+                <p>This cannot be undone.</p>
+                <div class="flex">
+                <button type="submit" class="button red" name="delete_menu_item">Yes, delete this <?=($type==2 ? 'link' : 'heading')?></button>
+                <button type="button" class="button modal-close">Never mind</button>
+                </div>`;
+const modalMItemDelete = new Modal('modal-menu-item-delete', modalHTML, false, false);
+modalMItemDelete.appendToForm('modal-home');
+
+document.getElementById('delete-menu-item').addEventListener('click', function(e) {
+    e.preventDefault();
+    modalMItemDelete.trigger();
+}, false);
+</script>
+    <? if ($mItem['Img_Path']>'') : ?>
+        <script src="_js/rmv-file-paths.js"></script>
+    <?endif;?>
 <? endif;?>

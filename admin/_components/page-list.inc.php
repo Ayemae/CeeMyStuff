@@ -6,12 +6,11 @@
 <?php if ($pgList) : ?>
     <ul class="page-list">
     <?php foreach ($pgList AS $page) : 
-        if ($page['ID']===0) {$page['ID'] = "0";} 
         $sectList = getSectList($page['ID']); ?>
         <li class="page-box">
             <input type="checkbox" id="page_<?show($page['ID']);?>" class="chktoggle invis">
             <label class="page-label" for="page_<?show($page['ID']);?>">
-            <?=($page['ID'] === "0" ? '<i class="fi fi-rs-home"></i>&nbsp;' : null)?>
+            <?=($page['ID'] == 1 ? '<i class="fi fi-rs-home"></i>&nbsp;' : null)?>
             <?=(isset($page['Hidden']) && $page['Hidden'] ? '<i class="fi fi-rs-eye-crossed"></i>&nbsp;' : null)?>
                 <?show($page['Name']);?> |&nbsp;<a href="<?=$set['dir'].'/'.$page['Link']?>" target="_blank">[View]</a>
             </label>

@@ -27,7 +27,7 @@
         </li>
     <?php endforeach;?>
     <li class="sect-box">
-            <label class="no-sect-label" for="sect_0"><i class="fi fi-rs-interrogation"></i> No Section / Orphaned Items</label>
+            <label class="no-sect-label" for="sect_0"><i class="fi fi-rs-interrogation"></i> No Page / Orphaned Sections</label>
             <input type="checkbox" id="sect_0" class="chktoggle invis">
             <div class="btns-box chktoggle-show">
                 <hr>

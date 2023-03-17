@@ -101,12 +101,18 @@ button.small,
     font-size: 1rem;
     padding: 3px 8px;
 }
+#text-edit-panel {
+    gap: 5px;
+}
 #text-edit-panel button {
     font-size: 1rem;
     letter-spacing: unset;
-    margin: 0 0 4px;
+    margin: 0 0 5px;
     padding: 3px 6px;
     background-color: #4a4e7c;
+}
+button.undo {
+    background-color: #eb9600 !important;
 }
 
 main {
@@ -554,12 +560,16 @@ i.help.icon {
     position: relative;
 }i.help.icon .help-text {
     color: #ffffff;
+    text-align: center;
 	visibility: hidden;
-	position: absolute;
     font-size: 1rem;
     line-height: 1.25rem;
 	background: rgba(27, 34, 42,.9);
+    position: absolute;
+    left: 7%;
     right: 0;
+    margin: auto;
+    transform: translateX(-50%);
     width: 250px;
     max-width: 90vw;
     border-radius: 5px;
@@ -576,11 +586,11 @@ i.help.icon {
     width: 0px;
     height: 0px;
     position: absolute;
-    border-right: 6px solid rgba(27, 34, 42,.9);
-    border-left: 5px solid transparent;
-    border-bottom: 6px solid rgba(27, 34, 42,.9);
-    border-top: 7px solid transparent;
-    right: 7px;
+    border-right: 7px solid transparent;
+    border-left: 7px solid transparent;
+    border-bottom: 13px solid rgba(27, 34, 42,.9);
+    right: 50%;
+    left: 50%;
     top: -13px;
   }
 

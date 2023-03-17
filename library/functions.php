@@ -754,7 +754,7 @@ function getPage($page, $key="id"){
             COUNT(i.ID) AS Total_Items
     FROM Pages AS p
     LEFT JOIN Sections AS s ON p.ID=s.Page_ID
-    LEFT JOIN Auto_Site_Menu AS m ON p.ID=m.Page_ID
+    LEFT JOIN Automenu AS m ON p.ID=m.Page_ID
     LEFT JOIN  (SELECT ID, Sect_ID FROM Items".
     ($admin_panel===false ? ' WHERE Hidden=0 ' : '')
         .") AS i ON s.ID=i.Sect_ID
@@ -833,7 +833,7 @@ function getSectList($pageID=false) {
     p.Name AS Page_Name, p.Link, s.Hidden 
     FROM Sections AS s 
     LEFT JOIN Pages AS p ON p.ID=s.Page_ID WHERE s.ID !=0 ';
-    if ($pageID || $pageID === 0 || $pageID === "0") {
+    if ($pageID) {
         $pageID = filter_var($pageID, FILTER_SANITIZE_NUMBER_INT);
         $qry .= ' AND s.Page_ID='.$pageID;
     }
@@ -1466,7 +1466,7 @@ function getMenu() {
     $menu = array();
     $qry = "SELECT m.*, 
         p.Name AS Page_Name, p.Link, p.Hidden AS Page_Hidden
-        FROM Auto_Site_Menu AS m
+        FROM Automenu AS m
             LEFT JOIN Pages AS p ON p.ID=m.Page_ID";
     if (!$admin_panel || !$loggedIn) {
         $qry .= " WHERE m.Hidden=0";
@@ -1499,7 +1499,7 @@ function getMenuItem($id) {
     $conn = new SQLite3($db);
     $qry = "SELECT m.*, 
         p.Name AS Page_Name, p.Link, p.Hidden AS Page_Hidden
-        FROM Auto_Site_Menu AS m
+        FROM Automenu AS m
             LEFT JOIN Pages AS p ON p.ID=m.Page_ID
             WHERE m.ID=? LIMIT 1;";
     $stmt = $conn->prepare($qry);
@@ -1537,7 +1537,7 @@ function serializeMenu($dropIndex=false) {
         $dropIndex= urldecode($dropIndex);
         $menuContent = '<ul class="automenu-dropdown-index">';
     }
-    $qry = "SELECT m.*, p.Name AS Page_Name, p.Link FROM Auto_Site_Menu AS m
+    $qry = "SELECT m.*, p.Name AS Page_Name, p.Link FROM Automenu AS m
             LEFT JOIN Pages AS p ON p.ID=m.Page_ID 
             WHERE m.Hidden=0 
             ORDER BY m.Index_Order;";
@@ -1616,21 +1616,21 @@ function serializeMenu($dropIndex=false) {
     return $menuContent;
 }
 
-function printPage($page=0,$num=1,$singleItem=false, $menuIndex=false) {
+function printPage($page=1,$num=1,$singleItem=false, $menuIndex=false) {
     global $db; global $set; 
     global $root; global $route; global $themePath;
     $conn = New SQLite3($db);
     // if no 'page', go to the home page
     if (($page['ID'] ?? '') === 'Error') {
         $page404 = true;
-        $page['ID']=0;
+        $page['ID']=1;
     }
-    if (!$page) {
+    if ($page===false || $page===1) {
         $pgQry = "SELECT p.*, COUNT(i.ID) AS Total_Items
         FROM Pages AS p
         LEFT JOIN Sections AS s ON p.ID=s.Page_ID
         LEFT JOIN Items AS i ON s.ID=i.Sect_ID
-        WHERE p.ID =0 LIMIT 1;";
+        WHERE p.ID =1 LIMIT 1;";
         $result = $conn->prepare($pgQry)->execute();
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             $page = $row;
@@ -2051,7 +2051,7 @@ if (isset($_POST['create_page'])) {
             $menuImgPath = null;
         }
 
-        $menuQry = 'INSERT INTO Auto_Site_Menu (Page_ID, Hidden'.($menuImgPath ? ', Img_Path' : null).') 
+        $menuQry = 'INSERT INTO Automenu (Page_ID, Hidden'.($menuImgPath ? ', Img_Path' : null).') 
         VALUES (?,?'.($menuImgPath ? ', ?' : null).');';
         $menuStmt = $conn->prepare($menuQry);
         $menuStmt->bindValue(1,$pageID, SQLITE3_INTEGER);
@@ -2127,7 +2127,7 @@ if (isset($_POST['edit_page'])) {
             $mHidden=$cPost['n_menu_hidden'];
         }
         if ($menuImgPath!== false || $updtMHidden !== false) {
-            $qry = "UPDATE Auto_Site_Menu SET Hidden=:hid".($menuImgPath !== false ? ', Img_Path=:img' : '')." WHERE Page_ID=:id";
+            $qry = "UPDATE Automenu SET Hidden=:hid".($menuImgPath !== false ? ', Img_Path=:img' : '')." WHERE Page_ID=:id";
             $stmt = $conn->prepare($qry);
             $stmt->bindValue(':hid',$mHidden, SQLITE3_INTEGER);
             if ($menuImgPath != false) {
@@ -2176,8 +2176,8 @@ if (isset($_POST['delete_page'])) {
     global $db;
     $conn = new SQLite3($db);
     $pageID = filter_var($_POST['n_page_id'], FILTER_SANITIZE_NUMBER_INT);
-    if ($pageID==0) {
-        $msg="You cannot delete your homepage.";
+    if ($pageID<2) {
+        $msg="You cannot delete essential pages, such as home or the error page.";
         return;
     }
     $moveSectQry = 'UPDATE Sections SET Page_ID=null WHERE Page_ID=?;';
@@ -2187,9 +2187,9 @@ if (isset($_POST['delete_page'])) {
         $qry = 'DELETE FROM Pages WHERE ID=?;';
         $stmt = $conn->prepare($qry);
         $stmt->bindValue(1,$pageID, SQLITE3_INTEGER);
-        if ($stmt->execute()) {
+        if ($stmt->execute() && $conn->changes()>0) {
             $msg="Page deleted!";
-            $menuQry = 'DELETE FROM Auto_Site_Menu WHERE Page_ID=?;';
+            $menuQry = 'DELETE FROM Automenu WHERE Page_ID=?;';
             $menuStmt = $conn->prepare($menuQry);
             $menuStmt->bindValue(1,$pageID, SQLITE3_INTEGER);
             $menuStmt->execute();
@@ -2634,7 +2634,7 @@ if (isset($_POST['save_menu'])) {
     });
     $indexOrder=0;
     $error = false;
-    $qry = "UPDATE Auto_Site_Menu 
+    $qry = "UPDATE Automenu 
         SET  Index_Order=:inorder, In_Dropdown=:indrop, Hidden=:hidden
             WHERE ID=:id";
     foreach ($_POST["option"] AS &$opt) {
@@ -2644,7 +2644,7 @@ if (isset($_POST['save_menu'])) {
         }
         $cPost = cleanServerPost($opt);
         if (!isset($cPost['n_dropdown']) || $indexOrder===0) {
-            if ($indexOrder===0 && $cPost['n_dropdown']>0) {
+            if ($indexOrder===0 && ($cPost['n_dropdown'] ?? 0)>0) {
                 $msg .="<div class='red'>Menu items in the first position cannot be in a dropdown.</div>";
             }
             $cPost['n_dropdown'] = 0;
@@ -2684,7 +2684,7 @@ if (isset($_POST['menu_add_item'])) {
     } else {
         $imgPath = null;
     }
-    $qry = 'INSERT INTO Auto_Site_Menu 
+    $qry = 'INSERT INTO Automenu 
         (Link_Text, Ext_Url'.($imgPath ? ', Img_Path' : null).') 
     VALUES (:text,:exturl'.($imgPath ? ',:img' : null).')';
         $cPost = cleanServerPost($_POST);
@@ -2709,7 +2709,7 @@ if (isset($_POST['menu_edit_item'])) {
     $conn = new SQLite3($db);
     $msg="";
     $cPost = cleanServerPost($_POST);
-        if ($cPost['type_code']==2 && (isset($cPost['ext_url']) && !$cPost['ext_url'])) {
+        if ($cPost['n_type_code']==2 && (isset($cPost['ext_url']) && !$cPost['ext_url'])) {
             $cPost['ext_url']='/';
         } else {
             $cPost['ext_url']=null;
@@ -2723,22 +2723,42 @@ if (isset($_POST['menu_edit_item'])) {
     } else {
         $imgPath = null;
     }
-    $qry = 'UPDATE Auto_Site_Menu
+    $qry = 'UPDATE Automenu
             SET Link_Text=:text'.($cPost['ext_url'] ? ', Ext_Url=:exturl' : null).($imgPath ? ', Img_Path=:img' : null).'
             WHERE ID=:id';
-    $stmt = $conn->prepare($qry);
-    $stmt->bindValue(':text',$cPost['link_text'], SQLITE3_TEXT);
+    
     if ($cPost['ext_url']) {
         $stmt->bindValue(':exturl',$cPost['ext_url'], SQLITE3_TEXT);
     }
     if ($imgPath) {
         $stmt->bindValue(':img',$imgPath, SQLITE3_TEXT);
     }
-    $stmt->bindValue(':id',$cPost['menu_id'], SQLITE3_INTEGER);
+    $stmt->bindValue(':id',$cPost['n_menu_id'], SQLITE3_INTEGER);
     if (!$stmt->execute()) {
         $msg.=" There was an error saving your menu changes. Please try again.";
     } else {
         $msg.="Changes were saved at ".date('d F, Y h:i:s').'.';
+    }
+}
+
+if (isset($_POST['delete_menu_item'])) {
+    global $db; global $set;
+    $conn = new SQLite3($db);
+    $id = filter_var($_POST['n_menu_id'], FILTER_SANITIZE_NUMBER_INT);
+    $msg="";
+    if ($_SESSION['MenuItemType'] != (2 || 3)) {
+        $msg .= "You can only delete custom links and headings via the automenu.";
+        return false;
+    } else {
+        unset($_SESSION['MenuItemType']);
+    }
+    $qry = "DELETE FROM Automenu WHERE ID=? AND Page_ID IS NULL;";
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(1,$id, SQLITE3_INTEGER);
+    if (!$stmt->execute() || $conn->changes()<1) {
+        $msg.=" There was an error deleting this menu item. Please try again.";
+    } else {
+        $msg.="Menu item deleted at ".date('d F, Y h:i:s').'.';
     }
 }
 

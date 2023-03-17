@@ -29,11 +29,9 @@ function toggleOnCond (elemVal, condValArr, target, byExclusion, reverse, togCla
         reverse=true;
     }
     if (!togClass) {togClass = 'hide';}
-    let condInArr = condValArr.includes(elemVal);
-    let condMet = condInArr !== byExclusion;
+    let condMet = (condValArr.includes(elemVal)) !== byExclusion;
     if (condMet) {
         target.classList.remove(togClass);
-
     } else {
         target.classList.add(togClass);
     }

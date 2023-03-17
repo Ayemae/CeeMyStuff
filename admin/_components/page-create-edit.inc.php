@@ -11,6 +11,11 @@
     <li>
         <label for="name">Name:</label>
         <input type="text" name="name" id="name" max-length="255" value="<?show($edit ? $page['Name'] : null)?>">
+            <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                <article class="help-text">
+                    Your Page's link will be derived from its name. <em>Every Page must have a unique name.</em>
+                </article>
+            </i>
         <? if ($edit) :?>
             <input type="hidden" name="name_stored" value="<?show($page['Name'])?>">
         <? endif;?>
@@ -25,10 +30,11 @@
         <input type="file" id="header_img_upload" name="header_img_upload" value="<?(!isset($_POST['header_img_upload']) ? null : show($_POST['header_img_upload']))?>">
         <input type="hidden" id="stored_header_img" name="stored_header_img" value="<?show($edit ? $page['Header_Img_Path'] : null);?>">
         <?if ($edit && isset($page['Header_Img_Path']) && $page['Header_Img_Path']>''):?>
-            <div id="header_img_current" class="page-current-image-wrapper">
-                Current:<br/> <img src="<?=$page['Header_Img_Path']?>">
+            <div id="header-img-current" class="page-current-image-wrapper">
+                Current:<br/> <img class="visual" src="<?=$page['Header_Img_Path']?>">
+                <div class="rvm-file-path-info invis">&#10060; File Removed</div>
             </div>
-            <button type="button" class="small red" onclick="rmvFilePath('stored_header_img', 'header_img_current')">Remove Current Image</button>
+            <button type="button" class="small red" onclick="rmvFilePath(this, 'stored_header_img', 'header-img-current')">Remove Current Image</button>
         <?endif;?>
         <br/>
         <label for="n_show_title">Show header image on the website:</label>
@@ -37,8 +43,15 @@
     </li>
 
     <li>
-        <label for="meta">Meta Description:</label><br/>
-        <p>A description of your page that will show up in search engines or external thumbnails (this will not be visible on the site itself).</p>
+        <div>
+            <label for="meta">Meta Description:</label>
+            <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                <article class="help-text">
+                    A description of your page that will show up in search engines or external thumbnails. 
+                    Normally, <em>this will not be visible on the site itself.</em>
+                </article>
+            </i>
+        </div>
         <input type="text" id="meta" name="meta_text" max-length="255" value="<?show($edit ? $page['Meta_Text'] : null)?>" style="width: 80%">
     </li>
 
@@ -46,12 +59,24 @@
         <label for="n_multi_sect">Enable Multiple Content Sections:</label>
         <input type="hidden" name="n_multi_sect" value="0">
         <input type="checkbox" name="n_multi_sect" id="n_multi_sect" class="chktoggle" value="1" <?=($edit && $page['Multi_Sect'] ? 'checked' : null)?>>
+            <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                <article class="help-text">
+                    This will allow you to add more than one content Section to this page. 
+                    Keep in mind that <em>pagination is only available on pages with a single content section.</em>
+                </article>
+            </i>
         <input type="hidden" name="n_paginate" value="0">
         <input type="hidden" name="n_paginate_after" value="20">
         <ul class="chktoggle-hide form-list">
             <li>
                 <label for="n_paginate">Allow Pagination (single-section pages only):</label>
                 <input type="checkbox" name="n_paginate" id="n_paginate" class="chktoggle" value="1" <?=($edit && $page['Paginate'] ? 'checked' : null)?>>
+                <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                    <article class="help-text">
+                        'Pagination' will allow this Page to contain an array of pages that you can navigate between,
+                        which can be useful if your Page/content Section has a lot of Items or material that may involve a lot of scrolling.
+                    </article>
+                </i>
                 <div class="chktoggle-show">
                     <label for="n_paginate_after">Items Per Page:</label>
                     <input type="number" name="n_paginate_after" id="n_paginate_after" value="<?show($edit && $page['Paginate_After']);?>" style="width:50px">
@@ -74,12 +99,22 @@
     <?php endif;?>
 
     <li>
-        <label for="menu_img_upload">Menu Link Image (Optional):</label>
+        <div>
+            <label for="menu_img_upload">Menu Link Image (Optional):</label>
+            <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+            <article class="help-text">
+                If the settings are set to display the Automenu links as images, you can upload your page's link image here.
+            </article>
+        </i>
+        </div>
         <input type="file" id="menu_img_upload" name="menu_img_upload" value="<?(!isset($_POST['menu_img_upload']) ? null : show($_POST['menu_img_upload']))?>">
         <?if ($edit && isset($page['Menu_Link_Img']) && $page['Menu_Link_Img']>''):?>
-            <div>Current: <img id="menu_img_current" src="<?=$set['dir'].$page['Menu_Link_Img']?>"></div>
+            <div id="menu-img-current">
+                Current: <img class="visual" src="<?=$set['dir'].$page['Menu_Link_Img']?>">
+                <div class="rvm-file-path-info invis">&#10060; File Removed</div>
+            </div>
             <input type="hidden" id="rmv_menu_img" name="n_rmv_menu_img" value="0">
-            <button type="button" class="small red" onclick="rmvFilePath('rmv_menu_img', 'menu_img_current', 1)">Remove Current Image</button>
+            <button type="button" class="small red" onclick="rmvFilePath(this, 'rmv_menu_img', 'menu-img-current', 1)">Remove Current Image</button>
         <?endif;?>
     </li>
 
@@ -90,12 +125,18 @@
             <? endif?>
             <input type="hidden" id="hidden" name="n_hidden" value="0">
             <input type="checkbox" id="hidden" name="n_hidden" value="1" <?=($edit && $page['Hidden'] ? 'checked' : null)?>>
+            <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                <article class="help-text">
+                    Hidden Pages will not display on the live site. 
+                    Additionally, hidden Pages will not display a link on the Automenu.
+                </article>
+            </i>
     </li>
 </ul>
 
 <? if ($edit && $page['Multi_Sect']) :?>
-    <h2>Section Order</h2>
-    <p>For multi-section pages only.</p>
+    <h2>Sections</h2>
+    <p>Section order editing is available on multi-section pages only.</p>
     <ul class="form-list">
         <? foreach ($sectList AS $sect) :?>
     <li class="menu-settings-item">
@@ -118,7 +159,7 @@
 <? if ($edit) :?>
 <script src="_js/enumerate.js"></script>
 <script src="_js/modal.js"></script>
-<script src="_js/rmvFilePaths.js"></script>
+<script src="_js/rmv-file-paths.js"></script>
 <script>
 enumerate('menu-item-order', 'class');
 let modalHTML = `<h2>Are you sure you want to delete the '<?=$page['Name']?>' page?</h2>

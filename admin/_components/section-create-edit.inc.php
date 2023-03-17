@@ -23,10 +23,11 @@
         <input type="file" id="header_img_upload" name="header_img_upload">
         <input type="hidden" id="header_img_stored" name="header_img_stored" value="<?=($edit && isset($sect['Img_Path']) ? show($sect['Img_Path']) : null )?>">
         <?if ($edit && isset($sect['Header_Img_Path']) && $sect['Header_Img_Path']>''):?>
-            <div id="header_img_current" class="sect-current-image-wrapper">
-                Current:<br/> <img src="<?=$sect['Header_Img_Path']?>">
+            <div id="header-img-current" class="sect-current-image-wrapper">
+                Current:<br/> <img class="visual" src="<?=$sect['Header_Img_Path']?>">
+                <div class="rvm-file-path-info invis">&#10060; File Removed</div>
             </div>
-            <button type="button" class="small red" onclick="rmvFilePath('header_img_stored', 'header_img_current')">Remove Current Image</button>
+            <button type="button" class="small red" onclick="rmvFilePath(this, 'header_img_stored', 'header-img-current')">Remove Current Image</button>
         <?endif;?>
         <br/>
         <label for="n_show_title">Show header image on the website:</label>
@@ -45,7 +46,7 @@
         <label for="n_page_id">In Page:</label>
         <p>If you don't see the page you want, make sure that page has 'Multiple Content Sections' enabled in its settings.</p>
         <select id="n_page_id" name="n_page_id">
-            <option value="0">None</option>
+            <option value="">None</option>
             <?php foreach($pgList AS $page) : 
                 if ($sect['Page_ID']==$page['ID'] || $page['Can_Add_Sect']) : ?>
                 <option value="<?show($page['ID']);?>" <?=formCmp($sect['Page_ID'],$page['ID'],'s')?>>
@@ -270,9 +271,14 @@
         
 
     <li>
-            <label for="hidden"> Hide this section:</label>
-            <input type="hidden" id="hidden" name="n_hidden" value="0">
-            <input type="checkbox" id="hidden" name="n_hidden" value="1" <?=formCmp($sect['Hidden'],1)?>>
+        <label for="hidden"> Hide this section:</label>
+        <input type="hidden" id="hidden" name="n_hidden" value="0">
+        <input type="checkbox" id="hidden" name="n_hidden" value="1" <?=formCmp($sect['Hidden'],1)?>>
+        <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+        <article class="help-text">
+            Hidden Sections will not display on the live site.
+        </article>
+        </i>
     </li>
     <?php endif;?>
     </ul>
@@ -285,7 +291,7 @@
 <script src="_js/toggle-on-cond.js"></script>
 <? if ($edit) :?>
 <script src="_js/modal.js"></script>
-<script src="_js/rmvFilePaths.js"></script>
+<script src="_js/rmv-file-paths.js"></script>
 <script>
 let modalHTML = `<h2>Are you sure you want to delete the '<?=$sect['Name']?>' Section?</h2>
                 <p>This cannot be undone.</p>

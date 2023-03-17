@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link  rel="stylesheet" href="admin.css">
+    <link  rel="stylesheet" href="<?=$baseURL?>/admin/admin.css">
     <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-regular-straight/css/uicons-regular-straight.css'>
     <?php if ($page_title) :?>
         <title><?show($page_title);?></title>
@@ -25,7 +25,7 @@
             <?php  endif; ?>
         </div>
         <?php if ($_SESSION && $_SESSION['Key']) :?>
-        <?php include '_components/admin-menu.inc.php';
+        <?php include $root.'/admin/_components/admin-menu.inc.php';
         endif;
     endif; ?>
 </header>

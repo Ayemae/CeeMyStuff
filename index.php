@@ -7,7 +7,7 @@ if (strpos($request,'/')) {
     $request = substr($request,0,strpos($request,'/'));
 }
 if ($request==='') {
-    $page = getPage(0, 'id');
+    $page = getPage(1, 'id');
 } else {
     $page = getPage(strtolower($request), 'link');
 }
@@ -15,7 +15,7 @@ if ($request==='') {
 // home
 Route::add('/',function(){
     global $set;global $db;
-    printPage();
+    printPage(1, 'id');
 });
 
 // custom pages

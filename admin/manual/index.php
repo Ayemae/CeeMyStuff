@@ -1,9 +1,9 @@
 <?php 
 $admin_panel = true;
 $loginArea = true;
-include '../components/info-head.php';
+include '../../components/info-head.php';
 $page_title = 'Admin Panel';
-include '_components/admin-header.inc.php';?>
+include '../_components/admin-header.inc.php';?>
 
 <main class="user-manual">
     <h1>CeeMyStuff User Manual</h1>

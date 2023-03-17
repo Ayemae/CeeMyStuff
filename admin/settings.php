@@ -72,11 +72,11 @@ $settings = fetchSettings();
                 <input type="file" id="<?show($stg['Key']);?>" name="<?show($stg['Key']);?>" value="">
                 <br/>Current:
                 <?php if ($stg['Value']>'') :?>
-                    <div class="settings-image-wrapper">
-                        <img id="<?show($stg['Key']);?>_current" src="<?show($set['dir'].$stg['Value']);?>" alt="<?show($stg['Field']);?> Current Image" style="height:auto;width:auto;max-width:600px;max-height:300px;">
+                    <div id="<?show($stg['Key']);?>_current" class="settings-image-wrapper">
+                        <img src="<?show($set['dir'].$stg['Value']);?>" alt="<?show($stg['Field']);?> Current Image" style="height:auto;width:auto;max-width:600px;max-height:300px;">
                     </div>
                     <input type="hidden" id="rmv_<?show($stg['Key']);?>" name="n_rmv_<?show($stg['Key']);?>" value="0">
-                    <button type="button" class="small red" onclick="rmvFilePath('rmv_<?show($stg['Key']);?>', '<?show($stg['Key']);?>_current', 1)">Remove Current Image</button>
+                    <button type="button" class="small red" onclick="rmvFilePath(this, 'rmv_<?show($stg['Key']);?>', '<?show($stg['Key']);?>_current', 1)">Remove Current Image</button>
                 <? else : ?>
                     <i>None</i>
                 <? endif;
@@ -106,6 +106,6 @@ $settings = fetchSettings();
 
 </main>
 
-<script src="_js/rmvFilePaths.js"></script>
+<script src="_js/rmv-file-paths.js"></script>
 <?php
 include '_components/admin-footer.php';
