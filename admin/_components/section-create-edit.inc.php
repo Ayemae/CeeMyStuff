@@ -8,10 +8,16 @@
     </div>
 
 <?php if ($create || $sect['ID']>0) :?>
+    <section>
 <ul class="form-list">
     <li>
         <label for="name">Title:</label>
         <input type="text" name="name" id="name" max-length="255" value="<?show($edit ? $sect['Name'] : null)?>">
+        <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+            <article class="help-text">
+                All Sections titles on a single page must be unique.
+            </article>
+        </i>
         <br/>
         <label for="n-show-title">Show section title on the website:</label>
         <input type="hidden" name="n_show_title" value="0">
@@ -19,7 +25,34 @@
     </li>
 
     <li>
-    <label for="header_img_upload">Header Image:</label>
+        <label for="n_page_id">In Page:</label>
+        <select id="n_page_id" name="n_page_id">
+            <option value="">None</option>
+            <?php foreach($pgList AS $page) : 
+                if ($sect['Page_ID']==$page['ID'] || $page['Can_Add_Sect']) : ?>
+                <option value="<?show($page['ID']);?>" <?=formCmp($sect['Page_ID'],$page['ID'],'s')?>>
+                    <?show($page['Name']);?>
+                </option>
+            <?php endif;
+        endforeach; unset($page);?>
+        </select>
+        <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+            <article class="help-text">
+                If you don't see the page you want, make sure that page 
+                has 'Multiple Content Sections' enabled in its settings.
+            </article>
+        </i>
+    </li>
+
+    <li>
+        <div>
+            <label for="header_img_upload">Header Image:</label>
+            <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                    <article class="help-text">
+                        Must be a .png, .jpg, .gif, or .webp image file.
+                    </article>
+                </i>
+        </div>
         <input type="file" id="header_img_upload" name="header_img_upload">
         <input type="hidden" id="header_img_stored" name="header_img_stored" value="<?=($edit && isset($sect['Img_Path']) ? show($sect['Img_Path']) : null )?>">
         <?if ($edit && isset($sect['Header_Img_Path']) && $sect['Header_Img_Path']>''):?>
@@ -31,43 +64,80 @@
         <?endif;?>
         <br/>
         <label for="n_show_title">Show header image on the website:</label>
-        <input type="hidden" name="n_show_header_img" value="0">
+        <input type="hidden" name="n_show_header_img" value="0"> 
         <input type="checkbox" name="n_show_header_img" id="n_show_header_img" value="1" <?=($edit && isset($_POST['n_show_header_img']) && $_POST['n_show_header_img']<1 ? null : 'checked')?>>
     </li>
 
     <li>
-        <label for="text-editor">Section Text:</label><br/>
+        <label for="text-editor">Section Text:</label>
+        <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+            <article class="help-text">
+                'Section Text' will also accept HTML and scripts.
+            </article>
+        </i>
         <div class="text-panel">
             <?include('_components/text-edit-panel.inc.php')?>
-            <textarea id="text-editor" name="m_text"><?show($edit ? $sect['Text'] : null)?></textarea>
+            <textarea id="text-editor" name="b_text"><?show($edit ? $sect['Text'] : null)?></textarea>
         </div>
     </li>
+
     <li>
-        <label for="n_page_id">In Page:</label>
-        <p>If you don't see the page you want, make sure that page has 'Multiple Content Sections' enabled in its settings.</p>
-        <select id="n_page_id" name="n_page_id">
-            <option value="">None</option>
-            <?php foreach($pgList AS $page) : 
-                if ($sect['Page_ID']==$page['ID'] || $page['Can_Add_Sect']) : ?>
-                <option value="<?show($page['ID']);?>" <?=formCmp($sect['Page_ID'],$page['ID'],'s')?>>
-                    <?show($page['Name']);?>
+        <label for="format">Display Format:</label>
+        <p>Select a format for how you would like this <strong>Section</strong> to display on the website.</p>
+        <?php if ($sectFormats) :?>
+            <select name="format" id="format">
+                <?php foreach ($sectFormats AS $sFormat) :?>
+                <option value="<?show($sFormat['Path'])?>" <?=($sect['Format']===$sFormat['Path'] ? 'selected' : null)?>>
+                    <?show($sFormat['From'])?> > <?show($sFormat['Name'])?>
                 </option>
-            <?php endif;
-        endforeach; unset($page);?>
-        </select>
+                <?php endforeach;?>
+            </select>
+        <?php else:?>
+            <i class="red">No valid Section formats were found.</i>
+        <?php endif;?>
     </li>
+
+    <li>
+        <label for="hidden"> Hide this section:</label>
+        <input type="hidden" id="hidden" name="n_hidden" value="0">
+        <input type="checkbox" id="hidden" name="n_hidden" value="1" <?=formCmp($sect['Hidden'],1)?>>
+        <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+        <article class="help-text">
+            Hidden Sections will not display on the live site.
+        </article>
+        </i>
+    </li>
+
 </ul>
 <?php endif;?>
+</section>
 
 
 
-
-
+<section>
     <label for="section-display-sets">
-        <h2><i class="fi fi-rs-plus"></i> Section Display Settings</h2>
+        <h2><i class="fi fi-rs-caret-right"></i> Item Display Settings</h2>
     </label>
     <input type="checkbox" class="chktoggle invis" id="section-display-sets">
     <ul class="form-list chktoggle-show">
+
+    <?php if ($create || $sect['ID']>0) :?>
+    <li>
+        <label for="item-format">Default Item Display Format:</label>
+        <p>Select a format for how you would like this <strong>Section's individual items</strong> to display on the website.</p>
+        <?php if ($itemFormats) :?>
+            <select name="item_format" id="item-format">
+                <?php foreach ($itemFormats AS $iFormat) :?>
+                <option value="<?show($iFormat['Path'])?>" <?formCmp($sect['Default_Item_Format'],$iFormat['Path'],'s')?>>
+                    <?show($iFormat['From'])?> > <?show($iFormat['Name'])?>
+                </option>
+                <?php endforeach;?>
+            </select>
+        <?php else :?>
+            <i class="red">No valid Item formats were found.</i>
+        <?php endif;?>
+    </li>
+    <?endif;?>
 
     <li>
         <div>
@@ -90,39 +160,6 @@
     </li>
 
     <?php if ($create || $sect['ID']>0) :?>
-
-        <li>
-            <label for="format">Display Format:</label>
-            <p>Select a format for how you would like this Section to display on the website.</p>
-            <?php if ($sectFormats) :?>
-                <select name="format" id="format">
-                    <?php foreach ($sectFormats AS $sFormat) :?>
-                    <option value="<?show($sFormat['Path'])?>" <?=($sect['Format']===$sFormat['Path'] ? 'selected' : null)?>>
-                        <?show($sFormat['From'])?> > <?show($sFormat['Name'])?>
-                    </option>
-                    <?php endforeach;?>
-                </select>
-            <?php else:?>
-                <i class="red">No valid Section formats were found.</i>
-            <?php endif;?>
-        </li>
-
-        <li>
-            <label for="item-format">Default Item Display Format:</label>
-            <p>Select a format for how you would like this Section's individual items to display on the website.</p>
-            <?php if ($itemFormats) :?>
-                <select name="item_format" id="item-format">
-                    <?php foreach ($itemFormats AS $iFormat) :?>
-                    <option value="<?show($iFormat['Path'])?>" <?formCmp($sect['Default_Item_Format'],$iFormat['Path'],'s')?>>
-                        <?show($iFormat['From'])?> > <?show($iFormat['Name'])?>
-                    </option>
-                    <?php endforeach;?>
-                </select>
-            <?php else :?>
-                <i class="red">No valid Item formats were found.</i>
-            <?php endif;?>
-        </li>
-
     <li>
         <label for="show_titles">Show Item Titles:</label>
         <select id="show_titles" name="n_show_titles">
@@ -151,7 +188,7 @@
     <?php endif;?>
 
     <li>
-        <label for="create-thumbs">Auto-Create Thumbnails for Image Items:</label>
+        <label for="create-thumbs">Auto-Create Thumbnails for Images:</label>
         <input type="hidden" name="n_create_thumbs" value="0">
         <input type="checkbox" id="create-thumbs" name="n_create_thumbs" class="chktoggle" value="1" <?=($sect['Auto_Thumbs'] ? "checked=checked" : null );?>>
         <div class="chktoggle-show">
@@ -189,16 +226,27 @@
             <l/i>
         </ul>
     </li>
+    </ul>
+    </section>
 
+
+
+
+<section>
+    <label for="section-action-sets">
+        <h2><i class="fi fi-rs-caret-right"></i> Item Behavior Settings</h2>
+    </label>
+    <input type="checkbox" class="chktoggle invis" id="section-action-sets">
+    <ul class="form-list chktoggle-show">
     <li class="select-cond-container">
-            <label for="onclick-action">Item On-Click Actions:</label>
-            <p>What should happen when a viewer clicks on an item?</p>
-            <select id="onclick-action" class="select-cond-master" name="n_onclick_action">
-                <option value="1" <?formCmp($sect['On_Click_Action'],1,'s')?>>Load a single-item viewing page</option>
-                <option value="2" <?formCmp($sect['On_Click_Action'],2,'s')?>>Open a lightbox to view item</option>
-                <option value="3" <?formCmp($sect['On_Click_Action'],3,'s')?>>Open new window with single-item viewing page</option>
-                <option value="0" <?formCmp($sect['On_Click_Action'],0,'s')?>>Nothing; items should not be clickable</option>
-            </select>
+        <label for="onclick-action">Item On-Click Actions:</label>
+        <p>What should happen when a viewer clicks on an item?</p>
+        <select id="onclick-action" class="select-cond-master" name="n_onclick_action">
+            <option value="1" <?formCmp($sect['On_Click_Action'],1,'s')?>>Load a single-item viewing page</option>
+            <option value="2" <?formCmp($sect['On_Click_Action'],2,'s')?>>Open a lightbox to view item</option>
+            <option value="3" <?formCmp($sect['On_Click_Action'],3,'s')?>>Open new window with single-item viewing page</option>
+            <option value="0" <?formCmp($sect['On_Click_Action'],0,'s')?>>Nothing; items should not be clickable</option>
+        </select>
 
         <ul class="sub-form-list">
             <li id="item-click-area-sc" class="select-cond" data-sc-conditions="0" data-sc-exclude="true" data-sc-reverse="true">
@@ -267,21 +315,9 @@
         </ul>
     </li>
 
-
-        
-
-    <li>
-        <label for="hidden"> Hide this section:</label>
-        <input type="hidden" id="hidden" name="n_hidden" value="0">
-        <input type="checkbox" id="hidden" name="n_hidden" value="1" <?=formCmp($sect['Hidden'],1)?>>
-        <i class="help icon"><i class="fi fi-rs-interrogation"></i>
-        <article class="help-text">
-            Hidden Sections will not display on the live site.
-        </article>
-        </i>
-    </li>
     <?php endif;?>
     </ul>
+    </section>
 
   <button name="<?=($create ? "create_section" : "edit_section")?>"><i class="fi fi-rs-check"></i> Submit</button>
   <div id="modal-home"></div>

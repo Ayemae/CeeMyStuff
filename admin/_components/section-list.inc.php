@@ -12,7 +12,7 @@
                 <?=(isset($sect['Hidden']) && $sect['Hidden'] ? '<i class="fi fi-rs-eye-crossed"></i>&nbsp;' : null)?>
                 <?show($sect['Name']);?> | <i class="fi fi-rs-file"></i> 
                 <?php if ($sect['Page_Name']>'') : ?>
-                    In '<?show($sect['Page_Name']);?>' <a href="<?=$set['dir'].'/'.$sect['Link']?>" target="_blank">[View]</a>
+                    In '<a href="<?=$set['dir'].'/'.$sect['Link']?>" target="_blank" title="View on Site"><?show($sect['Page_Name']);?></a>'
                 <?php else: ?>
                     <i>Orphaned Section</i>
                 <?php endif;?>
@@ -27,7 +27,7 @@
         </li>
     <?php endforeach;?>
     <li class="sect-box">
-            <label class="no-sect-label" for="sect_0"><i class="fi fi-br-link-slash-alt"></i> No Section / Orphaned Items</label>
+            <label class="no-sect-label" for="sect_0"><i class="fi fi-rs-link-slash-alt"></i> Orphaned Items</label>
             <input type="checkbox" id="sect_0" class="chktoggle invis">
             <div class="btns-box chktoggle-show">
                 <hr>

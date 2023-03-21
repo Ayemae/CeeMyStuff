@@ -59,6 +59,10 @@ ul {
     flex-direction: column;
 }
 
+input {
+    margin: 0 5px;
+}
+
 .msg-alert {
     background-color: #bbffe4;
     width: 95%;
@@ -72,6 +76,8 @@ ul {
     border-radius: 3px;;
 } .msg-alert a {
     color: #b314ca;
+}.msg-alert:empty {
+    display: none;
 }
 
 button,
@@ -191,9 +197,13 @@ h1 i.fi {
 }
 .chktoggle-hide {
     display: flex !important;
+}.chktoggle-hide.inline {
+    display: inline !important;
 }
 .chktoggle:checked ~ .chktoggle-show {
     display: flex !important;
+}.chktoggle:checked ~ .chktoggle-show.inline {
+    display: inline !important;
 }
 .chktoggle:checked ~ .chktoggle-hide {
     display: none !important;
@@ -318,7 +328,8 @@ a.opt.new-item,
     margin: 4px 0 4px 5%;
 }
 
-.sect-options {
+.sect-options,
+.page-options {
     display: flex;
     flex-direction: row;
     gap: 8px;
@@ -372,12 +383,12 @@ ul.index-item-list li:nth-child(even) {
     background: linear-gradient(90deg, rgba(167, 253, 219, 1) 15%, rgba(167, 253, 219, .25) 100%);
 }ul.menu-settings-item-list li:nth-child(even) {
     background: rgb(252 254 157);
-}ul.menu-settings-item-list li.in-drop:nth-child(even) {
+}ul.menu-settings-item-list li.submenu:nth-child(even) {
     background: rgb(254 255 217);
 }
 ul.menu-settings-item-list li:nth-child(odd) {
     background: rgb(248 228 104);
-}ul.menu-settings-item-list li.in-drop:nth-child(odd) {
+}ul.menu-settings-item-list li.submenu:nth-child(odd) {
     background: rgb(233 228 196);
 }
 

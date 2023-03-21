@@ -20,13 +20,16 @@ if ($_GET['task'] ?? null) {
         $mItem = getMenuItem($id);
         $type = $mItem['Type_Code'];
     } else {
+        $mItem=array();
         if ($_GET['type'] ?? null) {
             switch ($_GET['type']) {
                 case ('link') :
-                    $type = 2;
+                    $mItem['Type_Code'] = $type = 8;
+                    $mItem['Link_Type'] = 'Custom Link';
                 break;
                 default :
-                    $type = 3;
+                    $mItem['Type_Code'] = $type = 9;
+                    $mItem['Link_Type'] = 'Heading';
                 break;
             }
          }
@@ -69,7 +72,7 @@ else :
             <li>Submenu 
                 <i class="help icon"><i class="fi fi-rs-interrogation"></i>
                 <article class="help-text">
-                    Enable if you want the menu item to appear in a dropdown or index. 
+                    Enable if you want the menu item to appear in a submenu, such as a dropdown or index. 
                     All checked items will be listed under the last previous unchecked item.
                     <em>The first item in the menu cannot be within a submenu.</em>
                 </article></i>
@@ -89,10 +92,10 @@ else :
     <ul class="menu-settings-item-list">
         <?php $i=0;
         foreach ($menu AS $option) :?>
-        <li class="menu-settings-item<?=(($option['In_Dropdown'] ?? null) ? ' in-drop' : null )?>">
+        <li class="menu-settings-item<?=(($option['Submenu'] ?? null) ? ' submenu' : null )?>">
             <input type="hidden" name="option[<?show($option['ID'])?>][n_menu_id]" value="<?show($option['ID'])?>">
             <? if ($option['Type_Code']==1) :?>
-                <input type="hidden" name="option[<?show($option['ID'])?>][n_page_id]" value="<?show($option['Page_ID'])?>">
+                <input type="hidden" name="option[<?show($option['ID'])?>][n_page_id]" value="<?show($option['Ref_ID'])?>">
             <? endif; ?>
             <div class="mensets-order">
                 <!--<i class="fi fi-rs-expand-arrows"></i>-->
@@ -100,7 +103,7 @@ else :
             </div>
             <div class="mensets-name">
                 <?if ($option['Type_Code']==1) :?>
-                        <a href="<?=$set['dir']?>/admin/pages.php?task=edit&id=<?=$option['Page_ID']?>"><?=$option['Page_Name']?></a>
+                        <a href="<?=$set['dir']?>/admin/pages.php?task=edit&id=<?=$option['Ref_ID']?>"><?=$option['Page_Name']?></a>
                 <? else : ?>
                         <?=$option['Link_Text']?>
                 <? endif;?>
@@ -113,11 +116,11 @@ else :
             <div class="mensets-type">
                 <?show($option['Link_Type'])?>
             </div>
-            <div  class="mensets-dropdown">
+            <div  class="mensets-submenu">
                 <?php if ($i>0) :?>
-                    <input type="checkbox" id="dropdown" name="option[<?show($option['ID'])?>][n_dropdown]" value="1" <?(!isset($option['In_Dropdown']) ? null : show((!$option['In_Dropdown'] ? null : 'checked')))?>>
+                    <input type="checkbox" id="submenu" name="option[<?show($option['ID'])?>][n_submenu]" value="1" <?(!isset($option['Submenu']) ? null : show((!$option['Submenu'] ? null : 'checked')))?>>
                 <?php else:?>
-                    <input type="checkbox" title="The first link in the menu cannot be in a dropdown." name="option[<?show($option['ID'])?>][n_dropdown]" value="1" disabled>
+                    <input type="checkbox" title="The first link in the menu cannot be in a submenu." name="option[<?show($option['ID'])?>][n_submenu]" value="1" disabled>
                 <?php endif;?>
             </div>
             <div class="mensets-hidden">
@@ -128,7 +131,7 @@ else :
             <div class="mensets-edit">
             <? switch ($option['Type_Code']) {
                 case 1 :
-                    echo '<a href="'.$set['dir'].'/admin/pages.php?task=edit&id='.$option['Page_ID'].'">Edit</a>';
+                    echo '<a href="'.$set['dir'].'/admin/pages.php?task=edit&id='.$option['Ref_ID'].'">Edit</a>';
                 break;
                 case 2 :
                     echo '<a href="'.$set['dir'].'/admin/automenu.php?task=edit&id='.$option['ID'].'">Edit</a>';

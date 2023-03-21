@@ -1,9 +1,9 @@
 <?$_SESSION['MenuItemType']=$type;?>
 <form id="menu-add-edit" method="post" enctype="multipart/form-data" action="<?=$set['dir']?>/admin/automenu.php">
     <div class="space-btwn">
-        <h2>Auto-Menu: <?=(!$edit ? 'Add' : 'Edit')?> <?=($type==2 ? 'Custom/External Link' : 'Heading')?></h2>
+        <h2>Auto-Menu: <?=(!$edit ? 'Add' : 'Edit')?> <?=$mItem['Link_Type']?></h2>
         <button id="delete-menu-item" name="delete_menu_item" class="small red" on-click="return false;">
-            <i class="fi fi-rs-trash"></i> Delete <?=($type==2 ? 'Link' : 'Heading')?>
+            <i class="fi fi-rs-trash"></i> Delete <?=$mItem['Link_Type']?>
         </button>
     </div>
 
@@ -13,11 +13,11 @@
             <input type="hidden" name="n_type_code" value="<?=$mItem['Type_Code']?>">
         <? endif;?>
         <li>
-            <label for="link-text"><?=($type==2 ? 'Link' : 'Heading')?> Text/Name:</label>
+            <label for="link-text"><?=$mItem['Link_Type']?> Text/Name:</label>
             <input type="text" id="link-text" maxlength="100" name="link_text" autocomplete="off" value="<?=($edit ? $mItem['Link_Text'] : '')?>">
         </li>
 
-        <? if ($type==2) :?>
+        <? if ($type==8) :?>
         <li>
             <label for="ext-url">Link URL:</label>
             <p>If this is an external URL (as in, not from this site) make sure that you 
@@ -47,10 +47,10 @@
 <? if ($edit) :?>
 <script src="_js/modal.js"></script>
 <script>
-let modalHTML = `<h2>Are you sure you want to delete this <?=($type==2 ? 'link' : 'heading')?>?</h2>
+let modalHTML = `<h2>Are you sure you want to delete this <?=($type==8 ? 'link' : 'heading')?>?</h2>
                 <p>This cannot be undone.</p>
                 <div class="flex">
-                <button type="submit" class="button red" name="delete_menu_item">Yes, delete this <?=($type==2 ? 'link' : 'heading')?></button>
+                <button type="submit" class="button red" name="delete_menu_item">Yes, delete this <?=($type==8 ? 'link' : 'heading')?></button>
                 <button type="button" class="button modal-close">Never mind</button>
                 </div>`;
 const modalMItemDelete = new Modal('modal-menu-item-delete', modalHTML, false, false);

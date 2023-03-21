@@ -71,6 +71,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Sections (
     Name TEXT NOT NULL,
     Page_ID INTEGER DEFAULT NULL,
     Page_Index_Order INTEGER,
+    Is_Reference INTEGER NOT NULL DEFAULT 0,
     Text TEXT,
     Header_Img_Path TEXT DEFAULT NULL,
     Show_Title INTEGER NOT NULL DEFAULT 0,
@@ -93,8 +94,21 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Sections (
     Default_Item_Format TEXT,
     View_Item_Format TEXT,
     Lightbox_Format TEXT,
+    Item_Display_Limit INTEGER DEFAULT NULL,
     Hidden INTEGER NOT NULL DEFAULT 0,
     UNIQUE(Name,Page_ID)
+)');
+
+$conn->exec('CREATE TABLE IF NOT EXISTS Reference_Sections (
+    Sect_ID INTEGER PRIMARY KEY UNIQUE NOT NULL,
+    Ref_Sect_IDs TEXT DEFAULT NULL,
+    Type INTEGER NOT NULL DEFAULT 1
+)');
+
+$conn->exec('CREATE TABLE IF NOT EXISTS Section_Groups (
+    Sect_ID INTEGER PRIMARY KEY UNIQUE NOT NULL,
+    Ref_Sect_IDs TEXT DEFAULT NULL,
+    Type INTEGER NOT NULL DEFAULT 1
 )');
 
 $conn->exec('INSERT INTO Sections (ID, Page_ID, Page_Index_Order, Name, Text, Format, Default_Item_Format, Auto_Thumbs)
@@ -166,18 +180,20 @@ $conn->exec('INSERT INTO Accounts (
 
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Automenu (
-    ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Page_ID INTEGER UNIQUE DEFAULT NULL,
+    ID INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
+    Type_Code INTEGER DEFAULT NULL,
+    Ref_ID INTEGER DEFAULT NULL,
     Index_Order INTEGER DEFAULT 999,
     Link_Text TEXT DEFAULT NULL,
     Ext_Url TEXT DEFAULT NULL,
-    In_Dropdown INTEGER DEFAULT 0,
+    Submenu INTEGER DEFAULT 0,
     Img_Path TEXT DEFAULT NULL,
-    Hidden INTEGER DEFAULT 0
+    Hidden INTEGER DEFAULT 0,
+    UNIQUE(Type_Code,Ref_ID)
 )');
 
-$conn->exec('INSERT INTO Automenu (Page_ID, Index_Order)
-    VALUES (1,1);'
+$conn->exec('INSERT INTO Automenu (Type_Code, Ref_ID, Index_Order)
+    VALUES (1,1,1);'
     );
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Social_Media (
@@ -201,23 +217,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Tags (
     Tag TEXT
 )');
 
-// $conn->exec('CREATE TABLE IF NOT EXISTS Social_Media_Defaults (
-//     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-//     Platform TEXT,
-//     Icon TEXT,
-//     URL TEXT
-// )');
 
-// $conn->exec('INSERT INTO Social_Media_Defaults (ID, Platform, Icon, URL)
-//     VALUES 
-//         (1, "Instagram","/assets/icons/instagram.svg","https://www.instagram.com/YOUR_HANDLE/"),
-//         (2, "Facebook","/assets/icons/facebook.svg","https://www.facebook.com/YOUR_HANDLE/"),
-//         (3, "LinkedIn","/assets/icons/linkedin.svg","https://www.linkedin.com/in/YOUR_HANDLE/"),
-//         (4, "Patreon","/assets/icons/patreon.svg","https://www.patreon.com/YOUR_HANDLE"),
-//         (5, "Tumblr","/assets/icons/tumblr.svg","https://YOUR_HANDLE.tumblr.com/"),
-//         (6, "Twitch","/assets/icons/twitch.svg","https://www.twitch.tv/YOUR_HANDLE"),
-//         (7, "Twitter","/assets/icons/twitter.svg","https://twitter.com/YOUR_HANDLE"),
-//         (8, "YouTube","/assets/icons/youtube.svg","https://www.youtube.com/user/YOUR_HANDLE");');
 
 
 

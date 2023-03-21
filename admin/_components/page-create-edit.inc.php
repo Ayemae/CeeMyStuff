@@ -90,7 +90,7 @@
         <label for="format">Display Format:</label>
         <select name="format" id="format">
             <?php foreach ($formatList AS $format) :?>
-            <option value="<?show($format['Path'])?>" <?=($page['Format']===$format['Path'] ? 'selected' : null)?>>
+            <option value="<?show($format['Path'])?>" <?=($edit && $page['Format']===$format['Path'] ? 'selected' : null)?>>
                 <?show($format['From'])?> > <?show($format['Name'])?>
             </option>
             <?php endforeach;?>
@@ -148,7 +148,7 @@
             </div>
         </li>
         <? endforeach;?>
-        <a class="button small" href="<?=$set['dir']?>/admin//sections.php?task=create&pageid=<?=$page['ID']?>"><i class="fi fi-rs-plus"></i> Add New Section</a>
+        <a class="button small" href="<?=$set['dir']?>/admin/sections.php?task=create&pageid=<?=$page['ID']?>"><i class="fi fi-rs-plus"></i> Add New Section</a>
     </ul>
 <? endif;?>
 

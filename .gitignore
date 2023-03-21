@@ -5,3 +5,5 @@ __IGNORE/
 .htaccess
 /data/database.db
 data/database.db
+/library/_testing.inc.php
+library/_testing.inc.php

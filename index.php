@@ -38,8 +38,8 @@ Route::add('/view/([0-9]*)',function($id){
     printPage(false, $id, true);
 },'get');
 
-// menu dropdown index
-Route::add("/menu-dropdown-index/(([^\/?]+)\/?$)",function($heading){
+// menu submenu index
+Route::add("/menu-submenu-index/(([^\/?]+)\/?$)",function($heading){
     global $set;global $db;
     printPage(false, 1, false, $heading);
 },'get');

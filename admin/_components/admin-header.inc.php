@@ -31,11 +31,17 @@
 </header>
 
 <?php 
-if (isset($_SESSION['Msg'])) {
-    echo '<article class="msg-alert"><p>'.$_SESSION['Msg'].'</p></article>';
+$alert = '';
+if ($_SESSION['Msg'] ?? false) {
+    $alert .= '<p>'.$_SESSION['Msg'].'</p>';
     unset($_SESSION['Msg']);
 }
-if (isset($msg)) {
-    echo '<article class="msg-alert"><p>'.$msg.'</p></article>';
-}?>
+if (isset($msg) && $msg>'') {
+    $alert .= '<p>'.$msg.'</p>';
+    unset($msg);
+}
+if ($alert) {
+    echo '<article class="msg-alert">'.$alert.'</article>';
+}
+?>
     

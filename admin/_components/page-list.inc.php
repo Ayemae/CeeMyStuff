@@ -12,17 +12,21 @@
             <label class="page-label" for="page_<?show($page['ID']);?>">
             <?=($page['ID'] == 1 ? '<i class="fi fi-rs-home"></i>&nbsp;' : null)?>
             <?=(isset($page['Hidden']) && $page['Hidden'] ? '<i class="fi fi-rs-eye-crossed"></i>&nbsp;' : null)?>
-                <?show($page['Name']);?> |&nbsp;<a href="<?=$set['dir'].'/'.$page['Link']?>" target="_blank">[View]</a>
+                <?show($page['Name']);?>
             </label>
             <div class="btns-box chktoggle-show">
-                <div class="btns-box page-options">
-                    <a class="opt settings" href="?task=edit&id=<?show($page['ID'])?>"><i class="fi fi-rs-settings"></i> Edit Page Settings</a>
+                <div class="btns-box">
+                    <div class="page-options">
+                        <a class="opt settings" href="?task=edit&id=<?show($page['ID'])?>"><i class="fi fi-rs-settings"></i> Edit Page Settings</a>
+                        <a class="opt settings" href="<?=$set['dir'].'/'.$page['Link']?>" target="_blank"><i class="fi fi-rs-eye"></i> View on Site</a>
+                    </div>
                     <?php if ($sectList) : ?>
                         <ul class="section-list">
                             <?=($page['Multi_Sect'] ? '<li>Multi-section enabled:</li>' : null)?>
                         <?php foreach ($sectList AS $sect) : ?>
                             <li class="sect-label" >
-                                <label for="sect_<?show($sect['ID']);?>"><i class="fi fi-rs-list"></i> <?show($sect['Name']);?></label>
+                                <label class="block width-all" for="sect_<?show($sect['ID']);?>">
+                                <i class="fi fi-rs-list"></i> <?show($sect['Name']);?></label>
                                 <input type="checkbox" id="sect_<?show($sect['ID']);?>" class="chktoggle invis">
                                 <div class="btns-box <?=($page['Multi_Sect'] ? 'chktoggle-show' : null)?>">
                                     <hr>

@@ -42,14 +42,15 @@
         <?endif;?>
                 <label for="publish-date">Publish date/time:</label>
                 <input type="datetime-local" id="publish-datetime" name="publish_datetime" value="<?show($edit ? $item['Publish_Timestamp'] : null )?>">
+                <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                    <article class="help-text">
+                        You can back-date your items, or, if you want to schedule your items to show up later, 
+                        you can set the publish date/time to sometime the future.
+                    </article>
+                </i>
         <? if ($create) : ?>
             </div>
         <?endif;?>
-            <i class="help icon"><i class="fi fi-rs-interrogation"></i>
-                <article class="help-text">
-                    You can back-date your items, or, if you want to schedule your items to show up later, 
-                    you can set the publish date/time to sometime the future.
-                </article></i>
     </li>
 
     <?php if ($formatList) :?>
@@ -115,7 +116,7 @@
                 <div class="rvm-file-path-info invis">&#10060; Image Removed</div>
             </div>
             <input type="hidden" id="img_stored" name="img_stored" value="<?show($item['Img_Path'])?>">
-            <p>Image Path: <?show($item['Img_Path'] ? $set['dir'].$item['Img_Path'] : '<i>None</i>')?></p>
+            <p><label>Image Path:</label> <?show($item['Img_Path'] ? $set['dir'].$item['Img_Path'] : '<i>None</i>')?></p>
             <button type="button" class="small red" onclick="rmvFilePath(this, 'img_stored', 'img_current')">Remove Item Image</button>
         <? endif;?>
         <div>
@@ -142,35 +143,40 @@
             <li id="thumbnail-area" class="select-cond-container">
                 <input type="hidden" id="auto-thumbs" class="select-cond-master" value="<?=$sectInfo['Auto_Thumbs']?>">
                 <div class="autothumb-info select-cond" data-sc-conditions="1">
-                    <i>
-                        If a new image is added, a thumbnail image with a 
+                    <? if ($create) :?>
+                        <input type="hidden" name="sect_create_thumbnail" value="<?=$sectInfo['Auto_Thumbs']?>">
+                    <? else : ?>
+                        <input type="hidden" name="sect_create_thumbnail" value="0">
+                        <label for="sect-create-thumbnail">Recreate Thumbnail Image:</label>
+                        <input type="checkbox" id="sect-create-thumbnail" name="sect_create_thumbnail" value="1">
+                    <? endif;?>
+                        <p>If a new image is uploaded, a new thumbnail will be created automatically.</p>
+                        <p>A thumbnail image with a 
                         <span id="sect-thumb-size">
                             <strong><?=(!$sectInfo['Thumb_Size_Axis'] ? 'width' : 'height');?></strong> of <strong><?=($sectInfo['Thumb_Size'])?>px</strong>
                         </span>
                         will be created for this item.<br/>
                         <a class="sect-link" href="<?show($route)?>/sections.php?task=edit&sectid=<?show($sectInfo['ID'])?>">
                             Click here to change this setting.
-                        </a>
-                    </i>
-                    <input type="hidden" name="create_thumbnail" value="checked">
-                    <input type="hidden" name="n_thumb_size" value="<?show($sectInfo['Thumb_Size'])?>">
-                    <input type="hidden" name="n_thumb_size_axis" value="<?show($sectInfo['Thumb_Size_Axis'])?>">
+                        </a></p>
+                    <input type="hidden" id="sect-thumb-size" name="n_sect_thumb_size" value="<?show($sectInfo['Thumb_Size'])?>">
+                    <input type="hidden" id="sect-thumb-axis" name="n_sect_thumb_size_axis" value="<?show($sectInfo['Thumb_Size_Axis'])?>">
                 </div>
                 <div class="thumb-upload select-cond" data-sc-conditions="0">
                     <label for="thumb_upload"><?=(isset($item) && $item['Img_Thumb_Path'] ? 'Re-upload' : 'Upload')?> Thumbnail:</label>
                     <input type="file" id="thumb_upload" name="thumb_upload">
                     <p> - OR - </p>
                     <label for="create-thumbnail"> Auto-Create Thumbnail From Item's Image:</label>
-                    <input type="hidden" name="create_thumbnail" value="">
-                    <input type="checkbox" id="create-thumbnail" name="create_thumbnail" value="checked">
+                    <input type="hidden" name="item_create_thumbnail" value="0">
+                    <input type="checkbox" id="create-thumbnail" name="item_create_thumbnail" value="1">
                     <ul class="form-list">
                         <li>
-                            <label for="thumb_size">Thumbnail Size:</label>
-                            <input type="number" id="thumb_size" name="n_thumb_size" value="<?show($sectInfo['Thumb_Size'])?>">
+                            <label for="item-thumb-size">Thumbnail Size:</label>
+                            <input type="number" id="item-thumb-size" name="n_item_thumb_size" value="<?show($sectInfo['Thumb_Size'])?>">
                         </li>
                         <li>
-                            <label for="thumb_size_axis">Axis of Thumbnail Size:</label>
-                            <select id="thumb_size_axis" name="n_thumb_size_axis">
+                            <label for="item-thumb-axis">Axis of Thumbnail Size:</label>
+                            <select id="item-thumb-axis" name="n_item_thumb_size_axis">
                                 <option value="0" <?=formCmp($sectInfo['Thumb_Size_Axis'],0,'s')?>>Width</option>
                                 <option value="1" <?=formCmp($sectInfo['Thumb_Size_Axis'],1,'s')?>>Height</option>
                             </select>
@@ -286,6 +292,13 @@
             }
             // handle autothumbs
             autoThumbs.value = sectInfo.Auto_Thumbs;
+            if (sectInfo.Auto_Thumbs==1) {
+                document.getElementById("sect-thumb-size").value = sectInfo.Thumb_Size;
+                document.getElementById("sect-thumb-axis").value = sectInfo.Thumb_Size_Axis;
+            } else {
+                document.getElementById("item-thumb-size").value = sectInfo.Thumb_Size;
+                document.getElementById("item-thumb-axis").value = sectInfo.Thumb_Size_Axis;
+            }
             let scChildren = document.getElementById('thumbnail-area').getElementsByClassName("select-cond");
             handleSCChildren(scChildren, sectInfo.Auto_Thumbs);
             sectThmbSize.innerHTML= `<strong>${(!sectInfo.Thumb_Size_Axis ? `width` : `height`)}</strong> of <strong>${sectInfo.Thumb_Size}px</strong>`;

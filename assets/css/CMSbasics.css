@@ -59,18 +59,15 @@ nav#site-menu li {
 nav#site-menu ul.automenu li {
     position: relative;
 }
-nav#site-menu ul li.automenu-item ul.automenu-dropdown {
+nav#site-menu ul li.automenu-item ul.automenu-submenu {
     display: none;
 }
-nav#site-menu ul li.automenu-item:hover ul.automenu-dropdown {
+nav#site-menu ul li.automenu-item:hover ul.automenu-submenu {
     display: block;
     position: absolute;
 }
-.automenu-dropdown {
-    background: rgba(255, 255, 255, .8);
-    padding: 2px 5px;
-}
-ul.automenu-dropdown-index {
+
+ul.automenu-submenu-index {
     list-style-type: none;
     padding: 0;
 }
