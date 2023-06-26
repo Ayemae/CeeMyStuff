@@ -44,6 +44,12 @@ $formatList = getFormatList();
         $edit = true;
         $item = getItem($itemID); 
         $sectInfo = getSectInfo($item['Sect_ID']);
+        if (($item['Img_Path'] ?? null)>'') {
+            $imgExists = true;
+        } else {
+            $imgExists =false;
+        }
+        $_SESSION['Item_Page_ID'] = $item['Page_ID'];
         include_once '_components/item-create-edit.inc.php';
     endif;?>
 

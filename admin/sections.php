@@ -46,25 +46,56 @@ if (isset($_GET['pageid'])) {
         include '_components/section-view.inc.php';
         break;
     case 'create' :
-        $create = true;
-        $edit = false;
-        $sect = getSectInfo($sectID);
-        $sectFormats = getFormatList('section');
-        $itemFormats = getFormatList();
-        $viewItemFormats = getFormatList('view-item-page');
-        $lightboxFormats = getFormatList('lightbox');
-        $pgList = getPageList($sect['Page_ID']);
-        include '_components/section-create-edit.inc.php';
-        break;
     case 'edit' :
-        $create = false;
-        $edit = true;
+        $sect = getSectInfo($sectID);
+        if ($task == 'edit') {
+            $create = false;
+            $edit = true;
+            if ($sect['Is_Reference']>0) {
+                $isRef=true;
+                $refSectIDs = explode(',', $sect['Ref_Sect_IDs']);
+                $refSects = getRefSectsInfo($refSectIDs);
+            } else {
+                $refSects = array();
+                $isRef=false;
+            }
+        } else {
+            $create = true;
+            $edit = false;
+            if (isset($_GET['refsect'])) {
+                $isRef = true;
+                $refSectID = $_GET['refsect'];
+                if (is_numeric($refSectID) && $refSectID>0) {
+                    $refSectIDs = array(intval(filter_var($refSects, FILTER_SANITIZE_NUMBER_INT)));
+                } else {
+                    $refSectIDs = array();
+                    $isRef=true;
+                }
+            } else {
+                $refSectIDs = array();
+                $isRef = false;
+            }
+        } 
+        if ($isRef) {
+            $sectList = getSectList(false, true);
+            if (!isset($refSects) || !$refSects || count($refSects)<1) {
+                for ($i=0;$i<count($sectList);$i++) {
+                    if (in_array($sectList[$i]['ID'], $refSectIDs)) {
+                        $refSects[] = array($sectList[$i]);
+                    }
+                }
+            }
+        }
+        if ($edit && ($sect['Header_Img_Path'] ?? null)>'') {
+            $imgExists = true;
+        } else {
+            $imgExists =false;
+        }
+        $pgList = getPageList($sect['Page_ID']);
         $sectFormats = getFormatList('section');
         $itemFormats = getFormatList();
         $viewItemFormats = getFormatList('view-item-page');
         $lightboxFormats = getFormatList('lightbox');
-        $sect = getSectInfo($sectID);
-        $pgList = getPageList($sect['Page_ID']);
         include '_components/section-create-edit.inc.php';
         break;
     case 'list' :
@@ -73,7 +104,8 @@ if (isset($_GET['pageid'])) {
         $sectList = getSectList(); 
         include '_components/section-list.inc.php';
         break;
-    endswitch;?>
+    endswitch;
+    ?>
 </main>
 
 <?php

@@ -132,7 +132,6 @@ function startInputTimer() {
 }
 
 textarea.addEventListener('input', (e) => {
-  scriptInput = false;
   if (typing===false) {
     //let text = this.value;
     typing=true;

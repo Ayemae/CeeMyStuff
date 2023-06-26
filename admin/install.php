@@ -1,13 +1,5 @@
 <?php 
 
-$showErrors = 0;
-
-if ($showErrors) {
-    ini_set('display_errors', '1');
-    ini_set('display_startup_errors', '1');
-    error_reporting(-1);
-}
-
 if (empty($_GET)) {
 mkdir('../data', 755);
 $conn = new SQLite3('../data/database.db');
@@ -79,6 +71,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Sections (
     Show_Text INTEGER NOT NULL DEFAULT 2,
     Show_Item_Images INTEGER NOT NULL DEFAULT 1,
     Show_Item_Titles INTEGER NOT NULL DEFAULT 1,
+    Show_Item_Dates INTEGER NOT NULL DEFAULT 1,
     Show_Item_Text INTEGER NOT NULL DEFAULT 1,
     Show_Item_Files INTEGER NOT NULL DEFAULT 1,
     Item_Click_Area TEXT DEFAULT "All",
@@ -102,19 +95,26 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Sections (
 $conn->exec('CREATE TABLE IF NOT EXISTS Reference_Sections (
     Sect_ID INTEGER PRIMARY KEY UNIQUE NOT NULL,
     Ref_Sect_IDs TEXT DEFAULT NULL,
-    Type INTEGER NOT NULL DEFAULT 1
+    Date_Cutoff_On INTEGER NOT NULL DEFAULT 0,
+    Date_Cutoff TEXT DEFAULT NULL,
+    Date_Cutoff_Dir INTEGER NOT NULL DEFAULT 1,
+    Tag_Filter_On INTEGER NOT NULL DEFAULT 0,
+    Tag_Filter_List TEXT DEFAULT NULL,
+    Tag_Filter_Mode INTEGER NOT NULL DEFAULT 1,
+    Item_Limit INTEGER DEFAULT NULL
 )');
+
+
+$conn->exec('INSERT INTO Sections (ID, Page_ID, Page_Index_Order, Name, Text, Format, Default_Item_Format, Auto_Thumbs)
+    VALUES 
+    (0, null, 0, "Orphaned Items", "Items that are not sorted into any section.", null, null, 0),
+    (1, 0, 1, "Home Content", "See my stuff!", "/assets/universal-formats/section/section-general.php", "/assets/universal-formats/item/item-general.php", 1);');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Section_Groups (
     Sect_ID INTEGER PRIMARY KEY UNIQUE NOT NULL,
     Ref_Sect_IDs TEXT DEFAULT NULL,
     Type INTEGER NOT NULL DEFAULT 1
 )');
-
-$conn->exec('INSERT INTO Sections (ID, Page_ID, Page_Index_Order, Name, Text, Format, Default_Item_Format, Auto_Thumbs)
-    VALUES 
-    (0, null, 0, "Orphaned Items", "Items that are not sorted into any section.", null, null, 0),
-    (1, 0, 1, "Home Content", "See my stuff!", "/assets/universal-formats/section/section-general.php", "/assets/universal-formats/item/item-general.php", 1);');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Items (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -130,6 +130,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Items (
     File_Path TEXT DEFAULT NULL,
     File_Link_Text TEXT,
     Embed_HTML TEXT DEFAULT NULL,
+    Tags TEXT DEFAULT NULL,
     Hidden INTEGER NOT NULL DEFAULT 0
 )');
 
@@ -141,6 +142,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Accounts (
     Email_Valid INTEGER DEFAULT 0,
     Password TEXT,
     Is_Admin INTEGER,
+    Icon_Path TEXT,
     Activation_Timestamp INTEGER,
     Activation_Key TEXT,
     Login_Attempts INTEGER,
@@ -211,12 +213,6 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Uploads (
     File_Type TEXT DEFAULT "Image",
     Timestamp INTEGER
 )');
-
-$conn->exec('CREATE TABLE IF NOT EXISTS Tags (
-    Item_ID INTEGER,
-    Tag TEXT
-)');
-
 
 
 

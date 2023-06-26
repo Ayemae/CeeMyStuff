@@ -1,4 +1,10 @@
-<form method="post" enctype="multipart/form-data" action="?task=list">
+<? if ($edit && ($page['Header_Img_Path'] ?? null)>'') {
+    $imgExists = true;
+} else {
+    $imgExists =false;
+}?>
+
+<form id="page-form" method="post" enctype="multipart/form-data">
 <div class="space-btwn">
     <h1><?=($create ? "Create New Page" : "Edit Page Settings : ".$page['Name'])?></h1>
     <? if ($edit) : ?>
@@ -10,7 +16,7 @@
 <ul class="form-list">
     <li>
         <label for="name">Name:</label>
-        <input type="text" name="name" id="name" max-length="255" value="<?show($edit ? $page['Name'] : null)?>">
+        <input type="text" name="name" id="name" max-length="255" value="<?show($edit ? $page['Name'] : null)?>"  autocomplete="off" required>
             <i class="help icon"><i class="fi fi-rs-interrogation"></i>
                 <article class="help-text">
                     Your Page's link will be derived from its name. <em>Every Page must have a unique name.</em>
@@ -27,16 +33,16 @@
 
     <li>
     <label for="header_img_upload">Header Image (Optional):</label>
-        <input type="file" id="header_img_upload" name="header_img_upload" value="<?(!isset($_POST['header_img_upload']) ? null : show($_POST['header_img_upload']))?>">
-        <input type="hidden" id="stored_header_img" name="stored_header_img" value="<?show($edit ? $page['Header_Img_Path'] : null);?>">
-        <?if ($edit && isset($page['Header_Img_Path']) && $page['Header_Img_Path']>''):?>
+        <input type="file" id="header-img-upload" name="header_img_upload" onchange="previewImg('header-img-upload', 'header-img')" value="<?(!isset($_POST['header_img_upload']) ? null : show($_POST['header_img_upload']))?>">
+        <input type="hidden" id="stored-header-img" name="stored_header_img" value="<?show($edit ? $page['Header_Img_Path'] : null);?>">
             <div id="header-img-current" class="page-current-image-wrapper">
-                Current:<br/> <img class="visual" src="<?=$page['Header_Img_Path']?>">
-                <div class="rvm-file-path-info invis">&#10060; File Removed</div>
+                <label>Current:</label> 
+                    <img id="header-img-visual" class="visual<?=($imgExists ? ' block' : ' invis')?>" src="<?=$set['dir'].$page['Header_Img_Path']?>">
+                    <input type="hidden" id="header-img-preview" name="header_img_preview" value="">
+                    <div id="header-img-rmv-info" class="rvm-file-path-info invis">&#10060; File Removed</div>
+                    <button id="header-img-rmv-btn" type="button" class="small red <?=($imgExists ? null : 'invis')?>" onclick="rmvFilePath(this, 'stored_header_img', 'header-img-current')">Remove Current Image</button>
+                    <em id="header-img-none" class="<?=(!$imgExists ? null : 'invis')?>">none</em>
             </div>
-            <button type="button" class="small red" onclick="rmvFilePath(this, 'stored_header_img', 'header-img-current')">Remove Current Image</button>
-        <?endif;?>
-        <br/>
         <label for="n_show_title">Show header image on the website:</label>
         <input type="hidden" name="n_show_header_img" value="0">
         <input type="checkbox" name="n_show_header_img" id="n_show_header_img" value="1" <?=(($edit && $page['Show_Header_Img']) || $create ? 'checked' : null)?>>
@@ -52,7 +58,7 @@
                 </article>
             </i>
         </div>
-        <input type="text" id="meta" name="meta_text" max-length="255" value="<?show($edit ? $page['Meta_Text'] : null)?>" style="width: 80%">
+        <input type="text" id="meta" name="meta_text" max-length="255" value="<?show($edit ? $page['Meta_Text'] : null)?>" style="width: 80%"  autocomplete="off">
     </li>
 
     <li>
@@ -79,7 +85,7 @@
                 </i>
                 <div class="chktoggle-show">
                     <label for="n_paginate_after">Items Per Page:</label>
-                    <input type="number" name="n_paginate_after" id="n_paginate_after" value="<?show($edit && $page['Paginate_After']);?>" style="width:50px">
+                    <input type="number" name="n_paginate_after" id="n_paginate_after" value="<?show($edit && $page['Paginate_After'] ? $page['Paginate_After'] : 15);?>" style="width:50px">
                 </div>
             </li>
         </ul>
@@ -152,16 +158,31 @@
     </ul>
 <? endif;?>
 
-  <button name="<?=($create ? "create_page" : "edit_page")?>"><i class="fi fi-rs-check"></i> Submit</button>
+<div class="space-btwn">
+    <button id="page-form-submit" name="<?=($create ? "create_page" : "edit_page")?>" formaction="?task=list" onclick="addTarget('_self')">
+        <i class="fi fi-rs-check"></i> Submit
+    </button>
+    <button id="page-preview" class="js-check" name="page_preview" formaction="<?=$baseURL?>/preview/page" onclick="addTarget('_blank')">
+        Preview
+    </button>
+</div>
   <div id="modal-home"></div>
 </form>
 
+<script src="_js/preview-img.js"></script>
+<script>
+    const form = document.getElementById('page-form');
+    function addTarget(target) {
+        form.target= target;
+    }
+</script>
 <? if ($edit) :?>
 <script src="_js/enumerate.js"></script>
 <script src="_js/modal.js"></script>
 <script src="_js/rmv-file-paths.js"></script>
 <script>
 enumerate('menu-item-order', 'class');
+
 let modalHTML = `<h2>Are you sure you want to delete the '<?=$page['Name']?>' page?</h2>
                 <p>This cannot be undone.</p>
                 <div class="flex">

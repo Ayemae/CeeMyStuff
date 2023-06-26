@@ -1,7 +1,7 @@
 <a href="?task=list"><i class="fi fi-rs-angle-double-small-left"></i> back to Section List</a>
 
 <div class="space-btwn">
-    <h1>View Section Items : <?show($sect['Name']);?></h1>
+    <h1>View <?=($sect['ID']>0 ? 'Section Items : '.$sect['Name'] : 'Orphaned Items');?></h1>
     <a class="button" href="<?show($route)?>/items.php?task=create&sectid=<?show($sect['ID']);?>"><i class="fi fi-rs-plus"></i> New Item</a>
 </div>
 

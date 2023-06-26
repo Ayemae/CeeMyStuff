@@ -2,14 +2,14 @@
 include 'components/info-head.php';
 // Include router class
 include('library/Route.php');
-$request = str_replace($set['dir'].'/','',$_SERVER['REQUEST_URI']);
-if (strpos($request,'/')) {
-    $request = substr($request,0,strpos($request,'/'));
-}
-if ($request==='') {
+
+$request = cleanRequest();
+if (!$request) {
+    // if no page request, request home page
     $page = getPage(1, 'id');
 } else {
-    $page = getPage(strtolower($request), 'link');
+    // if page request exists, get page by the link
+    $page = getPage($request, 'link');
 }
 
 // home
@@ -27,21 +27,29 @@ Route::add('/'.$page['Link'], function(){
 // custom pages with pagination
 Route::add('/'.$page['Link'].'/page/([0-9]*)',function($pageNum){
     global $set;global $db;global $page;
-    $pageNum = filter_var($pageNum, FILTER_SANITIZE_NUMBER_INT);
+    $pageNum = cleanInt($pageNum);
     printPage($page, $pageNum);
 },'get');
 
 // single item displays
 Route::add('/view/([0-9]*)',function($id){
     global $set;global $db;
-    $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
-    printPage(false, $id, true);
+    $id = cleanInt($id);
+    printPage(false, $id, 'item');
 },'get');
 
 // menu submenu index
 Route::add("/menu-submenu-index/(([^\/?]+)\/?$)",function($heading){
     global $set;global $db;
-    printPage(false, 1, false, $heading);
+    printPage(false, $heading, 'submenu');
 },'get');
+
+// preview
+Route::add("/preview/(([^\/?]+)\/?$)",function($area){
+    global $set;global $db; global $loggedIn;global $_SESSION;
+    if ($loggedIn) {
+        printPage(previewPrep($area), $area, 'preview');
+    }
+},'post');
 
 Route::run($set['dir']);

@@ -5,6 +5,7 @@
     --col-4: #7f8bff;
     --col-5: #d91571;
     --col-6: #0a0a3c;
+    --col-7: #4a4e7c;
     --red: rgb(237 63 63);
     --highlight1: rgb(118 215 231);
     --highlight2: rgb(167 253 219);
@@ -46,6 +47,10 @@ a {
 }a:hover {
     color: #38bfc9;
     transition-duration: .25s;
+}
+
+img {
+    max-width: 100%;
 }
 
 hr {
@@ -107,19 +112,7 @@ button.small,
     font-size: 1rem;
     padding: 3px 8px;
 }
-#text-edit-panel {
-    gap: 5px;
-}
-#text-edit-panel button {
-    font-size: 1rem;
-    letter-spacing: unset;
-    margin: 0 0 5px;
-    padding: 3px 6px;
-    background-color: #4a4e7c;
-}
-button.undo {
-    background-color: #eb9600 !important;
-}
+
 
 main {
     margin: 6px;
@@ -192,21 +185,45 @@ h1 i.fi {
 .invis {
     display: none;
 }
-.chktoggle-show {
+
+.chktoggle-show, 
+.chktoggle:checked ~ .chktoggle-hide {
     display: none !important;
 }
+.chktoggle:checked ~ .chktoggle-show,
 .chktoggle-hide {
     display: flex !important;
-}.chktoggle-hide.inline {
+}
+
+.chktoggle-hide.inline {
     display: inline !important;
 }
-.chktoggle:checked ~ .chktoggle-show {
-    display: flex !important;
+form .chktoggle:checked ~ .chktoggle-show {
+    visibility: visible;
+    height:auto;
+    width: inherit;
+    overflow: auto;
 }.chktoggle:checked ~ .chktoggle-show.inline {
     display: inline !important;
 }
-.chktoggle:checked ~ .chktoggle-hide {
-    display: none !important;
+form .chktoggle-show {
+    visibility: collapse;
+    height:0;
+    width:0;
+    overflow:hidden;
+}
+form .chktoggle-hide {
+    visibility: visible;
+    height:auto;
+    width: inherit;
+    overflow: auto;
+    padding: inherit;
+}
+form .chktoggle:checked ~ .chktoggle-hide {
+    visibility: collapse;
+    height:0;
+    width:0;
+    overflow:hidden;
 }
 .chktoggle-label {
     display: block;
@@ -264,6 +281,7 @@ a.opt {
     padding: 1px 8px;
     border-radius: 3px;
     transition-duration: .25s;
+    align-self: baseline;
     /* flex:1;
     width:100%; */
 } .sect-options a.opt {
@@ -472,12 +490,17 @@ ul.menu-settings-item-list li .menu-item-order {
 }
 .sub-form-list > li,
 .form-list li .sub-form-list li,
-.form-list li .chktoggle-show .sub-form-list li {
+.form-list li .chktoggle-show .sub-form-list li,
+.ref-sect-list {
     background:unset;
-    background-color: rgb(255 255 199 / 50%);
+    background-color: rgb(255 255 255 / 50%);
     border-radius: 3px;
     margin: 5px 0;
 }
+.ref-sect-list {
+    list-style: none;
+}
+
 .form-list fieldset,
 .sub-form-list fieldset {
     border: none;
@@ -532,6 +555,34 @@ ul#add-thumbnail {
 }ul#add-thumbnail li {
     padding: 0 10px;
     background: unset;
+}
+
+#text-edit-panel {
+    gap: 5px;
+}
+
+ul.button-labels, .button-labels {
+    list-style: none;
+    display: inline-flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px;
+}
+
+ul.button-labels li,
+ul.button-labels li:nth-child(even),
+#text-edit-panel button {
+    font-size: 1rem;
+    letter-spacing: unset;
+    margin: 0 0 5px;
+    padding: 3px 6px;
+    color: #ffffff;
+    background: var(--col-7);
+    border-radius: 3px;
+}
+button.undo {
+    background-color: #eb9600 !important;
 }
 
 main.user-manual section {

@@ -1,4 +1,4 @@
-<form method="post" enctype="multipart/form-data" action="<?=$set['dir']?>/admin/sections.php?task=<?=($edit ? 'view&sectid='.$item['Sect_ID'] : 'list')?>">
+<form id="item-form" method="post" enctype="multipart/form-data" action="<?=$set['dir']?>/admin/sections.php?task=<?=($edit ? 'view&sectid='.$item['Sect_ID'] : 'list')?>">
     <div class="space-btwn">
         <h1><?=($create ? "Create New Item" : "Edit Item : ".$item['Title'])?></h1>
         <? if ($edit) :?>
@@ -12,11 +12,15 @@
 <ul class="form-list">
     <li>
         <label for="title">Title:</label>
-        <input type="text" name="title" id="title" max-length="140" value="<?show($edit && $item['Title']>'' ? $item['Title'] : null )?>" required>
+        <input type="text" name="title" id="title" max-length="140" value="<?show($edit && $item['Title']>'' ? $item['Title'] : null )?>"  autocomplete="off" required>
     </li>
 
     <li>
         <label for="sect-id">In Section:</label>
+        <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+            <article class="help-text">
+                Keep in mind that different Sections may have different settings. Review your Item submission again if you change it.
+            </article></i>
         <? if ($create) {$sectCmp = $sectID;} else {$sectCmp = $item['Sect_ID'];}?>
         <select name="n_sect_id" id="sect-id">
             <option value="">None (create orphaned item)</option>
@@ -26,28 +30,24 @@
                 </option>
             <? endforeach; unset($section);?>
         </select>
-        <i class="help icon"><i class="fi fi-rs-interrogation"></i>
-            <article class="help-text">
-                Keep in mind that different Sections may have different settings. Review your Item submission again if you change it.
-            </article></i>
     </li>
 
 
     <li>
         <? if ($create) : ?>
-        <label for="pub-date-now">Publish Now:
-        </label>
+        <label for="pub-date-now">Publish Now:</label>
                 <input type="checkbox" class="chktoggle" id="pub-date-now" checked>
             <div class="chktoggle-hide">
         <?endif;?>
-                <label for="publish-date">Publish date/time:</label>
+                <label for="publish-date">Publish date/time:
+                    <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                        <article class="help-text">
+                            You can back-date your items, or, if you want to schedule your items to show up later, 
+                            you can set the publish date/time to sometime the future.
+                        </article>
+                    </i>
+                </label>
                 <input type="datetime-local" id="publish-datetime" name="publish_datetime" value="<?show($edit ? $item['Publish_Timestamp'] : null )?>">
-                <i class="help icon"><i class="fi fi-rs-interrogation"></i>
-                    <article class="help-text">
-                        You can back-date your items, or, if you want to schedule your items to show up later, 
-                        you can set the publish date/time to sometime the future.
-                    </article>
-                </i>
         <? if ($create) : ?>
             </div>
         <?endif;?>
@@ -85,12 +85,24 @@
     <?php endif;?>
 
     <li>
+        <label for="tags">Tags:</label>
+        <p>Separate tags with a comma.</p>
+        <input type="text" name="tags" class="width-all" id="tags" value="<?show($edit && $item['Tags']>'' ? $item['Tags'] : null )?>"  autocomplete="off">
+    </li>
+
+    <li>
         <? if ($create || $item['Text']<='') :?>
             <input type="checkbox" class="chktoggle invis" id="add-text">
-            <label for="add-text" class="chktoggle-label"><i class="fi fi-rs-plus"></i> Add Text</label>
+            <label for="add-text" class="chktoggle-label"><i class="fi fi-rs-plus"></i> Add Text
+            <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                    <article class="help-text">
+                        For text and very simple HTML. Paragraph formatting and breaks ('&lt;p&gt;'/'&lt;br&gt;') will be done automatically.
+                    </article>
+                </i>
+            </label>
             <div class="chktoggle-show" style="flex-direction:column">
         <? endif;?>
-            <label for="text-editor" style="display:block">Text:</label>
+            <label for="text-editor">Text:</label>
             <div class="text-panel">
                 <?include('_components/text-edit-panel.inc.php')?>
                 <textarea id="text-editor" name="m_text"><?show($edit ? $item['Text'] : null)?></textarea>
@@ -104,23 +116,35 @@
     <li>
         <? if ($create || $item['Img_Path']<='') :?>
             <input type="checkbox" class="chktoggle invis" id="add-image">
-            <label for="add-image" class="chktoggle-label"><i class="fi fi-rs-plus"></i> Add Image</label>
+            <label for="add-image" class="chktoggle-label"><i class="fi fi-rs-plus"></i> Add Image
+            <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                    <article class="help-text">
+                        Allows jpg, png, gif, or webp image filetypes.
+                    </article>
+                </i>
+            </label>
             <div class="chktoggle-show" style="flex-direction:column">
         <? endif;?>
-        <label for="img_upload"><?=($create || $item['Img_Path']<='' ? 'U' : 'Reu')?>pload  Image File (jpg, png, gif, or webp):</label>
-                <input type="file" id="img_upload" name="img_upload">
+        <label for="img_upload"><?=($create || $item['Img_Path']<='' ? 'U' : 'Reu')?>pload  Image File:</label>
+                <input type="file" id="img-upload" name="img_upload" onchange="previewImg('img-upload', 'img')">
         <? if ($edit && $item['Img_Path']>'') :?>
-            <label><br/>Current:<br/></label>
+            <label>Current:</label>
             <div id="img_current" class="item-current-image-wrapper">
-                <img class="visual" src="<?show($set['dir'].$item['Img_Path'])?>" alt="<?show($item['Title'])?> Image">
-                <div class="rvm-file-path-info invis">&#10060; Image Removed</div>
+                <img id="img-visual" class="visual<?=($imgExists ? ' block' : ' invis')?>" src="<?=($imgExists ? $set['dir'].$item['Img_Path'] : null)?>" alt="<?show($item['Title'])?> Image">
+                <input type="hidden" id="img-preview" name="img_preview" value="">
+                <div id="img-rmv-info" class="rvm-file-path-info invis">&#10060; Image Removed</div>
+                <em id="img-none" class="<?=(!$imgExists ? null : 'invis')?>">none</em>
             </div>
-            <input type="hidden" id="img_stored" name="img_stored" value="<?show($item['Img_Path'])?>">
+            <input type="hidden" id="img-stored" name="img_stored" value="<?show($item['Img_Path'])?>">
             <p><label>Image Path:</label> <?show($item['Img_Path'] ? $set['dir'].$item['Img_Path'] : '<i>None</i>')?></p>
-            <button type="button" class="small red" onclick="rmvFilePath(this, 'img_stored', 'img_current')">Remove Item Image</button>
+            <button id="img-rmv-btn" type="button" class="small red" onclick="rmvFilePath(this, 'img_stored', 'img_current')">Remove Item Image</button>
         <? endif;?>
         <div>
-            <label for="img-alt-text">Image Description (Alt Text):</label>
+            <label for="img-alt-text">Image Description (Alt Text):</label><i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                    <article class="help-text">
+                        A description of the image for the visually impaired, or if the image is invalid.
+                    </article>
+                </i>
             <input type="text" name="img_alt_text" value="<?show($edit ? $item['Img_Alt_Text'] : null)?>">
         </div>
                 
@@ -192,17 +216,31 @@
     <li>
     <? if ($create || $item['File_Path']<='') :?>
             <input type="checkbox" class="chktoggle invis" id="add-file">
-            <label for="add-file" class="chktoggle-label"><i class="fi fi-rs-plus"></i> Add File</label>
+            <label for="add-file" class="chktoggle-label"><i class="fi fi-rs-plus"></i> Add File
+                <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                    <article class="help-text">
+                        For any file that you do not want to display as an image. This can be any from a pdf to sound files to videos.
+                        <?if ($set['has_max_upld_storage']):?>
+                            <br>Keep in mind that your max upload size is <?=$set['max_upld_storage']?> MB.
+                        <? endif;?>
+                    </article>
+                </i>
+            </label>
             <div class="chktoggle-show" style="flex-direction:column">
         <? endif;?>
              <label for="file_upload"><?=($create || $item['File_Path']<='' ? 'U' : 'Reu')?>pload File:</label>
                 <input type="file" id="file_upload" name="file_upload">
+                <?if ($set['has_max_upld_storage']):?>
+                    <p>Your max file upload size is <?=$set['max_upld_storage']?> MB.</p>
+                <? endif;?>
             <div>
                 <label for="file-pres">File Presentation:</label>
                 <select id="file-pres" name="file_pres">
                     <option value="lnk" <?($edit ? formCmp($item['File_Pres'],'lnk','s') : null)?>>Link</option>
-                    <option value="dld" <?($edit ? formCmp($item['File_Pres'],'dld','s') : null)?>>Download</option>
                     <option value="txt" <?($edit ? formCmp($item['File_Pres'],'txt','s') : null)?>>Text</option>
+                    <option value="dld" <?($edit ? formCmp($item['File_Pres'],'dld','s') : null)?>>Download</option>
+                    <option value="aud" <?($edit ? formCmp($item['File_Pres'],'aud','s') : null)?>>Audio Player</option>
+                    <option value="vid" <?($edit ? formCmp($item['File_Pres'],'vid','s') : null)?>>Video Player</option>
                 </select>
             </div>
             
@@ -224,36 +262,56 @@
     <li>
         <? if ($create || $item['Embed_HTML']<='') :?>
             <input type="checkbox" class="chktoggle invis" id="add-embed">
-            <label for="add-embed" class="chktoggle-label"><i class="fi fi-rs-plus"></i> Add Embed</label>
+            <label for="add-embed" class="chktoggle-label"><i class="fi fi-rs-plus"></i> Add Embed
+                <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                    <article class="help-text">
+                        For HTML, or embed scripts such as iframes, such as from sites like YouTube or Spotify.
+                        Some simple Javascript may be entered as well, depending on your website host's security settings.
+                    </article>
+                </i>
+            </label>
             <div class="chktoggle-show flex-col">
         <? endif;?>
-            <label for="embed" style="display:block">Embed HTML/Script:</label>
-            <p>For embed scripts such as iframes, from sites such as YouTube or Spotify.</p>
-            <textarea id="embed" name="b_embed"><?show(isset($item) && $item['Embed_HTML'] ? $item['Embed_HTML'] : null)?></textarea>
+            <label for="embed">Embed HTML/Script:</label>
+            <textarea id="embed" class="block" name="b_embed"><?show(isset($item) && $item['Embed_HTML'] ? $item['Embed_HTML'] : null)?></textarea>
         <? if ($create || $item['Embed_HTML']>'') :?>
             </div>
         <? endif;?>
     </li>
     
     <li>
-        <label for="hidden">Hide this item:</hidden>
+        <label for="hidden">Hide this item:
+            <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                <article class="help-text">
+                    Hidden Items will not display on the live site.
+                </article>
+            </i>
+        </label>
         <input type="hidden" name="n_hidden" value="0">
         <input type="checkbox" id="hidden" name="n_hidden" value="1" <?show($edit && $item['Hidden'] ? 'checked' : null)?>>
-        <i class="help icon"><i class="fi fi-rs-interrogation"></i>
-            <article class="help-text">
-                Hidden Items will not display on the live site.
-            </article>
-        </i>
     </li>
 
-  <button name="<?=($create ? "create_item" : "edit_item")?>">Submit</button>
+    <div class="space-btwn">
+        <button type="submit" id="item-submit" name="<?=($create ? "create_item" : "edit_item")?>" formaction="?task=list" onclick="addTarget('_self')">
+            <i class="fi fi-rs-check"></i> Submit
+        </button>
+        <button type="submit" id="item-preview" class="js-check" name="item_preview" formaction="<?=$baseURL?>/preview/item"  onclick="addTarget('_blank')">
+            Preview
+        </button>
+    </div>
   <div id="modal-home"></div>
 </form>
 
 <script src="_js/text-editor.js"></script>
 <script src="_js/toggle-on-cond.js"></script>
 <script src="_js/fetch-sect-info.js"></script>
+<script src="_js/preview-img.js"></script>
 <script>
+    const form = document.getElementById('item-form');
+    function addTarget(target) {
+        form.target= target;
+    }
+
     const sectDfltFrmt = document.getElementById("sect-default-format-info");
     const sectThmbSize = document.getElementById("sect-thumb-size");
     const sectLinks = document.querySelectorAll("a.sect-link");

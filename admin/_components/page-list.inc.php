@@ -10,9 +10,13 @@
         <li class="page-box">
             <input type="checkbox" id="page_<?show($page['ID']);?>" class="chktoggle invis">
             <label class="page-label" for="page_<?show($page['ID']);?>">
-            <?=($page['ID'] == 1 ? '<i class="fi fi-rs-home"></i>&nbsp;' : null)?>
+            <?if ($page['ID'] == 1) :?> 
+                <i class="fi fi-rs-home" title="Home Page"></i>
+            <?else : ?>
+                <i class="fi fi-rs-file"></i>
+            <? endif;?>
             <?=(isset($page['Hidden']) && $page['Hidden'] ? '<i class="fi fi-rs-eye-crossed"></i>&nbsp;' : null)?>
-                <?show($page['Name']);?>
+                &nbsp;<b><?show($page['Name']);?></b>
             </label>
             <div class="btns-box chktoggle-show">
                 <div class="btns-box">
@@ -22,19 +26,34 @@
                     </div>
                     <?php if ($sectList) : ?>
                         <ul class="section-list">
-                            <?=($page['Multi_Sect'] ? '<li>Multi-section enabled:</li>' : null)?>
+                            <?=($page['Multi_Sect'] ? '<li><b>Multi-section enabled:</b></li>' : null)?>
                         <?php foreach ($sectList AS $sect) : ?>
-                            <li class="sect-label" >
+                            <li class="sect-label">
                                 <label class="block width-all" for="sect_<?show($sect['ID']);?>">
-                                <i class="fi fi-rs-list"></i> <?show($sect['Name']);?></label>
+                                <? if (($sect['Is_Reference'] ?? null)<1) :?>
+                                    <i class="fi fi-rs-list"></i> 
+                                <?else :?>
+                                    <i class="fi fi-rs-rectangle-list"></i> 
+                                <? endif;?>
+                                <?show($sect['Name']);?></label>
                                 <input type="checkbox" id="sect_<?show($sect['ID']);?>" class="chktoggle invis">
                                 <div class="btns-box <?=($page['Multi_Sect'] ? 'chktoggle-show' : null)?>">
                                     <hr>
                                     <div class="sect-options">
-                                        <a class="opt" href="<?show($route)?>/sections.php?task=edit&sectid=<?show($sect['ID'])?>"><i class="fi fi-rs-settings-sliders"></i> Edit Section Settings</a>
-                                        <a class="opt" href="<?show($route)?>/sections.php?task=view&sectid=<?show($sect['ID']);?>"><i class="fi fi-rs-eye"></i> View Items</a>
+                                    <?if (($sect['Is_Reference'] ?? null)>0) :?> 
+                                        <b>Reference Section</b> 
+                                        <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                                        <article class="help-text">
+                                            This is a Reference Section. A Reference Section is a section that inherits items from other sections. It cannot have its own items.
+                                        </article>
+                                        </i>
+                                    <? else: ?>
                                         <a class="opt new-item" href="<?show($route)?>/items.php?task=create&sectid=<?show($sect['ID']);?>"><i class="fi fi-rs-plus"></i> New Item</a>
+                                        <a class="opt" href="<?show($route)?>/sections.php?task=view&sectid=<?show($sect['ID']);?>"><i class="fi fi-rs-eye"></i> View Items</a>
+                                    <? endif;?>
+                                    <a class="opt" href="<?show($route)?>/sections.php?task=edit&sectid=<?show($sect['ID'])?>"><i class="fi fi-rs-settings-sliders"></i> Edit Settings</a>
                                     </div>
+                                </div>
                             </li>
                         <?php endforeach;?>
                         </ul>

@@ -1,31 +1,96 @@
-<form method="post" enctype="multipart/form-data" action="?task=list">
+<form id="section-form" method="post" enctype="multipart/form-data">
     <div class="space-btwn">
-        <h1><?=($create ? "Create Section" : "Edit Section Settings : ".$sect['Name'])?></h1>
+        <h1><?=($create ? "Create".($isRef ? " Reference" : null)." Section" : "Edit".($isRef ? " Reference" : null)." Section Settings : ".($sect['ID']>0 ? $sect['Name'] : 'Section Defaults'))?></h1>
         <? if ($edit) :?>
         <input type="hidden" name="n_sect_id" value="<?show($sect['ID'])?>">
-        <button name="delete_section" id="delete-section" class="small red"><i class="fi fi-rs-trash"></i> Delete Section</button>
+            <? if ($sect['ID']>0) :?>
+                <button name="delete_section" id="delete-section" class="small red">
+                    <i class="fi fi-rs-trash"></i> Delete Section
+                </button>
+            <? endif;?>
         <? endif;?>
     </div>
+    <? if ($isRef) :?>
+        <div>
+            <p>Reference sections are used to reference items of one or more other sections. You cannot upload items to them on their own.</p>
+        </div>
+        <input type="hidden" name="is_reference" value="1">
+    <? endif;?>
 
-<?php if ($create || $sect['ID']>0) :?>
     <section>
 <ul class="form-list">
     <li>
-        <label for="name">Title:</label>
-        <input type="text" name="name" id="name" max-length="255" value="<?show($edit ? $sect['Name'] : null)?>">
-        <i class="help icon"><i class="fi fi-rs-interrogation"></i>
-            <article class="help-text">
-                All Sections titles on a single page must be unique.
-            </article>
-        </i>
-        <br/>
-        <label for="n-show-title">Show section title on the website:</label>
-        <input type="hidden" name="n_show_title" value="0">
-        <input type="checkbox" name="n_show_title" id="n-show-title" value="1" <?=($edit && isset($sect['Show_Title']) && $sect['Show_Title']<1 ? null : 'checked')?>>
+        <?php if ($create || $sect['ID']>0) :?>
+            <label for="name">Title:</label>
+            <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                <article class="help-text">
+                    All Sections titles on a single page must be unique.
+                </article>
+            </i>
+            <input type="text" name="name" id="name" max-length="255" value="<?show($edit ? $sect['Name'] : null)?>"  autocomplete="off" required>
+        <? endif; //end if not section defaults ?>
+        <div>
+            <label for="n_show_title">Show section title on the website:</label>
+            <input type="hidden" name="n_show_title" value="0">
+            <input type="checkbox" name="n_show_title" id="n_show_title" value="1" <?=($edit && isset($sect['Show_Title']) && $sect['Show_Title']<1 ? null : 'checked')?>>
+        </div>
     </li>
 
+    <? if ($isRef) : ?>
+        <li>
+            <label for="name">Referencing Section(s):</label>
+            <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+            <article class="help-text">
+                Which section(s) is this section referencing?
+            </article>
+        </i>
+        <noscript>
+            <p class="red">Enable Javascript to add more than one section.</p>
+        </noscript>
+        <? if ($edit && isset($sect['Ref_Sect_IDs'])) :?>
+            <input type="hidden" name="ref_sect_list" value="<?show($sect['Ref_Sect_IDs'])?>">
+        <? endif;?>
+        <div id="ref-select-area">
+            <div class="ref-sect-list js-check">
+                <ul id="ref-sect-list" class="button-labels ref-sects">
+                    <? if (count($refSects)>0) :
+                    foreach($refSects AS $ref) :?>
+                        <li data-sectid="<?=$ref['ID']?>">
+                            <input type="hidden" name="ref_sect[]" value="<?=$ref['ID']?>">
+                            <span class="remove-ref-sect">
+                                <i class="fi fi-rs-cross-small"></i>
+                            </span>
+                            <?=$ref['Name']?>
+                        </li>
+                    <? endforeach; endif; ?>
+                </ul>
+            </div>
+                <div class="flex">
+                <select id="ref-sect-select" name="ref_sects">
+                    <? if ($sectList) :?>
+                        <option></option>
+                        <? foreach ($sectList AS $iSect) : 
+                        $isReffed = in_array($iSect['ID'], $refSectIDs);?>
+                        <option value="<?=$iSect['ID']?>" <?=($isReffed ? 'title="Already referenced" disabled' : null)?>>
+                            <?=$iSect['Name']?>
+                        </option>
+                    <? endforeach; unset($iSect); endif;?>
+                </select>
+                <button id="ref-sect-add" class="js-check" type="button">Add</button>
+            </div>
+        </div>
+        </li>
+    <? endif;?>
+
     <li>
+    <?php if ($create || $sect['ID']>0) :?>
         <label for="n_page_id">In Page:</label>
+        <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+            <article class="help-text">
+                If you don't see the page you want, make sure that page 
+                has 'Multiple Content Sections' enabled in its settings.
+            </article>
+        </i>
         <select id="n_page_id" name="n_page_id">
             <option value="">None</option>
             <?php foreach($pgList AS $page) : 
@@ -36,38 +101,36 @@
             <?php endif;
         endforeach; unset($page);?>
         </select>
-        <i class="help icon"><i class="fi fi-rs-interrogation"></i>
-            <article class="help-text">
-                If you don't see the page you want, make sure that page 
-                has 'Multiple Content Sections' enabled in its settings.
-            </article>
-        </i>
     </li>
 
     <li>
         <div>
-            <label for="header_img_upload">Header Image:</label>
+            <label for="header_img_upload">Header Image (Optional):</label>
             <i class="help icon"><i class="fi fi-rs-interrogation"></i>
                     <article class="help-text">
                         Must be a .png, .jpg, .gif, or .webp image file.
                     </article>
                 </i>
         </div>
-        <input type="file" id="header_img_upload" name="header_img_upload">
-        <input type="hidden" id="header_img_stored" name="header_img_stored" value="<?=($edit && isset($sect['Img_Path']) ? show($sect['Img_Path']) : null )?>">
-        <?if ($edit && isset($sect['Header_Img_Path']) && $sect['Header_Img_Path']>''):?>
-            <div id="header-img-current" class="sect-current-image-wrapper">
-                Current:<br/> <img class="visual" src="<?=$sect['Header_Img_Path']?>">
-                <div class="rvm-file-path-info invis">&#10060; File Removed</div>
-            </div>
-            <button type="button" class="small red" onclick="rmvFilePath(this, 'header_img_stored', 'header-img-current')">Remove Current Image</button>
-        <?endif;?>
-        <br/>
-        <label for="n_show_title">Show header image on the website:</label>
-        <input type="hidden" name="n_show_header_img" value="0"> 
-        <input type="checkbox" name="n_show_header_img" id="n_show_header_img" value="1" <?=($edit && isset($_POST['n_show_header_img']) && $_POST['n_show_header_img']<1 ? null : 'checked')?>>
+        <input type="file" id="header-img-upload" name="header_img_upload" onchange="previewImg('header-img-upload', 'header-img')" value="<?(!isset($_POST['header_img_upload']) ? null : show($_POST['header_img_upload']))?>">
+        <input type="hidden" id="header-img-stored" name="header_img_stored" value="<?show($edit ? $sect['Header_Img_Path'] : null);?>">
+        <div id="header-img-current" class="page-current-image-wrapper">
+            <label>Current:</label> 
+                <img id="header-img-visual" class="visual<?=($imgExists ? ' block' : ' invis')?>" src="<?=($imgExists ? $set['dir'].$sect['Header_Img_Path'] : null)?>">
+                <input type="hidden" id="header-img-preview" name="header_img_preview" value="">
+                <div id="header-img-rmv-info" class="rvm-file-path-info invis">&#10060; File Removed</div>
+                <button id="header-img-rmv-btn" type="button" class="small red <?=($imgExists ? null : 'invis')?>" onclick="rmvFilePath(this, 'header-img-stored', 'header-img-current')">Remove Current Image</button>
+                <em id="header-img-none" class="<?=(!$imgExists ? null : 'invis')?>">none</em>
+        </div>
+        <? endif; //end if not section default ?>
+        <div>
+            <label for="n_show_title">Show header image on the website:</label>
+            <input type="hidden" name="n_show_header_img" value="0"> 
+            <input type="checkbox" name="n_show_header_img" id="n_show_header_img" value="1" <?=($edit && isset($_POST['n_show_header_img']) && $_POST['n_show_header_img']<1 ? null : 'checked')?>>
+        </div>
     </li>
 
+    <?php if ($create || $sect['ID']>0) :?>
     <li>
         <label for="text-editor">Section Text:</label>
         <i class="help icon"><i class="fi fi-rs-interrogation"></i>
@@ -80,6 +143,7 @@
             <textarea id="text-editor" name="b_text"><?show($edit ? $sect['Text'] : null)?></textarea>
         </div>
     </li>
+    <? endif; //end if not section default ?>
 
     <li>
         <label for="format">Display Format:</label>
@@ -87,7 +151,7 @@
         <?php if ($sectFormats) :?>
             <select name="format" id="format">
                 <?php foreach ($sectFormats AS $sFormat) :?>
-                <option value="<?show($sFormat['Path'])?>" <?=($sect['Format']===$sFormat['Path'] ? 'selected' : null)?>>
+                <option value="<?show($sFormat['Path'])?>" <?=($edit && $sect['Format']===$sFormat['Path'] ? 'selected' : null)?>>
                     <?show($sFormat['From'])?> > <?show($sFormat['Name'])?>
                 </option>
                 <?php endforeach;?>
@@ -97,22 +161,128 @@
         <?php endif;?>
     </li>
 
+    <?php if ($create || $sect['ID']>0) :?>
     <li>
         <label for="hidden"> Hide this section:</label>
-        <input type="hidden" id="hidden" name="n_hidden" value="0">
-        <input type="checkbox" id="hidden" name="n_hidden" value="1" <?=formCmp($sect['Hidden'],1)?>>
         <i class="help icon"><i class="fi fi-rs-interrogation"></i>
         <article class="help-text">
             Hidden Sections will not display on the live site.
         </article>
         </i>
+        <input type="hidden" id="hidden" name="n_hidden" value="0">
+        <input type="checkbox" id="hidden" name="n_hidden" value="1" <?=formCmp($sect['Hidden'],1)?>>
     </li>
+    <? endif; //end if not section defaults ?>
 
 </ul>
-<?php endif;?>
 </section>
 
 
+
+<? if ($isRef) :
+    /// if this is a reference section ?>
+    <section>
+        <label for="ref-display-sets">
+            <h2><i class="fi fi-rs-caret-right"></i> Referenced Item Conditions</h2>
+        </label>
+        <input type="checkbox" class="chktoggle invis" id="ref-display-sets" name="ref-display-sets">
+        <ul class="form-list chktoggle-show">
+            <li id="date-cutoff">
+                <label for='n_date_cutoff_on'>
+                    Enforce Publish-Date Cutoff:
+                </label>
+                <input type="hidden" name="n_date_cutoff_on" value='0'>
+                <input type="checkbox" class="chktoggle" id="n_date_cutoff_on" name="n_date_cutoff_on" value="1" 
+                    <?=($edit && $sect['Date_Cutoff_On']>0 ? 'checked' : null)?>>
+                <ul class="form-list chktoggle-show">
+                    <label for="date_cutoff">
+                        Date Cutoff:
+                    </label>
+                    <li class="flex select-cond-container" style="align-items: baseline; gap:5px;">
+                        <div>
+                            <label class="invis" for="cutoff-date-expression">
+                                Date Cutoff Mode: 
+                            </label>
+                            <select class="select-cond-master" id="cutoff-date-mode" name="n_date_cutoff_mode">
+                                <option value='1' <?=($edit && $sect['Date_Cutoff_Mode']==1 ? 'selected' : null)?>>Calender</option>
+                                <option value='2' <?=($edit && $sect['Date_Cutoff_Mode']==2 ? 'selected' : null)?>>Relative</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="invis" for="date_cutoff_dir">
+                                Date Before/After:
+                            </label>
+                            <select id="n_date_cutoff_dir" name="n_date_cutoff_dir">
+                                <option value='1' <?=($edit && $sect['Date_Cutoff_Dir']==1 ? 'selected' : null)?>>After</option>
+                                <option value='0' <?=($edit && $sect['Date_Cutoff_Dir']==0 ? 'selected' : null)?>>Before</option>
+                            </select>
+                        </div>
+                        <div class="select-cond" data-sc-conditions="1">
+                            <input type="date" id="date_cutoff_strict" name="date_cutoff_strict"
+                            value="<?=($edit && $sect['Date_Cutoff'] ? $sect['Date_Cutoff'] : null)?>">
+                        </div>
+                        <div class="select-cond" data-sc-conditions="2">
+                            <div class="flex">
+                                <label class="invis" for="date_cutoff">
+                                    Date Cutoff:
+                                </label>
+                                <input type="number" id="date_number" name="n_date_number" min="0" style="width:3em" value="<?=(($sect['Date_Number'] ?? null) ? $sect['Date_Number'] : ($_POST['n_date_number'] ?? null))?>">
+                                <select id="date_unit" name="date_unit">
+                                    <option value="years" <?=($edit && $sect['Date_Unit']=='years' ? 'selected' : null)?>>Year(s) Ago</option>
+                                    <option value="months" <?=($edit && $sect['Date_Unit']=='months' ? 'selected' : null)?>>Month(s) Ago</option>
+                                    <option value="weeks" <?=($edit && $sect['Date_Unit']=='weeks' ? 'selected' : null)?>>Weeks(s) Ago</option>
+                                    <option value="days" <?=($edit && $sect['Date_Unit']=='days' ? 'selected' : null)?>>Days(s) Ago</option>
+                                </select>
+                            </div>
+                        </div>
+                    <li>
+                </ul>
+            </li>
+            <li id="tag-filter">
+                <label for='n_tag_filter_on'>
+                    Enforce Tag Filter:
+                </label>
+                <input type="hidden" name="n_tag_filter_on" value="0">
+                <input type="checkbox" class="chktoggle" id="n_tag_filter_on" name="n_tag_filter_on" value="1" <?=($edit && $sect['Tag_Filter_On']>0 ? 'checked' : null)?>>
+                <ul class="form-list chktoggle-show">
+                    <li>
+                        <label for="n_tag_filter_mode">
+                            Tag Filter Mode:
+                            <select id="n_tag_filter_mode" name="n_tag_filter_mode">
+                                <option value='1' <?=($edit && $sect['Tag_Filter_Mode']==1 ? 'selected' : null)?>>INCLUDE items with ANY of these tags</option>
+                                <option value='2' <?=($edit && $sect['Tag_Filter_Mode']==2 ? 'selected' : null)?>>INCLUDE items with ALL of these tags</option>
+                                <option value='3' <?=($edit && $sect['Tag_Filter_Mode']==3 ? 'selected' : null)?>>EXCLUDE items with ANY these tags</option>
+                                <option value='0' <?=($edit && $sect['Tag_Filter_Mode']==0 ? 'selected' : null)?>>EXCLUDE items with ALL these tags</option>
+                            </select>
+                        </label>
+                    </li>
+                    <li>
+                        <label for='tag_filter_list'>
+                            Tag Filter List:
+                        </label>
+                        <p>If more than one tag, separate tags with a comma.</p>
+                        <input type="text" name="tag_filter_list" id="tag_filter_list" style="width:90%" value="<?=($edit && $sect['Tag_Filter_List'] ? $sect['Tag_Filter_List'] : null)?>">
+                    </li>
+                </ul>
+            </li>
+            <li id="item-limit">
+                <label for="item_limit_on">
+                    Enforce Item Limit:
+                </label>
+                <input type="hidden" name="item_limit_on" value="0">
+                <input type="checkbox" class="chktoggle" id="item_limit_on" name="item_limit_on" value="1" <?=($edit && $sect['Item_Limit'] ? 'checked' : null)?>>
+                <ul class="form-list chktoggle-show">
+                    <li>
+                        <label for="n_item_limit">
+                            Item Limit:
+                        </label>
+                        <input type="number" id="n_item_limit" name="n_item_limit" style="width:5em;" min='0' value="<?=($edit && $sect['Item_Limit'] ? $sect['Item_Limit'] : null)?>">
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </section>
+<? endif;?>
 
 <section>
     <label for="section-display-sets">
@@ -121,9 +291,8 @@
     <input type="checkbox" class="chktoggle invis" id="section-display-sets">
     <ul class="form-list chktoggle-show">
 
-    <?php if ($create || $sect['ID']>0) :?>
     <li>
-        <label for="item-format">Default Item Display Format:</label>
+        <label for="item_format">Default Item Display Format:</label>
         <p>Select a format for how you would like this <strong>Section's individual items</strong> to display on the website.</p>
         <?php if ($itemFormats) :?>
             <select name="item_format" id="item-format">
@@ -137,7 +306,6 @@
             <i class="red">No valid Item formats were found.</i>
         <?php endif;?>
     </li>
-    <?endif;?>
 
     <li>
         <div>
@@ -159,9 +327,8 @@
         </div>
     </li>
 
-    <?php if ($create || $sect['ID']>0) :?>
     <li>
-        <label for="show_titles">Show Item Titles:</label>
+        <label for="n_show_titles">Show Item Titles:</label>
         <select id="show_titles" name="n_show_titles">
             <option value="0" <?show(!$sect['Show_Item_Titles'] ? 'selected' : null )?>>No</option>
             <option value="1"  <?show($sect['Show_Item_Titles'] ? 'selected' : null )?>>Yes</option>
@@ -169,7 +336,15 @@
     </li>
 
     <li>
-        <label for="show_text">Show Item Text:</label>
+        <label for="n_show_dates">Show Item Dates:</label>
+        <select id="show_dates" name="n_show_dates">
+            <option value="0" <?show(!$sect['Show_Item_Dates'] ? 'selected' : null )?>>No</option>
+            <option value="1"  <?show($sect['Show_Item_Dates'] ? 'selected' : null )?>>Yes</option>
+        </select>
+    </li>
+
+    <li>
+        <label for="n_show_text">Show Item Text:</label>
         <select id="show_text" name="n_show_text">
             <option value="0" <?formCmp($sect['Show_Item_Text'],0,'s')?>>No</option>
             <option value="1" <?formCmp($sect['Show_Item_Text'],1,'s')?>>Show Truncated Text</option>
@@ -178,17 +353,17 @@
     </li>
 
     <li>
-        <label for="show_images">Show Item Images:</label>
+        <label for="n_show_images">Show Item Images:</label>
         <select id="show_images" name="n_show_images">
             <option value="0" <?formCmp($sect['Show_Item_Images'],0,'s')?>>No</option>
             <option value="1" <?formCmp($sect['Show_Item_Images'],1,'s')?>>Show Thumbnails</option>
             <option value="2" <?formCmp($sect['Show_Item_Images'],2,'s')?>>Show Full-Sized Images</option>
         </select>
     </li>
-    <?php endif;?>
 
+    <? if (!$isRef) :?>
     <li>
-        <label for="create-thumbs">Auto-Create Thumbnails for Images:</label>
+        <label for="n_create_thumbs">Auto-Create Thumbnails for Images:</label>
         <input type="hidden" name="n_create_thumbs" value="0">
         <input type="checkbox" id="create-thumbs" name="n_create_thumbs" class="chktoggle" value="1" <?=($sect['Auto_Thumbs'] ? "checked=checked" : null );?>>
         <div class="chktoggle-show">
@@ -207,8 +382,8 @@
             </ul>
         </div>
     </li>
+    <? endif;?>
 
-    <?php if ($create || $sect['ID']>0) :?>
 
     <li class="select-cond-container">
         <div>
@@ -315,16 +490,31 @@
         </ul>
     </li>
 
-    <?php endif;?>
     </ul>
     </section>
-
-  <button name="<?=($create ? "create_section" : "edit_section")?>"><i class="fi fi-rs-check"></i> Submit</button>
+    
+    <div class="space-btwn">
+        <button type="submit" id="section-submit" name="<?=($create ? "create_section" : "edit_section")?>" formaction="?task=list" onclick="addTarget('_self')">
+            <i class="fi fi-rs-check"></i> Submit
+        </button>
+        <? if ($sect['ID']>0) :?>
+            <button type="submit" id="section-preview" class="js-check" name="section_preview" formaction="<?=$baseURL?>/preview/section"  onclick="addTarget('_blank')">
+                Preview
+            </button>
+        <? endif;?>
+    </div>
   <div id="modal-home"></div>
 </form>
 
 <script src="_js/text-editor.js"></script>
 <script src="_js/toggle-on-cond.js"></script>
+<script src="_js/preview-img.js"></script>
+<script>
+    const form = document.getElementById('section-form');
+    function addTarget(target) {
+        form.target= target;
+    }
+</script>
 <? if ($edit) :?>
 <script src="_js/modal.js"></script>
 <script src="_js/rmv-file-paths.js"></script>
@@ -344,3 +534,62 @@ document.getElementById('delete-section').addEventListener('click', function(e) 
 }, false);
 </script>
 <?endif;?>
+<? if ($isRef) : ?>
+    <script>
+        const refSectSlct = document.getElementById('ref-sect-select');
+        const refSectOpts = refSectSlct.querySelectorAll('option');
+        const refSectList = document.getElementById('ref-sect-list');
+        const refSectAdd = document.getElementById('ref-sect-add');
+        //var rmvRefSectBtns = document.querySelectorAll('.remove-ref-sect');
+        let selectedSect = <?=($refID ?? 'undefined')?>;
+        
+        function mkBtnLabelHTML(sectID, name) {
+            return `<li data-sectid="${sectID}">
+                        <input type="hidden" name="ref_sect[]" value="${sectID}">
+                        <span class="remove-ref-sect">
+                            <i class="fi fi-rs-cross-small"></i>
+                        </span>
+                        ${name}
+                    </li>`;
+        }
+
+        // add referenced section
+        refSectAdd.addEventListener('click', function() {
+            sectID = refSectSlct.value;
+            const selected = refSectSlct.options[refSectSlct.selectedIndex];
+            const selectedName = selected.text;
+            if (!selected.disabled && sectID>0) {
+                const btnLabel = mkBtnLabelHTML(sectID, selectedName);
+                refSectList.innerHTML += btnLabel;
+                for (let i=0;i<refSectOpts.length;i++) {
+                    if (refSectOpts[i].value==sectID) {
+                        refSectOpts[i].disabled=true;
+                    }
+                }
+                refSectSlct.selectedIndex = 0;
+            }
+            addRmvFunc();
+        })
+
+        // remove referenced section
+        function addRmvFunc() {
+            const rmvRefSectBtns = document.querySelectorAll('.remove-ref-sect');
+            for (let i=0;i<rmvRefSectBtns.length;i++) {
+            rmvRefSectBtns[i].addEventListener('click', function() {
+                let labelBtn = rmvRefSectBtns[i].parentElement;
+                let sectID = labelBtn.dataset.sectid;
+                console.log('sectid: '+sectID);
+                for (let i2=0;i2<refSectOpts.length;i2++) {
+                    if (refSectOpts[i2].value==sectID) {
+                        refSectOpts[i2].disabled=false;
+                    }
+                }
+                labelBtn.remove();
+            })
+        }
+    }
+    //initialize
+    addRmvFunc();
+
+    </script>
+<? endif; ?>
