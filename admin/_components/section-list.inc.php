@@ -44,6 +44,7 @@
                     <? else: ?>
                         <a class="opt new-item" href="<?show($route)?>/items.php?task=create&sectid=<?show($sect['ID']);?>"><i class="fi fi-rs-plus"></i> New Item</a>
                         <a class="opt" href="?task=view&sectid=<?show($sect['ID']);?>"><i class="fi fi-rs-eye"></i> View Items</a>
+                        <a class="opt" href="?task=create&refsect=<?show($sect['ID'])?>"><i class="fi fi-rs-plus"></i> Create Reference Section</a>
                     <? endif;?>
                     <a class="opt" href="?task=edit&sectid=<?show($sect['ID'])?>"><i class="fi fi-rs-settings-sliders"></i> Edit Settings</a>
                 </div>

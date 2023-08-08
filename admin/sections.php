@@ -66,7 +66,7 @@ if (isset($_GET['pageid'])) {
                 $isRef = true;
                 $refSectID = $_GET['refsect'];
                 if (is_numeric($refSectID) && $refSectID>0) {
-                    $refSectIDs = array(intval(filter_var($refSects, FILTER_SANITIZE_NUMBER_INT)));
+                    $refSectIDs = array(intval(filter_var($refSectID, FILTER_SANITIZE_NUMBER_INT)));
                 } else {
                     $refSectIDs = array();
                     $isRef=true;
@@ -75,6 +75,7 @@ if (isset($_GET['pageid'])) {
                 $refSectIDs = array();
                 $isRef = false;
             }
+            $refSects = getRefSectsInfo($refSectIDs);
         } 
         if ($isRef) {
             $sectList = getSectList(false, true);

@@ -2,9 +2,11 @@
 <form id="menu-add-edit" method="post" enctype="multipart/form-data" action="<?=$set['dir']?>/admin/automenu.php">
     <div class="space-btwn">
         <h2>Auto-Menu: <?=(!$edit ? 'Add' : 'Edit')?> <?=$mItem['Link_Type']?></h2>
+        <? if ($edit) :?>
         <button id="delete-menu-item" name="delete_menu_item" class="small red" on-click="return false;">
             <i class="fi fi-rs-trash"></i> Delete <?=$mItem['Link_Type']?>
         </button>
+        <? endif;?>
     </div>
 
     <ul class="form-list">

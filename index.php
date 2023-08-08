@@ -1,15 +1,15 @@
 <?php
 include 'components/info-head.php';
 // Include router class
-include('library/Route.php');
+require_once('library/Route.php');
 
 $request = cleanRequest();
 if (!$request) {
     // if no page request, request home page
-    $page = getPage(1, 'id');
+    $page = getPage(1, 'id', ($_GET['tag'] ?? null));
 } else {
     // if page request exists, get page by the link
-    $page = getPage($request, 'link');
+    $page = getPage($request, 'link', ($_GET['tag'] ?? null));
 }
 
 // home
@@ -51,5 +51,9 @@ Route::add("/preview/(([^\/?]+)\/?$)",function($area){
         printPage(previewPrep($area), $area, 'preview');
     }
 },'post');
+
+Route::add("/rss/",function(){
+    echo printRSS();
+},'get');
 
 Route::run($set['dir']);

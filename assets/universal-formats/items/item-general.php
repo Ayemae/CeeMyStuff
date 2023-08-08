@@ -13,3 +13,6 @@
 </div>
 <?show($text)?>
 <?show($viewLink)?>
+<div class="item-tags">
+    <?show($tags)?>
+</div>

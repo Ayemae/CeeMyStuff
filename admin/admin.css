@@ -156,6 +156,9 @@ main {
     justify-content: space-between;
     align-items: center;
 }
+.word-break-all {
+    word-break: break-all;
+}
 
 header {
     background: #dfcef6;
@@ -198,32 +201,8 @@ h1 i.fi {
 .chktoggle-hide.inline {
     display: inline !important;
 }
-form .chktoggle:checked ~ .chktoggle-show {
-    visibility: visible;
-    height:auto;
-    width: inherit;
-    overflow: auto;
-}.chktoggle:checked ~ .chktoggle-show.inline {
+.chktoggle:checked ~ .chktoggle-show.inline {
     display: inline !important;
-}
-form .chktoggle-show {
-    visibility: collapse;
-    height:0;
-    width:0;
-    overflow:hidden;
-}
-form .chktoggle-hide {
-    visibility: visible;
-    height:auto;
-    width: inherit;
-    overflow: auto;
-    padding: inherit;
-}
-form .chktoggle:checked ~ .chktoggle-hide {
-    visibility: collapse;
-    height:0;
-    width:0;
-    overflow:hidden;
 }
 .chktoggle-label {
     display: block;
@@ -443,11 +422,13 @@ label.font-2 {
     justify-content: center;
 }
 
+.social-media-table,
 .menu-settings-table {
     width: 90%;
     margin: auto;
 }
 
+ul.social-media-table-head,
 ul.menu-settings-table-head,
 ul.index-table-head {
     list-style: none;
@@ -458,13 +439,19 @@ ul.index-table-head {
     margin: 0;
 }
 
+ul.social-media-table-head {
+    grid-template-columns: 1fr 1fr 1fr 3fr 1fr 1fr 1fr;
+}
+
 
 ul.menu-settings-item-list,
+ul.social-media-item-list,
 ul.index-item-list {
     padding: 0;
     margin: 0;
 }
-ul.menu-settings-item-list img {
+ul.menu-settings-item-list img,
+ul.social-media-item-list img {
     height: 35px;
     width: auto;
 }
@@ -473,6 +460,12 @@ ul.menu-settings-item-list li ,
 ul.index-item-list li {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;
+    padding: 8px;
+    align-items: center;
+}
+ul.social-media-item-list li {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 3fr 1fr 1fr 1fr;
     padding: 8px;
     align-items: center;
 }
@@ -507,21 +500,15 @@ ul.menu-settings-item-list li .menu-item-order {
     padding: 0;
     margin: 4px 0;
 }
-fieldset label {
-    display: inline-block;
-    padding: 1px 10px;
-    margin: 1px 8px 1px 0;
-    background-color: rgb(255,255,200);
-    border-radius: 3px;
+label.checkbox {
+    margin: 1px 15px 1px 0;
 }
 fieldset input[type=checkbox] {
     margin:0;
 }
 label.fl-chkbox {
-    background-color: rgb(255,255,200);
-    padding: 3px 10px 3px 27px;
     border-radius: 3px;
-    margin: 1px 8px 1px -18px;
+    margin: 1px 15px 1px 8px;
 }input[type=checkbox].fl-chkbox,
 input[type=checkbox].chktoggle.fl-chkbox {
     background-color: rgb(255,255,200);

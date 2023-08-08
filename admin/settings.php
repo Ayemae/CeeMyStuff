@@ -31,10 +31,10 @@ $settings = fetchSettings();
 
     <?php foreach ($settings AS $heading => $li) :?>
         <div class="settings-block" id="<?=strtolower($heading)?>-settings-block">
-        <label class="settings-header" for="<?=strtolower($heading)?>-sets">
+        <label class="settings-header" for="<?=strtolower($heading)?>_sets">
             <h2><i class="fi fi-rs-caret-right"></i> <?=$heading?> Settings</h2>
         </label>
-        <input type="checkbox" class="chktoggle invis" id="<?=strtolower($heading)?>-sets">
+        <input type="checkbox" class="chktoggle invis" id="<?=strtolower($heading)?>_sets" name="<?=strtolower($heading)?>_sets">
         <div class="chktoggle-show ease">
         <ul class="form-list">
     <? foreach ($li AS $stg) :?>

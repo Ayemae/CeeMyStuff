@@ -183,7 +183,7 @@
     /// if this is a reference section ?>
     <section>
         <label for="ref-display-sets">
-            <h2><i class="fi fi-rs-caret-right"></i> Referenced Item Conditions</h2>
+            <h2><i class="fi fi-rs-caret-right"></i> Item Reference Filters</h2>
         </label>
         <input type="checkbox" class="chktoggle invis" id="ref-display-sets" name="ref-display-sets">
         <ul class="form-list chktoggle-show">
@@ -343,13 +343,24 @@
         </select>
     </li>
 
-    <li>
+    <li class="select-cond-container">
         <label for="n_show_text">Show Item Text:</label>
-        <select id="show_text" name="n_show_text">
+        <select id="show_text" name="n_show_text" class="select-cond-master">
             <option value="0" <?formCmp($sect['Show_Item_Text'],0,'s')?>>No</option>
             <option value="1" <?formCmp($sect['Show_Item_Text'],1,'s')?>>Show Truncated Text</option>
             <option value="2" <?formCmp($sect['Show_Item_Text'],2,'s')?>>Show Full Text</option>
         </select>
+
+        <ul class="sub-form-list select-cond" data-sc-conditions="1">
+            <li>
+                <label for="n_truncate_at">Truncate Text At Character:</label> <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                    <article class="help-text">
+                        At what number of characters will the text cut off at?
+                    </article>
+                </i>
+                <input type="number" name="n_truncate_at" value="<?=$sect['Truncate_Text_At']?>" style="width:6em;">
+            </li>
+        </ul>
     </li>
 
     <li>
@@ -396,9 +407,40 @@
         </div>
         <ul class="sub-form-list select-cond" data-sc-conditions="1,2">
             <li>
-                <label for="name">Default File Link Text:</label>
+                <label for="file_link_text">Default File Link Text:</label>
                 <input type="text" name="file_link_text" id="link-text" max-length="255" value="<?show($edit ? $sect['Default_File_Link_Text'] : "Click here")?>">
-            <l/i>
+            </li>
+        </ul>
+    </li>
+    <li class="select-cond-container">
+        <label for="n_show_tags">Show Item Tags:</label>
+        <select id="show_tags" name="n_show_tags" class="select-cond-master">
+            <option value="0" <?formCmp($sect['Show_Item_Tags'],0,'s')?>>No</option>
+            <option value="1" <?formCmp($sect['Show_Item_Tags'],1,'s')?>>Show as Text</option>
+            <option value="2" <?formCmp($sect['Show_Item_Tags'],2,'s')?>>Show as Index Links</option>
+        </select>
+        <ul class="sub-form-list select-cond" data-sc-conditions="1,2">
+            <li>
+                <label for="tag_spacer">Tag Spacer:</label> <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                    <article class="help-text">
+                        If you would like something to go between each tag (like a comma, for example).
+                    </article>
+                </i>
+                <input type="text" name="tag_spacer" id="tag-spacer" max-length="140" value="<?show($edit ? $sect['Tag_List_Spacer'] : ", ")?>">
+            </li>
+            <li>
+                <label for="n_tag_spacer_ends">Tag Spacer On Ends:</label> <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                    <article class="help-text">
+                        If you would like the spacer between your tags to also be on the ends.
+                    </article>
+                </i>
+                <select id="spacer-on-ends" name="n_spacer_on_ends" class="select-cond-master">
+                    <option value="0" <?formCmp($sect['Tag_Spacer_On_Ends'],0,'s')?>>No</option>
+                    <option value="1" <?formCmp($sect['Tag_Spacer_On_Ends'],1,'s')?>>At Start</option>
+                    <option value="2" <?formCmp($sect['Tag_Spacer_On_Ends'],2,'s')?>>On End</option>
+                    <option value="3" <?formCmp($sect['Tag_Spacer_On_Ends'],3,'s')?>>On Both Ends</option>
+                </select>
+            </li>
         </ul>
     </li>
     </ul>
@@ -425,22 +467,24 @@
 
         <ul class="sub-form-list">
             <li id="item-click-area-sc" class="select-cond" data-sc-conditions="0" data-sc-exclude="true" data-sc-reverse="true">
-                <div><label for="click-area">Item Click Area:</label></div>
+                <div><label for="item_click_area[1]">Item Click Area:</label></div>
                 <input type="checkbox" class="chktoggle fl-chkbox" id="clk-anywhere" name="item_click_area[1]" value="All" <?=(in_array("All",$sect['Item_Click_Area']) ? "checked" : null )?>>
                 <label class="fl-chkbox" for="clk-anywhere">Anywhere</label>
                 <div class="chktoggle-hide">
                     <fieldset>
-                        <label for="clk-title">
-                            <input type="checkbox" id="clk-title" name="item_click_area[2]" value="Title" <?=(in_array("Title",$sect['Item_Click_Area']) ? "checked" : null )?>> Title
-                        </label>
-                        <label for="clk-image"><input type="checkbox" id="clk-image" name="item_click_area[3]" value="Image" <?=(in_array("Image",$sect['Item_Click_Area']) ? "checked" : null )?>> Image
-                        </label>
-                        <label for="clk-text">
-                            <input type="checkbox" id="clk-text" name="item_click_area[4]" value="Text" <?=(in_array("Text",$sect['Item_Click_Area']) ? "checked" : null )?>> Text
-                        </label>
-                        <label for="clk-link">
-                            <input type="checkbox" id="clk-link" name="item_click_area[5]" value="Link" <?=(in_array("Link",$sect['Item_Click_Area']) ? "checked" : null )?>> Added 'View' Link
-                        </label>
+                        <input type="checkbox" id="clk-title" name="item_click_area[2]" value="Title" <?=(in_array("Title",$sect['Item_Click_Area']) ? "checked" : null )?>> 
+                        <label class="checkbox" for="item_click_area[2]">Title</label>
+                        <input type="checkbox" id="clk-image" name="item_click_area[3]" value="Image" <?=(in_array("Image",$sect['Item_Click_Area']) ? "checked" : null )?>> 
+                        <label class="checkbox" for="item_click_area[3]">Image</label>
+                        <input type="checkbox" id="clk-text" name="item_click_area[4]" value="Text" <?=(in_array("Text",$sect['Item_Click_Area']) ? "checked" : null )?>> 
+                        <label class="checkbox" for="item_click_area[4]">Text</label>
+                        <input class="chktoggle" type="checkbox" id="clk-link" name="item_click_area[5]" value="Link" <?=(in_array("Link",$sect['Item_Click_Area']) ? "checked" : null )?>> 
+                        <label class="checkbox" for="item_click_area[5]">Added Link</label>
+
+                        <div class="chktoggle-show">
+                            <label for="item_link_text">Default Item Link Text:</label>
+                            <input type="text" name="item_link_text" value="<?=$sect['Default_Item_Link_Text']?>">
+                        </div>
                     </fieldset>
                 </div>
             </li>
@@ -462,21 +506,25 @@
                 <?php endif;?>
             </li>
 
-
+        
             <li id="viewitem-format-sc" class="select-cond" data-sc-conditions="1,3" data-sc-exclude="" data-sc-reverse="">
-                <label for="view-item-format">Default View-Item Page Display Format:</label>
-                <p>Select a format for how you would like Section's items to display on their individual 'view' pages on the website.</p>
-                <?php if ($viewItemFormats) :?>
-                    <select name="view_item_format" id="view-item-format">
-                        <?php foreach ($viewItemFormats AS $vFormat) :?>
-                        <option value="<?show($vFormat['Path'])?>" <?formCmp($sect['View_Item_Format'],$vFormat['Path'],'s')?>>
-                            <?show($vFormat['From'])?> > <?show($vFormat['Name'])?>
-                        </option>
-                        <?php endforeach;?>
-                    </select>
-                <?php else :?>
-                    <i class="red">No valid View-Item Page formats found.</i>
-                <?php endif;?>
+                <? if (!$isRef) :?>
+                    <label for="view-item-format">Default View-Item Page Display Format:</label>
+                    <p>Select a format for how you would like Section's items to display on their individual 'view' pages on the website.</p>
+                    <?php if ($viewItemFormats) :?>
+                        <select name="view_item_format" id="view-item-format">
+                            <?php foreach ($viewItemFormats AS $vFormat) :?>
+                            <option value="<?show($vFormat['Path'])?>" <?formCmp($sect['View_Item_Format'],$vFormat['Path'],'s')?>>
+                                <?show($vFormat['From'])?> > <?show($vFormat['Name'])?>
+                            </option>
+                            <?php endforeach;?>
+                        </select>
+                    <?php else :?>
+                        <i class="red">No valid View-Item Page formats found.</i>
+                    <?php endif;?>
+                <? else : ?>
+                    <p>Note: You cannot choose an individual item view page format for a reference section. It will use the one specified in its true parent section.</p>
+                <? endif;?>
             </li>
 
             <li class="select-cond" data-sc-conditions="0" data-sc-exclude="true" data-sc-reverse="true">

@@ -70,9 +70,14 @@ nav#site-menu ul li.automenu-item:hover ul.automenu-submenu {
     position: absolute;
 }
 
-ul.automenu-submenu-index {
+ul.automenu-submenu-index,
+ul.item-tag-list {
     list-style-type: none;
     padding: 0;
+}
+
+ul.item-tag-list li {
+    display:inline;
 }
 
 ul, ol {

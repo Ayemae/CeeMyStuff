@@ -3,7 +3,7 @@
         <h1><?=($create ? "Create New Item" : "Edit Item : ".$item['Title'])?></h1>
         <? if ($edit) :?>
         <input type="hidden" name="n_item_id" value="<?show($item['ID'])?>">
-        <button name="delete_item" id="delete-item" class="small red"><i class="fi fi-rs-trash"></i> Delete Item</button>
+        <button for="item-delete" name="delete_item" id="delete-item" class="small red"><i class="fi fi-rs-trash"></i> Delete Item</button>
         <? endif;?>
     </div>
 
@@ -113,7 +113,7 @@
     </li>
 
 
-    <li>
+    <li id="image-fields">
         <? if ($create || $item['Img_Path']<='') :?>
             <input type="checkbox" class="chktoggle invis" id="add-image">
             <label for="add-image" class="chktoggle-label"><i class="fi fi-rs-plus"></i> Add Image
@@ -127,7 +127,6 @@
         <? endif;?>
         <label for="img_upload"><?=($create || $item['Img_Path']<='' ? 'U' : 'Reu')?>pload  Image File:</label>
                 <input type="file" id="img-upload" name="img_upload" onchange="previewImg('img-upload', 'img')">
-        <? if ($edit && $item['Img_Path']>'') :?>
             <label>Current:</label>
             <div id="img_current" class="item-current-image-wrapper">
                 <img id="img-visual" class="visual<?=($imgExists ? ' block' : ' invis')?>" src="<?=($imgExists ? $set['dir'].$item['Img_Path'] : null)?>" alt="<?show($item['Title'])?> Image">
@@ -135,10 +134,11 @@
                 <div id="img-rmv-info" class="rvm-file-path-info invis">&#10060; Image Removed</div>
                 <em id="img-none" class="<?=(!$imgExists ? null : 'invis')?>">none</em>
             </div>
+        <? if ($edit && $item['Img_Path']>'') :?>
             <input type="hidden" id="img-stored" name="img_stored" value="<?show($item['Img_Path'])?>">
             <p><label>Image Path:</label> <?show($item['Img_Path'] ? $set['dir'].$item['Img_Path'] : '<i>None</i>')?></p>
-            <button id="img-rmv-btn" type="button" class="small red" onclick="rmvFilePath(this, 'img_stored', 'img_current')">Remove Item Image</button>
         <? endif;?>
+            <button id="img-rmv-btn" type="button" class="small red<?=(($create || !$item['Img_Path']) ? ' invis' : null)?>" onclick="rmvFilePath(this, 'img_stored', 'img_current')">Remove Item Image</button>
         <div>
             <label for="img-alt-text">Image Description (Alt Text):</label><i class="help icon"><i class="fi fi-rs-interrogation"></i>
                     <article class="help-text">
@@ -292,7 +292,7 @@
     </li>
 
     <div class="space-btwn">
-        <button type="submit" id="item-submit" name="<?=($create ? "create_item" : "edit_item")?>" formaction="?task=list" onclick="addTarget('_self')">
+        <button for="item-form" type="submit" id="item-submit" name="<?=($create ? "create_item" : "edit_item")?>" formaction="<?=$baseURL?>/admin/sections.php?task=view&sectid=<?=$sectCmp?>" onclick="addTarget('_self')">
             <i class="fi fi-rs-check"></i> Submit
         </button>
         <button type="submit" id="item-preview" class="js-check" name="item_preview" formaction="<?=$baseURL?>/preview/item"  onclick="addTarget('_blank')">

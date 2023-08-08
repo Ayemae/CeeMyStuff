@@ -35,7 +35,11 @@ $conn->exec('INSERT INTO Settings (Index_Order, Field, Key, Value, Type, Descrip
     (13, "Enable Max Image Dimensions", "has_max_img_dimns","checked", "checkbox", "Enable a maximum height/width on the images you can upload. (Strongly recommended.)", null,"Advanced"),
     (14, "Max Image Dimensions (in pixels)", "max_img_dimns", "2400","number", "Must be enabled to take effect.", null,"Advanced"),
     (15, "Enable Max Upload Storage Size","has_max_upld_storage","checked", "checkbox", "Enable a maximum on how much storage a single uploaded file can take up. (Strongly recommended.)", null,"Advanced"),
-    (16, "Max Upload Storage Size (in Megabytes)","max_upld_storage","25", "number", "For reference, rougly 1000 megabytes are in a gigabyte. Must be enabled to take effect.", null,"Advanced")
+    (16, "Max Upload Storage Size (in Megabytes)","max_upld_storage","25", "number", "For reference, rougly 1000 megabytes are in a gigabyte. Must be enabled to take effect.", null,"Advanced"),
+    ;');
+    $conn->exec('INSERT INTO `Settings` (`Index_Order`, `Field`, `Key`, `Value`, `Type`, `Description`, `Heading`, `Hidden`)
+    VALUES 
+    (17, "Enable RSS Feed", "has_rss", "", "checkbox", "Add an RSS feed to your site.", "", 1)
     ;');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Pages (
@@ -72,8 +76,11 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Sections (
     Show_Item_Images INTEGER NOT NULL DEFAULT 1,
     Show_Item_Titles INTEGER NOT NULL DEFAULT 1,
     Show_Item_Dates INTEGER NOT NULL DEFAULT 1,
-    Show_Item_Text INTEGER NOT NULL DEFAULT 1,
+    Show_Item_Text INTEGER NOT NULL DEFAULT 2,
     Show_Item_Files INTEGER NOT NULL DEFAULT 1,
+    Show_Item_Tags INTEGER NOT NULL DEFAULT 2,
+    Tag_List_Spacer TEXT DEFAULT ", ",
+    Tag_Spacer_On_Ends INTEGER NOT NULL DEFAULT 0,
     Item_Click_Area TEXT DEFAULT "All",
     On_Click_Action INTEGER NOT NULL DEFAULT 1,
     Paginate_Items INTEGER NOT NULL DEFAULT 1,
@@ -88,6 +95,8 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Sections (
     View_Item_Format TEXT,
     Lightbox_Format TEXT,
     Item_Display_Limit INTEGER DEFAULT NULL,
+    Truncate_Text_At INTEGER NOT NULL DEFAULT 140,
+    Default_Item_Link_Text TEXT NOT NULL DEFAULT "View",
     Hidden INTEGER NOT NULL DEFAULT 0,
     UNIQUE(Name,Page_ID)
 )');
@@ -110,11 +119,10 @@ $conn->exec('INSERT INTO Sections (ID, Page_ID, Page_Index_Order, Name, Text, Fo
     (0, null, 0, "Orphaned Items", "Items that are not sorted into any section.", null, null, 0),
     (1, 0, 1, "Home Content", "See my stuff!", "/assets/universal-formats/section/section-general.php", "/assets/universal-formats/item/item-general.php", 1);');
 
-$conn->exec('CREATE TABLE IF NOT EXISTS Section_Groups (
-    Sect_ID INTEGER PRIMARY KEY UNIQUE NOT NULL,
-    Ref_Sect_IDs TEXT DEFAULT NULL,
-    Type INTEGER NOT NULL DEFAULT 1
-)');
+$conn->exec('INSERT INTO Reference_Sections (Sect_ID, Ref_Sect_IDs, Date_Cutoff_On, Date_Cutoff, Date_Cutoff_Dir, Item_Limit)
+    VALUES 
+    (0, "1", 1, "[2]4 months", 1, 15);');
+
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Items (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -131,6 +139,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Items (
     File_Link_Text TEXT,
     Embed_HTML TEXT DEFAULT NULL,
     Tags TEXT DEFAULT NULL,
+    Item_Link_Text TEXT DEFAULT NULL,
     Hidden INTEGER NOT NULL DEFAULT 0
 )');
 
@@ -200,12 +209,17 @@ $conn->exec('INSERT INTO Automenu (Type_Code, Ref_ID, Index_Order)
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Social_Media (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    Index_Order INTEGER NOT NULL DEFAULT 999,
-    Platform TEXT UNIQUE,
-    Icon TEXT,
-    URL TEXT,
-    Hidden INTEGER
+    Index_Order INTEGER NOT NULL DEFAULT 99,
+    Link_Name TEXT NOT NULL,
+    Link_Text TEXT NOT NULL,
+    Icon TEXT DEFAULT NULL,
+    URL TEXT NOT NULL,
+    Hidden INTEGER NOT NULL DEFAULT 0
 )');
+
+$conn->exec('INSERT INTO `Social_Media` (`ID`, `Index_Order`, `Link_Name`, `Link_Text`, `URL`, `Hidden`)
+VALUES (0,1,"RSS","RSS","/rss/",1);'
+);
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Uploads (
     ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
