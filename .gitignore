@@ -2,8 +2,15 @@
 /__IGNORE/
 __IGNORE/
 .DS_Store
-.htaccess
+CeeMyStuff Portfolio CMS/extentions/*
+/CeeMyStuff Portfolio CMS/extentions/*
+/CeeMyStuff Portfolio CMS/data/database.db/.htaccess
+CeeMyStuff Portfolio CMS/data/database.db/.htaccess
 /data/database.db
 data/database.db
-/library/_testing.inc.php
-library/_testing.inc.php
+/CeeMyStuff Portfolio CMS/data/database.db
+CeeMyStuff Portfolio CMS/data/database.db
+/CeeMyStuff Portfolio CMS/data/database.db/library/_testing.inc.php
+CeeMyStuff Portfolio CMS/data/database.db/library/_testing.inc.php
+**/ext_*.*
+ext_*.*
