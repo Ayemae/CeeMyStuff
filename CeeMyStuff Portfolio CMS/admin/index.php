@@ -15,13 +15,14 @@ if (!is_null($key)) {
     $task = "validate-email";
 }
 
+$uri = trim(strtok($_SERVER['REQUEST_URI'], '?'));
+$adminURL = substr($uri, 0, (strrpos( $uri, '/admin/')+7));
 ?>
 
 <main>
 
 <?php 
 if ($task === "validate-email") : 
-
     $keyHash = hash("sha256", $key);
     $creds = validateEmail($key);
     $valid = ($creds['Validated'] ?? false);
@@ -32,7 +33,7 @@ if ($task === "validate-email") :
     <h2>Activate Your Account</h2>
         <p>Enter a username<?=($creds['ID']>1 ? " and password " : " ")?>to confirm, and then you can login!</p>
 
-        <form method="post" action="<?=$set['dir']?>/admin/" autocomplete="off">
+        <form method="post" action="<?=$uri?>" autocomplete="off">
             <input type="hidden" name="key" value="<?=$key?>">
             <ul class="form-list">
                 <li>

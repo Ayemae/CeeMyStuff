@@ -158,7 +158,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Accounts (
     Permissions INTEGER NOT NULL DEFAULT 1,
     Icon_Path TEXT,
     Activation_Timestamp INTEGER,
-    Activation_Key UNIQUE TEXT,
+    Activation_Key TEXT UNIQUE,
     Login_Attempts INTEGER,
     Locked_Until INTEGER,
     Curr_Sess_ID TEXT UNIQUE,

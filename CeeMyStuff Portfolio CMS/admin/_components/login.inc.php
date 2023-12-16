@@ -1,7 +1,7 @@
 <section>
     <h2>CeeMyStuff Login</h2>
 
-    <form method='post' action="<?=strtok($_SERVER["REQUEST_URI"], '?')?>">
+    <form method='post' action="<?=$uri?>">
         <ul class="form-list">
             <li>
                 <label for="email">Email</label>
@@ -15,5 +15,5 @@
         <button name="login">Login</button>
     </form>
 
-    <a href="<?=$set['dir']?>/admin/account-settings.php?task=pw-reset">Click here if you forgot your password.</a>
+    <a href="<?=$adminURL?>account-settings.php?task=pw-reset">Click here if you forgot your password.</a>
 </section>

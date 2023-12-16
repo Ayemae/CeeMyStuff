@@ -729,7 +729,7 @@ if (isset($_POST['create_cms_admin'])) {
                         `Activation_Timestamp` = :exp, 
                         `Activation_Key` = :key,
                         `Password` = :pw,
-                        `Account_Created` = :time,
+                        `Account_Created` = :time
                     WHERE `ID` = 1;";
         $stmt = $conn->prepare($dateQry);
         $time = time();
@@ -757,7 +757,7 @@ if (isset($_POST['create_cms_admin'])) {
              if (mail($email, 'Validate your credentials', $body, $emailHeaders)) {
                 $msg .= "<p>Thank you! A confirmation email has been sent to ".$email.". If it hasn't shown up after a few minutes, 
                 check your spam or junk folder.<br/>
-                <strong>Your activation key expires in 3 hours (".timestampToDate($time).").</strong> If you
+                <strong>Your activation key expires in 3 hours (".timestampToDate($exp).").</strong> If you
                 do not activate your account before that time, you will have to input your credentials again.</p>";
                 $msg=fdbkMsg(1,$msg,null,true);
                 $_POST = array();
@@ -818,7 +818,7 @@ function anointAccount($key=null) {
         $key = htmlspecialchars($_POST['key'] ?? ($_GET['key'] ?? null));
     }
     $creds = getCredentials($key);
-    if ($creds['ID']==1) {
+    if (cleanInt($creds['ID'])===1) {
         $addedAccount=false;
     } else {
         $addedAccount=true;
@@ -833,14 +833,13 @@ function anointAccount($key=null) {
     $time = time();
     $conn = new SQLite3($db);
     $updQry = "UPDATE `Accounts` SET 
-    `Username`=:usern, ".($addedAccount ? "`Password`=:pw, `Email`=`Temp_Email`, " : "")." `Activation_Timestamp`=NULL, `Temp_Email`=NULL, `Account_Created`=:time 
+    `Username`=:usern, ".($addedAccount ? "`Password`=:pw, " : "")."`Email`=`Temp_Email`, `Activation_Timestamp`=NULL, `Temp_Email`=NULL, `Account_Created`=:time 
     WHERE `Activation_Key`=:akey;";
     $updStmt = $conn->prepare($updQry);
     $updStmt->bindValue(':usern',$username,SQLITE3_TEXT);
     $updStmt->bindValue(':akey',$keyHash,SQLITE3_TEXT);
     $updStmt->bindValue(':time',$time,SQLITE3_INTEGER);
     if ($addedAccount && $password) {
-        $updStmt->bindValue(':email',$keyHash,SQLITE3_TEXT);
         $updStmt->bindValue(':pw',$password,SQLITE3_TEXT);
     } 
     $result = $updStmt->execute();
