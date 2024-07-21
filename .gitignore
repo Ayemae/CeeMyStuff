@@ -10,8 +10,8 @@ CeeMyStuff Portfolio CMS/data/database.db/.htaccess
 data/database.db
 /CeeMyStuff Portfolio CMS/data/database.db
 CeeMyStuff Portfolio CMS/data/database.db
-/CeeMyStuff Portfolio CMS/data/database.db/library/_testing.inc.php
-CeeMyStuff Portfolio CMS/data/database.db/library/_testing.inc.php
+/CeeMyStuff Portfolio CMS/library/_testing.inc.php
+CeeMyStuff Portfolio CMS/library/_testing.inc.php
 **/ext_*.*
 ext_*.*
 **/._DS_Store
