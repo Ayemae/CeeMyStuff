@@ -5,7 +5,7 @@
     $fType = strtolower(pathinfo($file, PATHINFO_EXTENSION));
     if (file_exists($rootPath) && $fType) :
     $filesize = formatSizeUnits(filesize($rootPath));
-    if (in_array($fType, $imgTypes)) {
+    if (in_array($fType, $validImgTypes)) {
         $isImg=true;
         $display = '<figure class="media-image"><img src="'.$rPath.'" alt="'.$aPath.'"></figure>';
         $imgInfo = getimagesize($aPath);

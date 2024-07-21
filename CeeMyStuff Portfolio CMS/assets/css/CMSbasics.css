@@ -121,7 +121,12 @@ ul.cms-socials-list {
     list-style: none;
     padding-left: 0;
     gap: 8px;
+}ul.cms-socials-list img.sm-icon,
+ul.cms-socials-list svg {
+    height: 40px;
+    width: auto;
 }
+
 label {
     font-weight: bold;
 }
@@ -168,6 +173,9 @@ button {
     padding: 0.2em 0.8em;
     width: fit-content;
     border-radius: 3px;
+}
+#lightbox button {
+    background-color: transparent;
 }
 
 /* contact form extention */

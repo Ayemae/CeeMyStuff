@@ -21,12 +21,12 @@
             <div class="btns-box chktoggle-show">
                 <div class="btns-box">
                     <div class="page-options">
-                        <a class="opt settings" href="?task=edit&id=<?show($page['ID'])?>"><i class="fi fi-rs-settings"></i> Edit Page Settings</a>
                         <? if ($page['Hidden'] ?? null) :?>
                             <a class="opt settings disabled"><i class="fi fi-rs-crossed-eye"></i> Hidden Page</a>
                         <?else : ?>
                             <a class="opt settings" href="<?=$set['dir'].'/'.$page['Link']?>" target="_blank"><i class="fi fi-rs-eye"></i> View on Site</a>
                         <?endif;?>
+                        <a class="opt settings" href="?task=edit&id=<?show($page['ID'])?>"><i class="fi fi-rs-settings"></i> Edit Page Settings</a>
                     </div>
                     <?php if ($sectList) : ?>
                         <ul class="section-list">
@@ -53,7 +53,7 @@
                                         </i>
                                     <? else: ?>
                                         <a class="opt new-item" href="<?show($route)?>/items.php?task=create&sectid=<?show($sect['ID']);?>"><i class="fi fi-rs-plus"></i> New Item</a>
-                                        <a class="opt" href="<?show($route)?>/sections.php?task=view&sectid=<?show($sect['ID']);?>"><i class="fi fi-rs-eye"></i> View Items</a>
+                                        <a class="opt" href="<?show($route)?>/items.php?task=list&sectid=<?show($sect['ID']);?>"><i class="fi fi-rs-eye"></i> View Items</a>
                                     <? endif;?>
                                     <a class="opt" href="<?show($route)?>/sections.php?task=edit&sectid=<?show($sect['ID'])?>"><i class="fi fi-rs-settings-sliders"></i> Edit Settings</a>
                                     </div>
@@ -73,5 +73,8 @@
             </div>
         </li>
     <?php endforeach;?>
+    <li>
+        <a class="button" href="?task=edit&id=0"><i class="fi fi-rs-edit"></i> Edit Page Defaults</a>
+    </li>
     </ul>
 <?php endif;?>

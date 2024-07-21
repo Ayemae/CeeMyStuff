@@ -1,6 +1,6 @@
 <a href="<?show($route)?>/items.php?task=list&sectid=<?=($item['Sect_ID'] ?? $sectID)?>"><i class="fi fi-rs-angle-double-small-left"></i> back to this Section's Item List</a>
 
-<form id="item-form" method="post" enctype="multipart/form-data" action="<?=$set['dir']?>/admin/items.php?task=<?=($edit ? 'list&sectid='.$item['Sect_ID'] : 'list')?>">
+<form id="item-form" method="post" enctype="multipart/form-data" action="<?=$currentURL?>?task=bulk&">
     <div class="space-btwn">
         <h1><?=($create ? "Create New Item" : "Edit Item : ".$item['Title'])?></h1>
         <? if ($edit) :?>
@@ -131,32 +131,29 @@
         <? endif;?>
         <label for="img_upload"><?=($create || $item['Img_Path']<='' ? 'U' : 'Reu')?>pload  Image File:</label>
                 <input type="file" id="img-upload" name="img_upload" onchange="previewImg('img-upload', 'img')">
-        <ul class="sub-form-list">
-            <li>
-                <label>Current:</label>
-                <div id="img_current" class="item-current-image-wrapper">
-                    <img id="img-visual" class="visual<?=($item['Img_Path'] ? ' block' : ' invis')?>" src="<?=($item['Img_Path'] ? $set['dir'].$item['Img_Path'] : null)?>" alt="<?show($item['Title'])?> Image">
-                    <input type="hidden" id="img-preview" name="img_preview" value="">
-                    <div id="img-rmv-info" class="rvm-file-path-info invis">&#10060; Image Removed</div>
-                    <em id="img-none" class="<?=(!$item['Img_Path'] ? null : 'invis')?>">none</em>
-                </div>
+            <label>Current:</label>
+            <div id="img_current" class="item-current-image-wrapper">
+                <img id="img-visual" class="visual<?=($item['Img_Path'] ? ' block' : ' invis')?>" src="<?=($item['Img_Path'] ? $set['dir'].$item['Img_Path'] : null)?>" alt="<?show($item['Title'])?> Image">
+                <input type="hidden" id="img-preview" name="img_preview" value="">
+                <div id="img-rmv-info" class="rvm-file-path-info invis">&#10060; Image Removed</div>
+                <em id="img-none" class="<?=(!$item['Img_Path'] ? null : 'invis')?>">none</em>
+            </div>
         <? if ($edit && $item['Img_Path']>'') :?>
             <input type="hidden" id="img-stored" name="img_stored" value="<?show($item['Img_Path'])?>">
             <p><label>Image Path:</label> <?show($item['Img_Path'] ? $set['dir'].$item['Img_Path'] : '<i>None</i>')?></p>
-            <button id="img-rmv-btn" type="button" class="small red<?=(($create || !$item['Img_Path']) ? ' invis' : null)?>" onclick="rmvFilePath(this, 'img_stored', 'img_current')">Remove Item Image</button>
         <? endif;?>
-        </li>
-        <li>
+            <button id="img-rmv-btn" type="button" class="small red<?=(($create || !$item['Img_Path']) ? ' invis' : null)?>" onclick="rmvFilePath(this, 'img_stored', 'img_current')">Remove Item Image</button>
+        <div>
             <label for="img-alt-text">Image Description (Alt Text):</label><i class="help icon"><i class="fi fi-rs-interrogation"></i>
                     <article class="help-text">
                         A description of the image for the visually impaired, or if the image is invalid.
                     </article>
                 </i>
             <input type="text" name="img_alt_text" value="<?show($edit ? $item['Img_Alt_Text'] : null)?>">
-        </li>
+        </div>
                 
 
-                <div id="add-thumbnail">
+                <ul id="add-thumbnail">
                 <?php if ($edit && $item['Img_Thumb_Path']) :?>
                 <li>
                     <label class="">Thumbnail:<br/></label>
@@ -184,7 +181,7 @@
                         <p>If a new image is uploaded, a new thumbnail will be created automatically.</p>
                         <p>A thumbnail image with a 
                         <span id="sect-thumb-size">
-                            <strong><?=$thumbAxis?></strong> of <strong><?=($sectInfo['Thumb_Size'])?>px</strong>
+                            <strong><?=(!$sectInfo['Thumb_Size_Axis'] ? 'width' : 'height');?></strong> of <strong><?=($sectInfo['Thumb_Size'])?>px</strong>
                         </span>
                         will be created for this item.<br/>
                         <a class="sect-link" href="<?show($route)?>/sections.php?task=edit&sectid=<?show($sectInfo['ID'])?>">
@@ -240,18 +237,16 @@
                 <?if ($set['has_max_upld_storage']):?>
                     <p>Your max file upload size is <?=$set['max_upld_storage']?> MB.</p>
                 <? endif;?>
-            <ul class="sub-form-list">
-                <li>
-                <label for="n_show_file">File Presentation:</label>
-                <select id="show-file" name="n_show_file">
-                    <option value="2" <?($edit ? formCmp($item['Show_File'],2,'s') : null)?>>Link</option>
-                    <option value="3" <?($edit ? formCmp($item['Show_File'],3,'s') : null)?>>Download</option>
-                    <option value="4" <?($edit ? formCmp($item['Show_File'],4,'s') : null)?>>Audio player</option>
-                    <option value="5" <?($edit ? formCmp($item['Show_File'],5,'s') : null)?>>Video player</option>
-                    <option value="1" <?($edit ? formCmp($item['Show_File'],1,'s') : null)?>>Text file path</option>
+            <div>
+                <label for="file-pres">File Presentation:</label>
+                <select id="file-pres" name="file_pres">
+                    <option value="lnk" <?($edit ? formCmp($item['File_Pres'],'lnk','s') : null)?>>Link</option>
+                    <option value="txt" <?($edit ? formCmp($item['File_Pres'],'txt','s') : null)?>>Text</option>
+                    <option value="dld" <?($edit ? formCmp($item['File_Pres'],'dld','s') : null)?>>Download</option>
+                    <option value="aud" <?($edit ? formCmp($item['File_Pres'],'aud','s') : null)?>>Audio Player</option>
+                    <option value="vid" <?($edit ? formCmp($item['File_Pres'],'vid','s') : null)?>>Video Player</option>
                 </select>
-                </li>
-            </ul>
+            </div>
             
                 <?if ($edit && $item['File_Path']>'') :?>
             <input type="hidden" id="file-stored" name="file_stored" value="<?show($item['File_Path'])?>">
@@ -301,7 +296,7 @@
     </li>
 
     <div class="space-btwn">
-        <button for="item-form" type="submit" id="item-submit" name="<?=($create ? "create_item" : "edit_item")?>" formaction="<?=$baseURL?>/admin/items.php?task=list&sectid=<?=$sectCmp?>" onclick="addTarget('_self')">
+        <button for="item-form" type="submit" id="item-submit" name="<?=($create ? "create_item" : "edit_item")?>" formaction="<?=$baseURL?>/admin/sections.php?task=view&sectid=<?=$sectCmp?>" onclick="addTarget('_self')">
             <i class="fi fi-rs-check"></i> Submit
         </button>
         <button type="submit" id="item-preview" class="js-check" name="item_preview" formaction="<?=$baseURL?>/preview/item"  onclick="addTarget('_blank')">
@@ -336,7 +331,7 @@
             // handle default item format
             if (!sectInfo.Default_Item_Format) {
                 sectDfltFrmt.innerHTML= `<p><i class="red">
-                    This item is not assigned to a Section, or its assigned Section has an invalid default item format.
+                    This item is not assigned to a section, or its assigned section has an invalid default item format.
                     </i></p>`;
             } else {
                 const dfltFrmtPath = sectInfo.Default_Item_Format.split('/');
@@ -360,32 +355,15 @@
             // handle autothumbs
             autoThumbs.value = sectInfo.Auto_Thumbs;
             if (sectInfo.Auto_Thumbs==1) {
-                // section
                 document.getElementById("sect-thumb-size").value = sectInfo.Thumb_Size;
                 document.getElementById("sect-thumb-axis").value = sectInfo.Thumb_Size_Axis;
             } else {
-                // item
                 document.getElementById("item-thumb-size").value = sectInfo.Thumb_Size;
                 document.getElementById("item-thumb-axis").value = sectInfo.Thumb_Size_Axis;
             }
             let scChildren = document.getElementById('thumbnail-area').getElementsByClassName("select-cond");
             handleSCChildren(scChildren, sectInfo.Auto_Thumbs);
-            switch (sectInfo.Thumb_Size_Axis) {
-                case 3:
-                    $thumbAxis="longest axis";
-                    break;
-                case 2:
-                    $thumbAxis="shortest axis";
-                    break;
-                case 1:
-                    $thumbAxis='height';
-                    break;
-                case 0:
-                default:
-                    $thumbAxis='width';
-                    break;
-            }
-            sectThmbSize.innerHTML= `<strong>${$thumbAxis}</strong> of <strong>${sectInfo.Thumb_Size}px</strong>`;
+            sectThmbSize.innerHTML= `<strong>${(!sectInfo.Thumb_Size_Axis ? `width` : `height`)}</strong> of <strong>${sectInfo.Thumb_Size}px</strong>`;
         });
     });
 

@@ -24,7 +24,7 @@
             </form>
             <?php  endif; ?>
         </div>
-        <?php if ($_SESSION && $_SESSION['Key']) :?>
+        <?php if (session_status()==PHP_SESSION_ACTIVE && $_SESSION['Key']) :?>
         <?php include $root.'/admin/_components/admin-menu.inc.php';
         endif;
     endif; ?>

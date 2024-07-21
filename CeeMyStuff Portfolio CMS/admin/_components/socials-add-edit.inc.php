@@ -20,6 +20,12 @@
                 <option value="Bandcamp" data-url="https://[YOUR_HANDLE].bandcamp.com/" data-icon="/assets/icons/bandcamp.svg">
                     Bandcamp
                 </option>
+                <option value="Bluesky" data-url="https://bsky.app/profile/[YOUR_HANDLE].bsky.social" data-icon="/assets/icons/bluesky.svg">
+                    Bluesky
+                </option>
+                <option value="Cohost" data-url="https://cohost.org/[YOUR_HANDLE]" data-icon="/assets/icons/cohost.svg">
+                    Cohost
+                </option>
                 <option value="Instagram" data-url="https://www.instagram.com/[YOUR_HANDLE]/" data-icon="/assets/icons/instagram.svg">
                     Instagram
                 </option>
@@ -35,6 +41,9 @@
                 <option value="Patreon" data-url="https://www.patreon.com/[YOUR_HANDLE]" data-icon="/assets/icons/patreon.svg">
                     Patreon
                 </option>
+                <option value="Pillowfort" data-url="https://www.pillowfort.social/[YOUR_HANDLE]" data-icon="/assets/icons/pillowfort.svg">
+                    Pillowfort
+                </option>
                 <option value="Spotify" data-url="https://open.spotify.com/user/[YOUR_ID_NUMBER]" data-icon="/assets/icons/spotify.svg">
                     Spotify
                 </option>
@@ -47,11 +56,11 @@
                 <option value="Twitch" data-url="https://www.twitch.tv/[YOUR_HANDLE]" data-icon="/assets/icons/twitch.svg">
                     Twitch
                 </option>
-                <option value="X/Twitter" data-url="https://x.com/[YOUR_HANDLE]" data-icon="/assets/icons/twitter.svg">
-                    X/Twitter
-                </option>
                 <option value="YouTube" data-url="https://www.youtube.com/user/[YOUR_HANDLE]" data-icon="/assets/icons/youtube.svg">
                     YouTube
+                </option>
+                <option value="X/Twitter" data-url="https://x.com/[YOUR_HANDLE]" data-icon="/assets/icons/twitter.svg">
+                    X/Twitter
                 </option>
             </select>
         </li>

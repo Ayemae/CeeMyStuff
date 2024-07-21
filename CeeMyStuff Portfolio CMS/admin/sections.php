@@ -11,12 +11,12 @@ if (isset($_GET['task'])) {
     $task = false;
 }
 if (isset($_GET['sectid'])) {
-    $sectID = filter_var($_GET['sectid'], FILTER_SANITIZE_NUMBER_INT);
+    $sectID = cleanInt($_GET['sectid']);
 } else {
     $sectID = 0;
 }
 if (isset($_GET['pageid'])) {
-    $pageID = filter_var($_GET['pageid'], FILTER_SANITIZE_NUMBER_INT);
+    $pageID = cleanInt($_GET['pageid']);
 } else {
     $pageID = 0;
 }
@@ -34,7 +34,7 @@ if (isset($_GET['pageid'])) {
         if ($task == 'edit') {
             $create = false;
             $edit = true;
-            if ($sect['Is_Reference']>0) {
+            if (isset($sect['Is_Reference']) && $sect['Is_Reference']>0) {
                 $isRef=true;
                 $refSectIDs = explode(',', $sect['Ref_Sect_IDs']);
             } else {
@@ -76,7 +76,7 @@ if (isset($_GET['pageid'])) {
         } else {
             $imgExists =false;
         }
-        $pgList = getPageList($sect['Page_ID']);
+        $pgList = getPageList($sect['Page_ID'] ?? false);
         $sectFormats = getFormatList('section');
         $itemFormats = getFormatList();
         $viewItemFormats = getFormatList('view-item-page');

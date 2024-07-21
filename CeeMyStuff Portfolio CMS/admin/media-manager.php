@@ -5,7 +5,6 @@ $page_title = 'Media Manager';
 include '_components/admin-header.inc.php';
 $dir = '/assets/uploads/media/';
 $files = scandir('..'.$dir);
-$imgTypes = array('jpg', 'jpeg', 'png', 'webp', 'gif', 'svg');
 ?>
 
 <main>
@@ -17,7 +16,7 @@ else:
 <h1><i class="fi fi-rs-file-upload"></i> Media Manager</h1>
 
 <p>The Media Manager is for uploading any extra files that you don't want or need to create a whole item for. 
-    If you prefer, you can also upload files to the 'media' folder within '<?=$set['dir']?>/assets/uploads/' via your [S]FTP client, and they will be visible here.</p>
+    If you prefer, you can also upload fies to the 'media' folder within '<?=$set['dir']?>/assets/uploads/' via your [S]FTP client, and they will be visible here.</p>
 
     <form id="upload-form" method="post" enctype="multipart/form-data">
 

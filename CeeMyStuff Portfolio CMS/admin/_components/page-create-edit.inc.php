@@ -1,40 +1,39 @@
-<? if ($edit && ($page['Header_Img_Path'] ?? null)>'') {
-    $imgExists = true;
-} else {
-    $imgExists =false;
-}?>
-
 <form id="page-form" method="post" enctype="multipart/form-data">
 <div class="space-btwn">
-    <h1><?=($create ? "Create New Page" : "Edit Page Settings : ".$page['Name'])?></h1>
+    <h1><?=($create ? "Create New Page" : "Edit Page Settings : ".($pageID ? $page['Name'] : 'Page Defaults'))?></h1>
     <? if ($edit) : ?>
     <input type="hidden" name="n_page_id" value="<?show($pageID);?>">
-    <button name="delete_page" id="delete-page" class="small red"><i class="fi fi-rs-trash"></i> Delete Page</button>
-    <? endif;?>
+        <? if ($pageID) :?>
+        <button name="delete_page" id="delete-page" class="small red"><i class="fi fi-rs-trash"></i> Delete Page</button>
+        <? endif; 
+    endif;?>
 </div>
 
 <ul class="form-list">
     <li>
-        <label for="name">Name:</label>
-        <input type="text" name="name" id="name" max-length="255" value="<?show($edit ? $page['Name'] : null)?>"  autocomplete="off" required>
-            <i class="help icon"><i class="fi fi-rs-interrogation"></i>
-                <article class="help-text">
-                    Your Page's link will be derived from its name. <em>Every Page must have a unique name.</em>
-                </article>
-            </i>
-        <? if ($edit) :?>
-            <input type="hidden" name="name_stored" value="<?show($page['Name'])?>">
+        <? if ($create || $pageID) :?>
+            <label for="name">Name:</label>
+            <input type="text" name="name" id="name" max-length="255" value="<?show($edit ? $page['Name'] : null)?>"  autocomplete="off" required>
+                <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+                    <article class="help-text">
+                        Your Page's link will be derived from its name. <em>Every Page must have a unique name.</em>
+                    </article>
+                </i>
+            <? if ($edit) :?>
+                <input type="hidden" name="name_stored" value="<?show($page['Name'])?>">
+            <? endif;?>
+            <br/>
         <? endif;?>
-        <br/>
         <label for="n_show_title">Show page name on the website:</label>
         <input type="hidden" name="n_show_title" value="0">
-        <input type="checkbox" name="n_show_title" id="n_show_title" value="1" <?=(($edit && $page['Show_Title']) || $create ? 'checked' : null)?>>
+        <input type="checkbox" name="n_show_title" id="n_show_title" value="1" <?=($page['Show_Title'] ? 'checked' : null)?>>
     </li>
 
     <li>
-    <label for="header_img_upload">Header Image (Optional):</label>
-        <input type="file" id="header-img-upload" name="header_img_upload" onchange="previewImg('header-img-upload', 'header-img')" value="<?(!isset($_POST['header_img_upload']) ? null : show($_POST['header_img_upload']))?>">
-        <input type="hidden" id="stored-header-img" name="stored_header_img" value="<?show($edit ? $page['Header_Img_Path'] : null);?>">
+        <? if ($create || $pageID) :?>
+            <label for="header_img_upload">Header Image (Optional):</label>
+            <input type="file" id="header-img-upload" name="header_img_upload" onchange="previewImg('header-img-upload', 'header-img')" value="<?(!isset($_POST['header_img_upload']) ? null : show($_POST['header_img_upload']))?>">
+            <input type="hidden" id="stored-header-img" name="stored_header_img" value="<?show($edit ? $page['Header_Img_Path'] : null);?>">
             <div id="header-img-current" class="page-current-image-wrapper">
                 <label>Current:</label> 
                     <img id="header-img-visual" class="visual<?=($imgExists ? ' block' : ' invis')?>" src="<?=$set['dir'].$page['Header_Img_Path']?>">
@@ -43,6 +42,7 @@
                     <button id="header-img-rmv-btn" type="button" class="small red <?=($imgExists ? null : 'invis')?>" onclick="rmvFilePath(this, 'stored_header_img', 'header-img-current')">Remove Current Image</button>
                     <em id="header-img-none" class="<?=(!$imgExists ? null : 'invis')?>">none</em>
             </div>
+            <? endif;?>
         <label for="n_show_title">Show header image on the website:</label>
         <input type="hidden" name="n_show_header_img" value="0">
         <input type="checkbox" name="n_show_header_img" id="n_show_header_img" value="1" <?=(($edit && $page['Show_Header_Img']) || $create ? 'checked' : null)?>>
@@ -73,20 +73,20 @@
             </i>
         <input type="hidden" name="n_paginate" value="0">
         <input type="hidden" name="n_paginate_after" value="20">
-        <ul class="chktoggle-hide form-list">
+        <ul class="chktoggle-hide sub-form-list">
             <li>
                 <label for="n_paginate">Allow Pagination (single-section pages only):</label>
-                <input type="checkbox" name="n_paginate" id="n_paginate" class="chktoggle" value="1" <?=($edit && $page['Paginate'] ? 'checked' : null)?>>
+                <input type="checkbox" name="n_paginate" id="n_paginate" class="chktoggle" value="1" <?=($page['Paginate'] ? 'checked' : null)?>>
                 <i class="help icon"><i class="fi fi-rs-interrogation"></i>
                     <article class="help-text">
                         'Pagination' will allow this Page to contain an array of pages that you can navigate between,
                         which can be useful if your Page/content Section has a lot of Items or material that may involve a lot of scrolling.
                     </article>
                 </i>
-                <div class="chktoggle-show">
-                    <label for="n_paginate_after">Items Per Page:</label>
-                    <input type="number" name="n_paginate_after" id="n_paginate_after" value="<?show($edit && $page['Paginate_After'] ? $page['Paginate_After'] : 15);?>" style="width:50px">
-                </div>
+            </li>
+            <li class="chktoggle-show">
+                <label for="n_paginate_after">Items Per Page:</label>
+                <input type="number" name="n_paginate_after" id="n_paginate_after" value="<?show($page['Paginate_After'] ? $page['Paginate_After'] : 15);?>" style="width:50px">
             </li>
         </ul>
     </li>
@@ -96,7 +96,7 @@
         <label for="format">Display Format:</label>
         <select name="format" id="format">
             <?php foreach ($formatList AS $format) :?>
-            <option value="<?show($format['Path'])?>" <?=($edit && $page['Format']===$format['Path'] ? 'selected' : null)?>>
+            <option value="<?show($format['Path'])?>" <?=($page['Format']===$format['Path'] ? 'selected' : null)?>>
                 <?show($format['From'])?> > <?show($format['Name'])?>
             </option>
             <?php endforeach;?>
@@ -104,43 +104,47 @@
     </li>
     <?php endif;?>
 
-    <li>
-        <div>
-            <label for="menu_img_upload">Menu Link Image (Optional):</label>
-            <i class="help icon"><i class="fi fi-rs-interrogation"></i>
-            <article class="help-text">
-                If the settings are set to display the Automenu links as images, you can upload your page's link image here.
-            </article>
-        </i>
-        </div>
-        <input type="file" id="menu_img_upload" name="menu_img_upload" value="<?(!isset($_POST['menu_img_upload']) ? null : show($_POST['menu_img_upload']))?>">
-        <?if ($edit && isset($page['Menu_Link_Img']) && $page['Menu_Link_Img']>''):?>
-            <div id="menu-img-current">
-                Current: <img class="visual" src="<?=$set['dir'].$page['Menu_Link_Img']?>">
-                <div class="rvm-file-path-info invis">&#10060; File Removed</div>
-            </div>
-            <input type="hidden" id="rmv_menu_img" name="n_rmv_menu_img" value="0">
-            <button type="button" class="small red" onclick="rmvFilePath(this, 'rmv_menu_img', 'menu-img-current', 1)">Remove Current Image</button>
-        <?endif;?>
-    </li>
-
-    <li>
-            <label for="hidden">Hide this page:</label>
-            <? if ($edit) : ?>
-                <input type="hidden" id="hidden" name="n_menu_hidden" value="<?show($page['Menu_Hidden'])?>">
-            <? endif?>
-            <input type="hidden" id="hidden" name="n_hidden" value="0">
-            <input type="checkbox" id="hidden" name="n_hidden" value="1" <?=($edit && $page['Hidden'] ? 'checked' : null)?>>
-            <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+    <? if ($create || $pageID) :?>
+        <li>
+            <div>
+                <label for="menu_img_upload">Menu Link Image (Optional):</label>
+                <i class="help icon"><i class="fi fi-rs-interrogation"></i>
                 <article class="help-text">
-                    Hidden Pages will not display on the live site. 
-                    Additionally, hidden Pages will not display a link on the Automenu.
+                    If the settings are set to display the Automenu links as images, you can upload your page's link image here.
                 </article>
             </i>
+            </div>
+            <input type="file" id="menu_img_upload" name="menu_img_upload" value="<?(!isset($_POST['menu_img_upload']) ? null : show($_POST['menu_img_upload']))?>">
+            <?if (isset($page['Menu_Link_Img']) && $page['Menu_Link_Img']>''):?>
+                <ul class="sub-form-list">
+                    <li>
+                        <div id="menu-img-current">
+                            Current: <img class="visual" src="<?=$set['dir'].$page['Menu_Link_Img']?>">
+                            <div class="rvm-file-path-info invis">&#10060; File Removed</div>
+                        </div>
+                        <input type="hidden" id="rmv_menu_img" name="n_rmv_menu_img" value="0">
+                        <button type="button" class="small red" onclick="rmvFilePath(this, 'rmv_menu_img', 'menu-img-current', 1)">Remove Current Image</button>
+                    </li>
+                </ul>
+            <?endif;?>
+        </li>
+    <? endif;?>
+    <li>
+        <label for="hidden"><?=($pageID ? 'Hide this page:' : 'Hide new pages:')?></label>
+        <? if ($edit) : ?>
+            <input type="hidden" id="hidden" name="n_menu_hidden" value="<?show($page['Menu_Hidden'])?>">
+        <? endif?>
+        <input type="hidden" id="hidden" name="n_hidden" value="0">
+        <input type="checkbox" id="hidden" name="n_hidden" value="1" <?=($page['Hidden'] ? 'checked' : null)?>>
+        <i class="help icon"><i class="fi fi-rs-interrogation"></i>
+            <article class="help-text">
+                Hidden Pages will not display on the live site or display a link on the Automenu.
+            </article>
+        </i>
     </li>
 </ul>
 
-<? if ($edit && $page['Multi_Sect']) :?>
+<? if ($edit && $pageID && $page['Multi_Sect']) :?>
     <h2>Sections</h2>
     <p>Section order editing is available on multi-section pages only.</p>
     <ul class="form-list">

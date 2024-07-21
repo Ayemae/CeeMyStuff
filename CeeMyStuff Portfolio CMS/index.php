@@ -55,6 +55,12 @@ Route::add('/view/([0-9]*)',function($id){
     printPage(false, $id, 'item');
 },'get');
 
+// single section index displays
+Route::add('/section-index/([0-9]*)',function($id){
+    $id = cleanInt($id);
+    printPage(false, $id, 'section');
+},'get');
+
 // menu submenu index
 Route::add("/menu-submenu-index/(([^\/?]+)\/?$)",function($heading){
     printPage(false, $heading, 'submenu');

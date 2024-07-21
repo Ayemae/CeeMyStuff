@@ -30,16 +30,21 @@ if (isset($_GET['id'])) {
         include '_components/page-view.inc.php';
         break;
     case 'create' :
-        $create = true;
-        $edit = false;
-        $formatList = getFormatList('page');
-        include '_components/page-create-edit.inc.php';
-        break;
     case 'edit' :
-        $create = false;
-        $edit = true;
         $page = getPage($pageID);
-        $sectList = getPageSects($pageID);
+        if ($task=='create') {
+            $create = true;
+            $edit = false;
+        } else {
+            $create = false;
+            $edit = true;
+            $sectList = getPageSects($pageID);
+        }
+        if ($edit && ($page['Header_Img_Path'] ?? null)>'') {
+            $imgExists = true;
+        } else {
+            $imgExists =false;
+        }
         $formatList = getFormatList('page');
         include '_components/page-create-edit.inc.php';
         break;

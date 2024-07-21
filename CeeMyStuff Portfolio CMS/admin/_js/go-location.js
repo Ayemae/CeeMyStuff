@@ -1,8 +1,20 @@
-function goLocation (select, btnID, href) {
-    const target = document.getElementById(btnID);
+function goLocation (select, targetID, href) {
+    const target = document.getElementById(targetID);
     let value = select.value;
+    let destination = href+value;
     if (value != null && value != 'null' && value != undefined) {
-        target.href= href+value;
+        switch (target.nodeName) {
+            case 'BUTTON':
+                target.formAction= destination;
+                break;
+            case 'FORM':
+                target.action= destination;
+                break;
+            case 'A':
+            default:
+                target.href= destination;
+                break;
+        }
     }
 }
 

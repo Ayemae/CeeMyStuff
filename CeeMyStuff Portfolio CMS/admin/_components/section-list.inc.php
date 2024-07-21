@@ -18,7 +18,7 @@
                 <strong>
                     &nbsp;<?show($sect['Name']);?>
                 </strong> | <i class="fi fi-rs-file"></i> 
-                <?php if ($sect['Page_Name']>'') : ?>
+                <?php if ($sect['Page_ID']) : ?>
                     In '<a href="<?=$set['dir'].'/'.$sect['Link']?>" target="_blank" title="View on Site"><?show($sect['Page_Name']);?></a>'
                 <?php else: ?>
                     <i>Orphaned Section</i>

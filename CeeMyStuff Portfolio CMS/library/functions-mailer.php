@@ -529,6 +529,19 @@ function jsConsoleLog($input, $echoNow=true) {
     }
 }
 
+if (!file_exists(dirname(__FILE__).'/PHPMailer') || !is_dir(dirname(__FILE__).'/PHPMailer')) {
+    $usingPHPMailer = false;
+} else {
+    $usingPHPMailer = true;
+
+    use PHPMailer\PHPMailer\PHPMailer;
+    use PHPMailer\PHPMailer\Exception;
+
+    require 'PHPMailer/src/Exception.php';
+    require 'PHPMailer/src/PHPMailer.php';
+    require 'PHPMailer/src/SMTP.php';
+}
+
 //email headers for no-reply email
 $emailHeaders = 
             "MIME-Version: 1.0\r\n".
@@ -750,33 +763,6 @@ function pwCmp($pw1,$pw2,$hash=true){
     }
 }
 
-function logout() {
-    global $db; global $sessID;
-    $exec = array('result'=>null,'msg'=>null);
-    ob_start();
-    $conn = new SQLite3($db);
-    $qry= "UPDATE `Accounts` SET `Curr_Sess_ID`=null, `Curr_Sess_Key`=null WHERE `Curr_Sess_ID`=?;";
-    $stmt = $conn->prepare($qry);
-    $stmt->bindValue(1,$sessID,SQLITE3_TEXT);
-    $stmt->execute();
-    $_SESSION = array();
-    session_unset();
-    session_destroy();
-    session_write_close();
-    //setcookie(session_name(),'',0,'/');
-    ob_end_clean();
-    $msg = fdbkMsg(1,'See you next time!','Session Logged Out');
-    if (session_status()===PHP_SESSION_ACTIVE) {
-        $exec['result']=false;
-        $exec['msg']='Login session failed to close.';
-        return false;
-    } else if (session_status()===PHP_SESSION_NONE) {
-        $exec['result']=true;
-        $exec['msg']='Login session closed successfully.';
-        return true;
-    }
-}
-
 if (isset($_POST['create_cms_admin'])) {
     // formerly 'submit_credentials' or 'send_credentials'
     $msg= '';
@@ -898,7 +884,7 @@ function getCredentials($key) {
 function anointAccount($key=null) {
     global $db; global $set;
     $password=null;
-    if (session_status() === PHP_SESSION_ACTIVE) {
+    if (isset($_SESSION)) {
         logout();
     }
     if (is_null($key)) {
@@ -997,7 +983,7 @@ function validateEmail($key=null) {
 
 if (isset($_POST['verify_account'])) {
     $key = htmlspecialchars($_POST['key']);
-    if (session_status() === PHP_SESSION_ACTIVE) {
+    if (isset($_SESSION)) {
         logout();
     }
     if (anointAccount($key)) {
@@ -1100,11 +1086,12 @@ if (isset($_POST['send_password_reset'])) {
                 if ($confirmEmail) {
                     $msg .= "<p>An email with the link to reset your password has been sent. If it hasn't shown up after a few minutes, 
                     check your spam folder.<br/>
-                    You have 24 hours before your activation key for the new password expires (".timestampToDate($time).").</p>";
-                    //$testingActivation = ($testing ? PHP_EOL.'TESTING:'.PHP_EOL.$body : null);
+                    You have 24 hours before your activation key for the new password expires (".timestampToDate($time).").</p> ".($testing ? $email.PHP_EOL.$emailHeaders.PHP_EOL.$body : 'null test');
                     $msg=fdbkMsg(1,$msg,null,true);
                     return;
                 }
+                echoIfTesting($email.PHP_EOL.$emailHeaders.PHP_EOL.$body);
+                echo 'TESTING';
         } else {
             $msg = fdbkMsg(0,'Credential submission failed. Please try again.');
         }
@@ -1168,22 +1155,27 @@ if (isset($_POST['login'])) {
         $loginAttempts = intval($creds['Login_Attempts'] ?? 0);
         if (time()>$creds['Locked_Until'] && 
         ($email === $creds['Email'] && hash_equals($creds['Password'], $password))) {
-            if ($creds['Curr_Sess_ID'] || session_status()==PHP_SESSION_ACTIVE) {
-                if ($creds['Curr_Sess_ID']) {
-                    session_id($creds['Curr_Sess_ID']);
-                    session_start();
-                }
-                $msg.=logout()['msg'];
+            if (session_id()) {
+                session_commit();
             }
             session_start();
-            session_regenerate_id();
-            $sessID = session_id();
+            $sessID = session_create_id();
             $sessKey = hash("SHA256", $_SERVER['HTTP_USER_AGENT'].$sessID);
+            session_commit();
+            if ($creds['Curr_Sess_ID']) {
+                session_id($creds['Curr_Sess_ID']);
+                session_start();
+                session_destroy();
+                session_commit();
+            }
+            session_id($sessID);
+            session_start();
             $_SESSION['ID'] = $sessID;
             $_SESSION['Key'] = $sessKey;
             $_SESSION['UserID'] = $creds['ID'];
             $_SESSION['Username'] = $creds['Username'];
             $_SESSION['Permissions'] = $creds['Permissions'];
+            session_commit();
             
             //record new session 
             $updtQry= "UPDATE `Accounts` SET 
@@ -1200,13 +1192,8 @@ if (isset($_POST['login'])) {
             $stmt->bindValue(':time', $time, SQLITE3_INTEGER);
             $stmt->bindValue(':email', $email, SQLITE3_TEXT);
             if ($stmt->execute()) {
-                if (session_status()==PHP_SESSION_ACTIVE) {
-                    $msg .= 'Logged in!';
-                    $msg=fdbkMsg(1,$msg);
-                    $loginSuccess=true;
-                } else {
-                    $msg.=fdbkMsg(0,'Session recorded, but failed to persist. Please contact an admin.');
-                }
+                $msg .= 'Logged in!';
+                $loginSuccess=true;
                 return true;
             } else {
                 $msg .= 'Something went wrong when creating your session. Try again.';
@@ -1236,12 +1223,29 @@ if (isset($_POST['login'])) {
             $stmt->execute();
             
             $msg .= '<br/><a href="'.$set['dir'].'/admin/account-settings.php?task=pw-reset">Click here if you forgot your password.</a>';
-            $msg=fdbkMsg(0,$msg);
             return false;
         }
     } else {
         $msg = fdbkMsg(0,"Your email or password did not match.");
     }
+}
+
+function logout() {
+    global $db; global $sessID;
+    ob_start();
+    if(session_id() <= ''){
+        session_start();
+    }
+    $conn = new SQLite3($db);
+    $qry= "UPDATE `Accounts` SET `Curr_Sess_ID`=null, `Curr_Sess_Key`=null WHERE `Curr_Sess_ID`=?;";
+    $stmt = $conn->prepare($qry);
+    $stmt->bindValue(1,$sessID,SQLITE3_TEXT);
+    $stmt->execute();
+    $_SESSION = array();
+    session_unset();
+    session_destroy();
+    session_write_close();
+    //setcookie(session_name(),'',0,'/');
 }
 
 function getPage($page, $key="id", $tag=null){
@@ -1305,9 +1309,11 @@ function getPage($page, $key="id", $tag=null){
     }
 }
 
+
 function kickOut() {
     global $baseURL; global $testing; global $kickOut;
-    if ($testing && isset($kickOut) && $kickOut != false) {
+    if (($_SERVER['REQUEST_URI'] != $baseURL.'/admin/') && 
+    ($testing && isset($kickOut) && $kickOut != false)) {
         header('Location: '.$baseURL.'/admin/');
         // if header fails, do it with Javascript instead:
             echo '<script>window.location.replace("'.$baseURL.'/admin/")</script>';
@@ -1316,8 +1322,7 @@ function kickOut() {
 }
 
 if (isset($_POST['logout'])) {
-    $exec = logout();
-    $msg=$exec['msg'];
+    logout();
     kickOut();
 };
 

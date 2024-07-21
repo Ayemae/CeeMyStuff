@@ -60,8 +60,9 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Pages (
     Hidden INTEGER NOT NULL DEFAULT 0
 )');
 
-$conn->exec('INSERT INTO Pages (ID, Name, Link, Meta_Text)
+$conn->exec('INSERT INTO Pages (`ID`, `Name`, `Link`, `Meta_Text`)
     VALUES 
+    (0, "Page Setting Defaults", "home", ""),
     (1, "Home", "", "Portfolio homepage.");');
 
 $conn->exec('CREATE TABLE IF NOT EXISTS Sections (
@@ -81,7 +82,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Sections (
     Show_Item_Dates INTEGER NOT NULL DEFAULT 1,
     Show_Item_Text INTEGER NOT NULL DEFAULT 2,
     Show_Item_Files INTEGER NOT NULL DEFAULT 1,
-    Show_Item_Tags INTEGER NOT NULL DEFAULT 2,
+    Show_Item_Tags INTEGER NOT NULL DEFAULT 3,
     Truncate_Text_At INTEGER NOT NULL DEFAULT 140,
     Default_Item_Link_Text TEXT NOT NULL DEFAULT "View",
     Tag_List_Spacer TEXT DEFAULT ", ",
@@ -96,6 +97,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Sections (
     Thumb_Size INTEGER NOT NULL DEFAULT 125,
     Thumb_Size_Axis INTEGER NOT NULL DEFAULT 0,
     Format TEXT,
+    Index_Format TEXT,
     Default_Item_Format TEXT,
     View_Item_Format TEXT,
     Lightbox_Format TEXT,
@@ -141,6 +143,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Items (
     Img_Alt_Text TEXT DEFAULT NULL,
     File_Path TEXT DEFAULT NULL,
     File_Link_Text TEXT,
+    Show_File INTEGER,
     Embed_HTML TEXT DEFAULT NULL,
     Tags TEXT DEFAULT NULL,
     Item_Link_Text TEXT DEFAULT NULL,
@@ -207,7 +210,7 @@ $conn->exec('CREATE TABLE IF NOT EXISTS Automenu (
     Ext_Url TEXT DEFAULT NULL,
     Submenu INTEGER DEFAULT 0,
     Img_Path TEXT DEFAULT NULL,
-    Hidden INTEGER DEFAULT 0,
+    Hidden INTEGER DEFAULT 1,
     UNIQUE(Type_Code,Ref_ID)
 )');
 
